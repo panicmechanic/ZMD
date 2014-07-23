@@ -1636,8 +1636,6 @@ main_menu()
 
 
 	
-#FUCKIN' DONE.
-#
 #Done so far:
 #- Implemented singular boss system (will do for now)
 #- Implemented message_wait system for discoveries the player needs to pay attention to. Currently displays on second loop.
@@ -1649,7 +1647,6 @@ main_menu()
 #- Implemented space to continue after scroll messages
 #- Created see all map debug key
 #- Created special room function, but is not seperated from the map because v+h_tunnel does not check for intersection
-#
 #To do:
 #- Fix evasion
 #- Mouse over + right click describe feature
