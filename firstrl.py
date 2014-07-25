@@ -2,6 +2,7 @@ import libtcodpy as libtcod
 import math
 import textwrap
 import shelve
+import pdb
 
 #actual size of the window
 SCREEN_WIDTH = 130
@@ -733,7 +734,7 @@ def render_bar(x, y, total_width, name, value, maximum, bar_color, back_color):
 
 def get_names_under_mouse():
 	global mouse
-	
+
 	#return a string with the names of all objects under the mouse
 	(x, y) = (mouse.cx, mouse.cy)
 	
@@ -1230,6 +1231,7 @@ def eat_food(value):
 	#currently only allows for a fixed rate for one type of food
 	global hunger_level
 	#Lower their hunger level
+	
 	if hunger_level <= 40:
 		message('You are already full!', libtcod.white)
 		return 'cancelled'
@@ -1636,8 +1638,7 @@ main_menu()
 
 
 	
-#FUCKIN' DONE.
-#
+
 #Done so far:
 #- Implemented singular boss system (will do for now)
 #- Implemented message_wait system for discoveries the player needs to pay attention to. Currently displays on second loop.
