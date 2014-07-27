@@ -423,7 +423,7 @@ class Effect:
 		
 		self.is_active = False
 	
-	def add_effect(self): # If the effect has a name, add it to the fighter class's list of effects
+	def add_effect(Fighter): # If the effect has a name, add it to the fighter class's list of effects
 		if self.effect_name is not None:
 			self.effects.append(self.owner)
 	
@@ -496,7 +496,7 @@ def place_objects(room):
 	#chance of each item (by default they have a chance of 0 at level 1, which then goes up)
 	item_chances = {}
 	item_chances['heal'] = 15 #healing potion always shows up, even if all other items have 0 chance
-	item_chances['bread'] = 800 #bread always shows up, even if all other items have 0 chance
+	item_chances['bread'] = 8 #bread always shows up, even if all other items have 0 chance
 	item_chances['lightning'] = from_dungeon_level([[25, 4]])
 	item_chances['fireball'] = from_dungeon_level([[25, 6]])
 	item_chances['confuse'] = from_dungeon_level([[10, 2]])
@@ -1646,7 +1646,7 @@ main_menu()
 #- Implement hunger system! Food still buggy  so only one type right now.
 #- Implemented poison feature
 #- Implemented wait for space key feature
-#- Give monsters proper pathfinding. 
+#- Give monsters proper pathfinding.
 #- Implemented space to continue after scroll messages
 #- Created see all map debug key
 #- Created special room function, but is not seperated from the map because v+h_tunnel does not check for intersection
