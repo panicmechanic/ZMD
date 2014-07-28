@@ -1668,6 +1668,6 @@ main_menu()
 #- Add high score page at main menu based off total xp
 #- MOST MAJOR URGENT PROBLEM: Event class and how to implement it. Fuck me. What a nightmare. Maybe write a drawing to lay it out
 #- Figure out how to change the walls to objects with a char.
-#- Implement mouse pathfinding - click to move
+#- Implement mouse pathfinding - click to move.
 #- Figure out why pathfinding is not loading properly, probably a value isn't being saved.
 #- MAJOR: Turn system http://www.roguebasin.com/index.php?title=A_simple_turn_scheduling_system_--_Python_implementation
