@@ -506,7 +506,7 @@ def place_objects(room):
 	item_chances['brass sword'] = from_dungeon_level([[5, 3], [10, 4]]) 
 	item_chances['steel sword'] = from_dungeon_level([[2, 3], [10, 5]]) 
 	item_chances['wooden plate armor'] = from_dungeon_level([[2, 2], [15, 5]]) 
-	
+
 	#choose random number of monsters
 	num_monsters = libtcod.random_get_int(0, 0, max_monsters)
 	
@@ -517,7 +517,7 @@ def place_objects(room):
 		#choose random spot for this monster
 		x = libtcod.random_get_int(0, room.x1+1, room.x2-1)
 		y = libtcod.random_get_int(0, room.y1+1, room.y2-1)
-		
+
 		#only place it if a tile is not blocked
 		if not is_blocked(x, y):
 			choice = random_choice(monster_chances)
@@ -609,7 +609,7 @@ def place_objects(room):
 		#only place it if the tile is not blocked
 		if not is_blocked(x, y):
 			choice = random_choice(item_chances)
-			
+
 			if choice == 'heal':
 				#create a healing potion
 				item_component = Item(use_function=cast_heal)
@@ -1573,7 +1573,7 @@ def check_by_turn():
 		message('You are starving!', libtcod.light_red)
 		player.fighter.take_damage(1)
 	
-	#TODO: Create eventy class with poison function
+	#TODO: Create effects class with poison function
 	if player.fighter.poison >= 1 or POISON_COUNTDOWN >= 1:
 		#each instance of poison is 3 turns worth of damage
 		if player.fighter.poison >= 1:
@@ -1625,7 +1625,6 @@ def get_all_equipped(obj): #returns a list of equipped items
 	else:
 		return [] #TODO: other objects have no equipment, but if you gave them a simpler inventory system (no need for menu) they could drop equipped items, and have random ones spawn.
 		
-	
 ##############################
 #INITIALISATION AND MAIN LOOP#		
 ##############################	
@@ -1660,7 +1659,7 @@ main_menu()
 #- Need to create decorative item class, could do cool stuff
 #- MAJOR: Create new map() functions for different terrain types
 #- MAJOR: Add attack types (slash, stab, crush, etc.)  for weapon classes.
-#- MAJOR: Add conversation system for events
+#- MAJOR: Add conversation system for effects
 #- MAJOR URGENT: Add an effect class that can be applied to monsters in the same way equipment class was made.
 #- MAJOR URGENT NEXT ISSUE: Maybe also implement scent tracking as well - http://codeumbra.eu/complete-roguelike-tutorial-using-c-and-libtcod-extra-3-scent-tracking
 #- MAJOR URGENT NEXT ISSUE: Levels 1-4 are the same, add more monsters and items to help you deal with the new monsters. It can't be one wooden shield and sword for 4 levels.
