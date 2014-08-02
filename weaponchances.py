@@ -1,5 +1,6 @@
 import libtcodpy as libtcod
 
+item_chances = {}
 
 # ##Classes copied from firstrl.py as necessary###
 
@@ -21,7 +22,7 @@ def random_choice_index(chances):  #choose one option from list of chances, retu
 	for w in chances:
 		running_sum += w
 
-		#see if the dice landed in the part thaty corresponds to this choice
+		#see if the dice landed in the part that corresponds to this choice
 		if dice <= running_sum:
 			return choice
 		choice += 1
@@ -30,6 +31,7 @@ def random_choice_index(chances):  #choose one option from list of chances, retu
 def random_choice(chances_dict):
 	chances = chances_dict.values()  #Pull the integer value of a dict entry (80, 20, 10 etc.)
 	strings = chances_dict.keys()  #Pull the string name of a dict entry (Dog/Snake etc)
+
 	return strings[random_choice_index(chances)]  #return names[random function(specific value)]
 
 
@@ -98,7 +100,7 @@ def add_food_and_scrolls(x, y):
 
 def random_item():  #all item chance totals for a subtype will be self contained
 	rand_type = libtcod.random_get_int(0, 0, 5)  # Item types, starts at 0, weapons
-	item_chances = {}
+
 	if rand_type == 0:  # Spawn a weapon
 		#WEAPON CHANCES - Will have to be called each time for i in range
 		rand_weapon_type = libtcod.random_get_int(0, 0, 2)  # Weapon types, starts at 0, Swords,
@@ -114,6 +116,7 @@ def random_item():  #all item chance totals for a subtype will be self contained
 
 		if rand_weapon_type == 1:  # Axes
 
+			item_chances['nothing'] = 1
 			item_chances['bronze axe'] = from_dungeon_level([[5, 3], [10, 4]])
 			item_chances['rusty steel axe'] = from_dungeon_level([[1, 3], [3, 5], [30, 6]])
 			item_chances['steel axe'] = from_dungeon_level([[1, 3], [20, 5]])
@@ -122,6 +125,8 @@ def random_item():  #all item chance totals for a subtype will be self contained
 			item_chances['godsbane axe'] = from_dungeon_level([[1, 10], [1.5, 14]])
 
 		if rand_weapon_type == 2:  # War Hammers
+
+			item_chances['nothing'] = 1
 			item_chances['stone war hammer'] = from_dungeon_level([[5, 1], [60, 2]])
 			item_chances['bronze war hammer'] = from_dungeon_level([[5, 3], [10, 4]])
 			item_chances['pig iron war hammer'] = from_dungeon_level([[1, 3], [3, 5]])
@@ -135,6 +140,7 @@ def random_item():  #all item chance totals for a subtype will be self contained
 		rand_armor_type = libtcod.random_get_int(0, 0, 2)  # Armor types, starts at 0, gauntlets
 		if rand_armor_type == 0:  # gauntlets
 
+			item_chances['nothing'] = 1
 			item_chances['silk gauntlets'] = from_dungeon_level([[5, 1], [40, 2]])
 			item_chances['wooden gauntlets'] = from_dungeon_level([[5, 3], [10, 4]])
 			item_chances['bronze gauntlets'] = from_dungeon_level([[1, 3], [30, 5]])
@@ -144,17 +150,19 @@ def random_item():  #all item chance totals for a subtype will be self contained
 			item_chances['Divine gauntlets'] = from_dungeon_level([[.10, 10], [.5, 18]])
 
 		if rand_armor_type == 1:  # body armor
-			item_chances['nothing'] = [20]  #Gives a chance to spawn nothing
+
+			item_chances['nothing'] = 20  #Gives a chance to spawn nothing
 			item_chances['wooden ring mail'] = from_dungeon_level([[5, 1], [30, 2]])
 			item_chances['bronze ring mail'] = from_dungeon_level([[5, 3], [20, 4]])
 			item_chances['steel ring mail'] = from_dungeon_level([[1, 3], [5, 5]])
 			item_chances['steel plate armor'] = from_dungeon_level([[1, 3], [10, 5]])
 			item_chances['obsidian plate armor'] = from_dungeon_level([[5, 5], [10, 8]])
-			item_chances['unobtanium plate armor'] = from_dungeon_level([[.1, 10], [2, 12]])
+			item_chances['unobtanium plate armor'] = from_dungeon_level([[0.1, 10], [2, 12]])
 			item_chances['hercules armor'] = from_dungeon_level([[0.10, 10], [0.50, 14]])
 
 		if rand_armor_type == 2:  # helmets
-			item_chances['wooden helmet'] = from_dungeon_level([[5, 1], [10, 2]])
+
+			item_chances['nothing'] = 1
 			item_chances['bronze helmet'] = from_dungeon_level([[5, 3], [10, 4]])
 			item_chances['rusty steel helmet'] = from_dungeon_level([[1, 3], [3, 5]])
 			item_chances['steel helmet'] = from_dungeon_level([[1, 3], [10, 5]])
@@ -187,7 +195,7 @@ def random_item():  #all item chance totals for a subtype will be self contained
 
 		if rand_item_type == 1:  # boots
 
-			item_chances['nothing'] = 150
+			item_chances['nothing'] = from_dungeon_level([[150, 1]])
 			item_chances['silk boots of health'] = from_dungeon_level([[1, 1], [2, 2]])
 			item_chances['bronze boots of strength'] = from_dungeon_level([[1, 4], [1.5, 6]])
 			item_chances['steel boots of health'] = from_dungeon_level([[0.5, 4], [1, 6]])
@@ -356,22 +364,23 @@ def create_item(x, y):
 	##BODY ARMOR##
 
 	elif choice == 'nothing':  #Allows a possibility to spawn nothing
-		item = item = Object(x, y, chr(1), 'nothing', libtcod.darker_orange, equipment=None, item=None,
+		item = item = Object(x, y, chr(0), 'nothing', libtcod.darker_orange, equipment=None, item=None,
 							 always_visible=False)
 
 	elif choice == 'wooden ring mail':
 		equipment_component = Equipment(slot='body', defense_bonus=2)
-		item = Object(x, y, chr(2), 'Wooden ring mail', libtcod.darker_orange, equipment=equipment_component, item=None,
+		item = Object(x, y, chr(21), 'Wooden ring mail', libtcod.darker_orange, equipment=equipment_component,
+					  item=None,
 					  always_visible=True)
 
 	elif choice == 'bronze ring mail':
 		equipment_component = Equipment(slot='body', defense_bonus=4)
-		item = Object(x, y, chr(22), 'Bronze ring mail', libtcod.orange, equipment=equipment_component, item=None,
+		item = Object(x, y, chr(21), 'Bronze ring mail', libtcod.orange, equipment=equipment_component, item=None,
 					  always_visible=True)
 
 	elif choice == 'steel ring mail':
 		equipment_component = Equipment(slot='body', defense_bonus=8)
-		item = Object(x, y, chr(22), 'Steel ring mail', libtcod.silver, equipment=equipment_component, item=None,
+		item = Object(x, y, chr(21), 'Steel ring mail', libtcod.silver, equipment=equipment_component, item=None,
 					  always_visible=True)
 
 	elif choice == 'steel plate armor':
@@ -469,3 +478,5 @@ def create_item(x, y):
 	objects.append(item)
 	item.send_to_back()
 
+	# TODO: item_chances must be reset to empty each time the function is run
+	#TODO: Figure out why it occassionally leaves the item_chances dict empty, maybe the 0, 5 first if statement in create_items
