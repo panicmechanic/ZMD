@@ -108,21 +108,21 @@ def random_item():  #all item chance totals for a subtype will be self contained
 		if rand_weapon_type == 0:  # Swords
 			item_chances['wooden sword'] = from_dungeon_level([[5, 1], [10, 2]])
 			item_chances['brass sword'] = from_dungeon_level([[5, 3], [10, 4]])
-			item_chances['steel sword'] = from_dungeon_level([[1, 3], [10, 5]])
-			item_chances['golden sword'] = from_dungeon_level([[5, 5], [10, 8]])
-			item_chances['demon sword'] = from_dungeon_level([[1, 8], [2, 10]])
-			item_chances['ares sword'] = from_dungeon_level([[1, 10], [2, 12]])
-			item_chances['healing sword'] = from_dungeon_level([[1, 10], [1.5, 14]])
+			item_chances['steel sword'] = from_dungeon_level([[1, 3], [15, 5]])
+			item_chances['golden sword'] = from_dungeon_level([[5, 5], [12, 8]])
+			item_chances['demon sword'] = from_dungeon_level([[1, 8], [4, 10]])
+			item_chances['ares sword'] = from_dungeon_level([[1, 10], [4, 12]])
+			item_chances['healing sword'] = from_dungeon_level([[1, 10], [2, 14]])
 
 		if rand_weapon_type == 1:  # Axes
 
-			item_chances['nothing'] = 1
+			item_chances['nothing'] = 10
 			item_chances['bronze axe'] = from_dungeon_level([[5, 3], [10, 4]])
 			item_chances['rusty steel axe'] = from_dungeon_level([[1, 3], [3, 5], [30, 6]])
 			item_chances['steel axe'] = from_dungeon_level([[1, 3], [20, 5]])
 			item_chances['diamond axe'] = from_dungeon_level([[5, 5], [10, 8]])
-			item_chances['ares axe'] = from_dungeon_level([[1, 10], [2, 12]])
-			item_chances['godsbane axe'] = from_dungeon_level([[1, 10], [1.5, 14]])
+			item_chances['ares axe'] = from_dungeon_level([[1, 10], [4, 12]])
+			item_chances['godsbane axe'] = from_dungeon_level([[1, 10], [2, 14]])
 
 		if rand_weapon_type == 2:  # War Hammers
 
@@ -132,12 +132,12 @@ def random_item():  #all item chance totals for a subtype will be self contained
 			item_chances['pig iron war hammer'] = from_dungeon_level([[1, 3], [3, 5]])
 			item_chances['steel war hammer'] = from_dungeon_level([[1, 3], [10, 5]])
 			item_chances['obsidian war hammer'] = from_dungeon_level([[5, 5], [10, 8]])
-			item_chances['unobtanium war hammer'] = from_dungeon_level([[1, 10], [2, 12]])
-			item_chances['godsbane war hammer'] = from_dungeon_level([[0.1, 10], [0.5, 14]])
+			item_chances['unobtanium war hammer'] = from_dungeon_level([[1, 10], [4, 12]])
+			item_chances['godsbane war hammer'] = from_dungeon_level([[1, 10], [2, 14]])
 
 	if rand_type == 1:  # Spawn a piece of armor
 		#ARMOR CHANCES - Will have to be called each time for i in range
-		rand_armor_type = libtcod.random_get_int(0, 0, 2)  # Armor types, starts at 0, gauntlets
+		rand_armor_type = libtcod.random_get_int(0, 0, 1)  # Armor types, starts at 0, gauntlets
 		if rand_armor_type == 0:  # gauntlets
 
 			item_chances['nothing'] = 1
@@ -145,9 +145,9 @@ def random_item():  #all item chance totals for a subtype will be self contained
 			item_chances['wooden gauntlets'] = from_dungeon_level([[5, 3], [10, 4]])
 			item_chances['bronze gauntlets'] = from_dungeon_level([[1, 3], [30, 5]])
 			item_chances['iron gauntlets'] = from_dungeon_level([[5, 5], [10, 8]])
-			item_chances['steel gauntlets'] = from_dungeon_level([[1, 8], [2, 10]])
-			item_chances['obsidian gauntlets'] = from_dungeon_level([[1, 10], [2, 12]])
-			item_chances['Divine gauntlets'] = from_dungeon_level([[.10, 10], [.5, 18]])
+			item_chances['steel gauntlets'] = from_dungeon_level([[1, 8], [5, 10]])
+			item_chances['obsidian gauntlets'] = from_dungeon_level([[1, 10], [4, 12]])
+			item_chances['Divine gauntlets'] = from_dungeon_level([[1, 10], [2, 18]])
 
 		if rand_armor_type == 1:  # body armor
 
@@ -157,19 +157,10 @@ def random_item():  #all item chance totals for a subtype will be self contained
 			item_chances['steel ring mail'] = from_dungeon_level([[1, 3], [5, 5]])
 			item_chances['steel plate armor'] = from_dungeon_level([[1, 3], [10, 5]])
 			item_chances['obsidian plate armor'] = from_dungeon_level([[5, 5], [10, 8]])
-			item_chances['unobtanium plate armor'] = from_dungeon_level([[0.1, 10], [2, 12]])
-			item_chances['hercules armor'] = from_dungeon_level([[0.10, 10], [0.50, 14]])
+			item_chances['unobtanium plate armor'] = from_dungeon_level([[0.1, 10], [4, 12]])
+			item_chances['hercules armor'] = from_dungeon_level([[1, 10], [2, 14]])
 
-		if rand_armor_type == 2:  # helmets
 
-			item_chances['nothing'] = 1
-			item_chances['bronze helmet'] = from_dungeon_level([[5, 3], [10, 4]])
-			item_chances['rusty steel helmet'] = from_dungeon_level([[1, 3], [3, 5]])
-			item_chances['steel helmet'] = from_dungeon_level([[1, 3], [10, 5]])
-			item_chances['diamond helmet'] = from_dungeon_level([[5, 5], [10, 8]])
-			item_chances['obsidian helmet'] = from_dungeon_level([[1, 8], [2, 10]])
-			item_chances['hermes helmet'] = from_dungeon_level([[1, 10], [2, 12]])
-			item_chances['hades helmet'] = from_dungeon_level([[1, 10], [1.5, 14]])
 
 	if rand_type == 2:  # Spawn a wearable item
 		#W/Item CHANCES - Will have to be called each time for i in range
@@ -186,20 +177,20 @@ def random_item():  #all item chance totals for a subtype will be self contained
 			item_chances['golden ring of health'] = from_dungeon_level([[3, 8], [6, 12]])
 			item_chances['golden ring of strength'] = from_dungeon_level([[3, 8], [6, 12]])
 			item_chances['golden ring of defense'] = from_dungeon_level([[3, 8], [6, 12]])
-			item_chances['diamond ring of health'] = from_dungeon_level([[1.5, 12], [3, 15]])
-			item_chances['diamond ring of strength'] = from_dungeon_level([[1.5, 12], [3, 15]])
-			item_chances['diamond ring of defense'] = from_dungeon_level([[1.5, 12], [3, 15]])
-			item_chances['glowing ring of health'] = from_dungeon_level([[0.5, 15]])
-			item_chances['glowing ring of strength'] = from_dungeon_level([[0.5, 15]])
-			item_chances['glowing ring of defense'] = from_dungeon_level([[0.5, 15]])
+			item_chances['diamond ring of health'] = from_dungeon_level([[1, 12], [3, 15]])
+			item_chances['diamond ring of strength'] = from_dungeon_level([[1, 12], [3, 15]])
+			item_chances['diamond ring of defense'] = from_dungeon_level([[1, 12], [3, 15]])
+			item_chances['glowing ring of health'] = from_dungeon_level([[1, 15]])
+			item_chances['glowing ring of strength'] = from_dungeon_level([[1, 15]])
+			item_chances['glowing ring of defense'] = from_dungeon_level([[1, 15]])
 
 		if rand_item_type == 1:  # boots
 
 			item_chances['nothing'] = 90
-			item_chances['silk boots of health'] = from_dungeon_level([[1, 1], [2, 2]])
-			item_chances['bronze boots of strength'] = from_dungeon_level([[1, 4], [1.5, 6]])
-			item_chances['steel boots of health'] = from_dungeon_level([[0.5, 4], [1, 6]])
-			item_chances['obsidian boots of defense'] = from_dungeon_level([[0.25, 6]])
+			item_chances['silk boots of health'] = from_dungeon_level([[1, 1], [5, 2]])
+			item_chances['bronze boots of strength'] = from_dungeon_level([[1, 4], [5, 6]])
+			item_chances['steel boots of health'] = from_dungeon_level([[1, 4], [2, 6]])
+			item_chances['obsidian boots of defense'] = from_dungeon_level([[1, 6]])
 
 	return item_chances
 
@@ -368,8 +359,7 @@ def create_item(x, y):
 	elif choice == 'wooden ring mail':
 		equipment_component = Equipment(slot='body', defense_bonus=2)
 		item = Object(x, y, chr(21), 'Wooden ring mail', libtcod.darker_orange, equipment=equipment_component,
-					  item=None,
-					  always_visible=True)
+					  item=None, always_visible=True)
 
 	elif choice == 'bronze ring mail':
 		equipment_component = Equipment(slot='body', defense_bonus=4)
@@ -501,5 +491,4 @@ def create_item(x, y):
 	item.send_to_back()
 
 
-	# TODO: item_chances must be reset to empty each time the function is run
-	#TODO: Figure out why it occassionally leaves the item_chances dict empty, maybe the 0, 5 first if statement in create_items
+# TODO: implement food and scrolls rolling, and add more items

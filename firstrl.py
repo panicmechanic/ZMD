@@ -1269,7 +1269,7 @@ def new_game():
 	game_msgs = []
 	inventory = []
 	player_effects = []
-	dungeon_level = 1
+	dungeon_level = 15
 	#counts turns up to 5 then resets
 	turn_increment = 0
 	#The number of sets of 5 turns that have occured, and been reset
