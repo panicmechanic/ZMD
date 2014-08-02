@@ -68,7 +68,7 @@ POISON_DURATION = 0
 color_dark_wall = libtcod.Color(120, 90, 55)
 color_light_wall = libtcod.Color(150, 120, 85)
 color_dark_ground = libtcod.Color(110, 110, 110)
-color_light_ground = libtcod.Color(130, 130, 130)
+color_light_ground = libtcod.Color(150, 150, 150)
 
 class Tile:
 	# a tile of the map, and its properties

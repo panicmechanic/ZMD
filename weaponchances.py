@@ -1,6 +1,6 @@
 import libtcodpy as libtcod
 
-item_chances = {}
+
 
 # ##Classes copied from firstrl.py as necessary###
 
@@ -99,8 +99,8 @@ def add_food_and_scrolls(x, y):
 
 
 def random_item():  #all item chance totals for a subtype will be self contained
-	rand_type = libtcod.random_get_int(0, 0, 5)  # Item types, starts at 0, weapons
-
+	rand_type = libtcod.random_get_int(0, 0, 2)  # Item types, starts at 0, weapons
+	item_chances = {}
 	if rand_type == 0:  # Spawn a weapon
 		#WEAPON CHANCES - Will have to be called each time for i in range
 		rand_weapon_type = libtcod.random_get_int(0, 0, 2)  # Weapon types, starts at 0, Swords,
@@ -195,13 +195,11 @@ def random_item():  #all item chance totals for a subtype will be self contained
 
 		if rand_item_type == 1:  # boots
 
-			item_chances['nothing'] = from_dungeon_level([[150, 1]])
+			item_chances['nothing'] = 90
 			item_chances['silk boots of health'] = from_dungeon_level([[1, 1], [2, 2]])
 			item_chances['bronze boots of strength'] = from_dungeon_level([[1, 4], [1.5, 6]])
 			item_chances['steel boots of health'] = from_dungeon_level([[0.5, 4], [1, 6]])
 			item_chances['obsidian boots of defense'] = from_dungeon_level([[0.25, 6]])
-			#item_chances['hermes boots'] = from_dungeon_level([[1, 10], [2, 12]])#Needs to increase player speed, with tick system
-			item_chances['void boots of defense'] = from_dungeon_level([[0.10, 10], [0.15, 14]])
 
 	return item_chances
 
@@ -287,7 +285,7 @@ def create_item(x, y):
 
 	elif choice == 'stone war hammer':
 		equipment_component = Equipment(slot='left hand', power_bonus=5)
-		item = Object(x, y, chr(25), 'Stone war hammer', libtcod.grey, equipment=equipment_component, item=None,
+		item = Object(x, y, chr(25), 'Stone war hammer', libtcod.darker_grey, equipment=equipment_component, item=None,
 					  always_visible=True)
 
 	elif choice == 'bronze war hammer':
@@ -475,8 +473,33 @@ def create_item(x, y):
 		item = Object(x, y, chr(249), 'Diamond ring of defense', libtcod.yellow, equipment=equipment_component,
 					  item=None, always_visible=True)
 
+	# #BOOTS##
+
+	elif choice == 'silk boots of health':
+		equipment_component = Equipment(slot='feet', max_hp_bonus=10)
+		item = Object(x, y, chr(29), 'Silk boots of health', libtcod.darker_magenta, equipment=equipment_component,
+					  item=None, always_visible=True)
+
+	elif choice == 'bronze boots of strength':
+		equipment_component = Equipment(slot='feet', power_bonus=2)
+		item = Object(x, y, chr(29), 'Silk boots of health', libtcod.orange, equipment=equipment_component, item=None,
+					  always_visible=True)
+
+	elif choice == 'steel boots of health':
+		equipment_component = Equipment(slot='feet', max_hp_bonus=20)
+		item = Object(x, y, chr(29), 'Steel boots of health', libtcod.silver, equipment=equipment_component, item=None,
+					  always_visible=True)
+
+	elif choice == 'obsidian boots of defense':
+		equipment_component = Equipment(slot='feet', defense_bonus=10)
+		item = Object(x, y, chr(29), 'Silk boots of health', libtcod.black, equipment=equipment_component, item=None,
+					  always_visible=True)
+
+
+
 	objects.append(item)
 	item.send_to_back()
+
 
 	# TODO: item_chances must be reset to empty each time the function is run
 	#TODO: Figure out why it occassionally leaves the item_chances dict empty, maybe the 0, 5 first if statement in create_items
