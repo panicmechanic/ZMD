@@ -596,15 +596,34 @@ def place_objects(room):
 		x = libtcod.random_get_int(0, room.x1+1, room.x2-1)
 		y = libtcod.random_get_int(0, room.y1+1, room.y2-1)
 
-
-		#only place it if the tile is not blocked
+		# Set weaponchances functions and variables to work
 		weaponchances.dungeon_level = dungeon_level
 		weaponchances.objects = objects
 		weaponchances.Equipment = Equipment
 		weaponchances.Object = Object
+		weaponchances.Item = Item
+		weaponchances.eat_food = eat_food
+		weaponchances.cast_heal = cast_heal
+		weaponchances.cast_lightning = cast_lightning
+		weaponchances.cast_confuse = cast_confuse
+		weaponchances.cast_fireball = cast_fireball
+
+		if not is_blocked(x, y):
+		#only place it if the tile is not blocked
 
 		weaponchances.create_item(x, y)
 
+		# Roll new coordinates for food+scrolls
+		x_roll = libtcod.random_get_int(0, -1, 1)
+		y_roll = libtcod.random_get_int(0, -1, 1)
+		x1 = x
+		y1 = y
+		x = x1 + x_roll
+		y = y1 + y_roll
+		if not is_blocked(x, y):
+			weaponchances.add_food_and_scrolls(x, y)
+
+		add_bones(x, y)
 
 def place_special_rooms():#TODO: Redo the dungeon generation to allow for special rooms, or ensure v_tun and h_tun will not intersect special room
 	global map, objects, stairs, dungeon_level, rooms
@@ -1100,6 +1119,12 @@ def handle_keys():
 				for y in range(MAP_HEIGHT):
 					for x in range(MAP_WIDTH):
 						map[x][y].explored = True
+
+			# debug
+			if key_char == '@':
+				player.fighter.max_hp = 10000
+				player.fighter.defense = 10000
+				player.fighter.power = 10000
 			
 			if key_char == 'd':
 				#show the inventory; if an item is selected, drop it.
@@ -1269,7 +1294,7 @@ def new_game():
 	game_msgs = []
 	inventory = []
 	player_effects = []
-	dungeon_level = 15
+	dungeon_level = 25
 	#counts turns up to 5 then resets
 	turn_increment = 0
 	#The number of sets of 5 turns that have occured, and been reset
@@ -1287,7 +1312,7 @@ def new_game():
 	message('Zeus has killed Great Alexander in a fit of jealousy! He flees to the top of Mt. Olympus, give chase, and claim your retribution!', libtcod.red)
 
 	#initial equipment: a dagger
-	equipment_component = Equipment(slot='right hand', power_bonus=2)
+	equipment_component = Equipment(slot='left hand', power_bonus=2)
 	obj = Object(0, 0, '-', 'wooden dagger', libtcod.darkest_orange, equipment=equipment_component)
 	inventory.append(obj)
 	equipment_component.equip()
@@ -1550,6 +1575,31 @@ def get_all_equipped(obj): #returns a list of equipped items
 		return equipped_list
 	else:
 		return [] #TODO: other objects have no equipment, but if you gave them a simpler inventory system (no need for menu) they could drop equipped items, and have random ones spawn.
+
+
+def add_bones(x, y):
+	roll = libtcod.random_get_int(0, 0, 10)
+	if roll >= 4:
+		if not is_blocked(x, y):
+			# create bones
+			item_component = Item(use_function=None)
+			item = Object(x, y, '%', 'Pile of bones', libtcod.lightest_grey, item=item_component, always_visible=False)
+			num_bones = libtcod.random_get_int(0, 0, 5)
+			for i in range(num_bones):
+				#choose random spot for bones
+				x = libtcod.random_get_int(0, item.x + 2, item.x - 2)
+				y = libtcod.random_get_int(0, item.y + 2, item.y - 2)
+				if not is_blocked(x, y):
+					#create other bones
+					item_component = Item(use_function=None)
+					xbones = Object(x, y, '%', 'Pile of bones', libtcod.lightest_grey, item=item_component,
+									always_visible=False)
+					#append the bones
+					objects.append(xbones)
+					xbones.send_to_back()
+
+			objects.append(item)
+			item.send_to_back()
 
 ##############################
 #INITIALISATION AND MAIN LOOP#		

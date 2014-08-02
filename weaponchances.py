@@ -37,14 +37,16 @@ def random_choice(chances_dict):
 
 ###Finished with firstrl.py classes###
 
+
+
 def add_food_and_scrolls(x, y):
 	item_chances = {}
-	item_chances['heal'] = 15  #healing potion always shows up, even if all other items have 0 chance
+	item_chances['nothing'] = 50
+	item_chances['heal'] = 15
 	item_chances['bread'] = 8  #bread always shows up, even if all other items have 0 chance
 	item_chances['lightning'] = from_dungeon_level([[25, 4]])
 	item_chances['fireball'] = from_dungeon_level([[25, 6]])
 	item_chances['confuse'] = from_dungeon_level([[10, 2]])
-	item_chances['bones'] = from_dungeon_level([[70, 1]])
 
 	choice = random_choice(item_chances)
 
@@ -52,6 +54,10 @@ def add_food_and_scrolls(x, y):
 		#create a healing potion
 		item_component = Item(use_function=cast_heal)
 		item = Object(x, y, chr(173), 'healing potion', libtcod.dark_green, item=item_component, always_visible=True)
+
+	elif choice == 'nothing':  # Allows a possibility to spawn nothing
+		item = item = Object(x, y, chr(0), 'nothing', libtcod.darker_orange, equipment=None, item=None,
+							 always_visible=False)
 
 	elif choice == 'lightning':
 		#create a lightning bolts scroll (15% chance)
@@ -75,23 +81,6 @@ def add_food_and_scrolls(x, y):
 		item_component = Item(use_function=(eat_food(200)))
 		item = Object(x, y, 'x', 'piece of bread', libtcod.darkest_red, item=item_component, always_visible=True)
 
-	elif choice == 'bones':  #TODO: Need to create decorative item class, could do cool stuff, also make dead obdies appear over obnes
-		#create bones
-		item_component = Item(use_function=None)
-		item = Object(x, y, '%', 'Pile of bones', libtcod.lightest_grey, item=item_component, always_visible=False)
-		num_bones = libtcod.random_get_int(0, 0, 5)
-		for i in range(num_bones):
-			#choose random spot for bones
-			x = libtcod.random_get_int(0, item.x + 2, item.x - 2)
-			y = libtcod.random_get_int(0, item.y + 2, item.y - 2)
-			if not is_blocked(x, y):
-				#create other bones
-				item_component = Item(use_function=None)
-				xbones = Object(x, y, '%', 'Pile of bones', libtcod.lightest_grey, item=item_component,
-								always_visible=False)
-				#append the bones
-				objects.append(xbones)
-				xbones.send_to_back()
 
 	objects.append(item)
 
@@ -140,7 +129,7 @@ def random_item():  #all item chance totals for a subtype will be self contained
 		rand_armor_type = libtcod.random_get_int(0, 0, 1)  # Armor types, starts at 0, gauntlets
 		if rand_armor_type == 0:  # gauntlets
 
-			item_chances['nothing'] = 1
+			item_chances['nothing'] = 90
 			item_chances['silk gauntlets'] = from_dungeon_level([[5, 1], [40, 2]])
 			item_chances['wooden gauntlets'] = from_dungeon_level([[5, 3], [10, 4]])
 			item_chances['bronze gauntlets'] = from_dungeon_level([[1, 3], [30, 5]])
@@ -186,14 +175,14 @@ def random_item():  #all item chance totals for a subtype will be self contained
 
 		if rand_item_type == 1:  # boots
 
-			item_chances['nothing'] = 90
+			item_chances['nothing'] = 40
 			item_chances['silk boots of health'] = from_dungeon_level([[1, 1], [5, 2]])
 			item_chances['bronze boots of strength'] = from_dungeon_level([[1, 4], [5, 6]])
 			item_chances['steel boots of health'] = from_dungeon_level([[1, 4], [2, 6]])
 			item_chances['obsidian boots of defense'] = from_dungeon_level([[1, 6]])
 
 	return item_chances
-
+	item_chances = {}
 
 def create_item(x, y):
 	item_chances = random_item()
@@ -239,37 +228,37 @@ def create_item(x, y):
 
 	elif choice == 'wooden axe':
 		equipment_component = Equipment(slot='left hand', power_bonus=2)
-		item = Object(x, y, chr(245), 'Wooden axe', libtcod.darker_orange, equipment=equipment_component, item=None,
+		item = Object(x, y, chr(244), 'Wooden axe', libtcod.darker_orange, equipment=equipment_component, item=None,
 					  always_visible=True)
 
 	elif choice == 'bronze axe':
 		equipment_component = Equipment(slot='left hand', power_bonus=4)
-		item = Object(x, y, chr(245), 'Bronze axe', libtcod.orange, equipment=equipment_component, item=None,
+		item = Object(x, y, chr(244), 'Bronze axe', libtcod.orange, equipment=equipment_component, item=None,
 					  always_visible=True)
 
 	elif choice == 'rusty steel axe':
 		equipment_component = Equipment(slot='left hand', power_bonus=5)
-		item = Object(x, y, chr(245), 'Rusty steel axe', libtcod.darkest_orange, equipment=equipment_component,
+		item = Object(x, y, chr(244), 'Rusty steel axe', libtcod.darkest_orange, equipment=equipment_component,
 					  item=None, always_visible=True)
 
 	elif choice == 'steel axe':
 		equipment_component = Equipment(slot='left hand', power_bonus=6)
-		item = Object(x, y, chr(245), 'Steel axe', libtcod.silver, equipment=equipment_component, item=None,
+		item = Object(x, y, chr(244), 'Steel axe', libtcod.silver, equipment=equipment_component, item=None,
 					  always_visible=True)
 
 	elif choice == 'diamond axe':
 		equipment_component = Equipment(slot='left hand', power_bonus=10)
-		item = Object(x, y, chr(245), 'Diamond axe', libtcod.light_blue, equipment=equipment_component, item=None,
+		item = Object(x, y, chr(244), 'Diamond axe', libtcod.light_blue, equipment=equipment_component, item=None,
 					  always_visible=True)
 
 	elif choice == 'ares axe':
 		equipment_component = Equipment(slot='left hand', power_bonus=25)
-		item = Object(x, y, chr(245), 'Ares axe', libtcod.gold, equipment=equipment_component, item=None,
+		item = Object(x, y, chr(244), 'Ares axe', libtcod.gold, equipment=equipment_component, item=None,
 					  always_visible=True)
 
 	elif choice == 'godsbane axe':
 		equipment_component = Equipment(slot='left hand', power_bonus=35)
-		item = Object(x, y, chr(245), 'Godsbaneaxe', libtcod.light_blue, equipment=equipment_component, item=None,
+		item = Object(x, y, chr(244), 'Godsbaneaxe', libtcod.light_blue, equipment=equipment_component, item=None,
 					  always_visible=True)
 
 		##WAR HAMMERS##
@@ -467,28 +456,30 @@ def create_item(x, y):
 
 	elif choice == 'silk boots of health':
 		equipment_component = Equipment(slot='feet', max_hp_bonus=10)
-		item = Object(x, y, chr(29), 'Silk boots of health', libtcod.darker_magenta, equipment=equipment_component,
+		item = Object(x, y, chr(28), 'Silk boots of health', libtcod.darker_magenta, equipment=equipment_component,
 					  item=None, always_visible=True)
 
 	elif choice == 'bronze boots of strength':
 		equipment_component = Equipment(slot='feet', power_bonus=2)
-		item = Object(x, y, chr(29), 'Silk boots of health', libtcod.orange, equipment=equipment_component, item=None,
+		item = Object(x, y, chr(28), 'Bronze boots of strength', libtcod.orange, equipment=equipment_component,
+					  item=None,
 					  always_visible=True)
 
 	elif choice == 'steel boots of health':
 		equipment_component = Equipment(slot='feet', max_hp_bonus=20)
-		item = Object(x, y, chr(29), 'Steel boots of health', libtcod.silver, equipment=equipment_component, item=None,
+		item = Object(x, y, chr(28), 'Steel boots of health', libtcod.silver, equipment=equipment_component, item=None,
 					  always_visible=True)
 
 	elif choice == 'obsidian boots of defense':
 		equipment_component = Equipment(slot='feet', defense_bonus=10)
-		item = Object(x, y, chr(29), 'Silk boots of health', libtcod.black, equipment=equipment_component, item=None,
+		item = Object(x, y, chr(28), 'Obsidian boots of defense', libtcod.black, equipment=equipment_component,
+					  item=None,
 					  always_visible=True)
 
 
 
 	objects.append(item)
 	item.send_to_back()
-
+	item_chances = {}
 
 # TODO: implement food and scrolls rolling, and add more items
