@@ -138,8 +138,8 @@ class Object:
 			#there must be a fighter component for the effect component to work properly
 			self.fighter = Fighter()
 			self.fighter.owner = self
-					
-		self.description = self
+
+		self.description = description
 		self.seen = seen
 		self.path = path
 		self.decorative = decorative
@@ -602,11 +602,12 @@ def place_objects(room):
 		weaponchances.Equipment = Equipment
 		weaponchances.Object = Object
 		weaponchances.Item = Item
-		weaponchances.eat_food = eat_food
+		weaponchances.hunger_level = hunger_level
 		weaponchances.cast_heal = cast_heal
 		weaponchances.cast_lightning = cast_lightning
 		weaponchances.cast_confuse = cast_confuse
 		weaponchances.cast_fireball = cast_fireball
+		weaponchances.message = message
 
 		if not is_blocked(x, y):
 		#only place it if the tile is not blocked
@@ -620,6 +621,7 @@ def place_objects(room):
 		y1 = y
 		x = x1 + x_roll
 		y = y1 + y_roll
+
 		if not is_blocked(x, y):
 			weaponchances.add_food_and_scrolls(x, y)
 
@@ -1177,19 +1179,6 @@ def cast_heal():
 		render_all()
 		wait_for_spacekey()
 
-def eat_food(value):
-	#TODO: Allow system to call objects food value if any, and restore by that amount
-	#currently only allows for a fixed rate for one type of food
-	global hunger_level
-	#Lower their hunger level
-	
-	if hunger_level <= 40:
-		message('You are already full!', libtcod.white)
-		return 'cancelled'
-	else:
-		message('Mmm, that was delicious!', libtcod.light_green)
-		hunger_level -= value
-		
 
 def cast_lightning():
 	#find nearest enemy (inside a maximum range) and damage it
@@ -1294,7 +1283,7 @@ def new_game():
 	game_msgs = []
 	inventory = []
 	player_effects = []
-	dungeon_level = 25
+	dungeon_level = 1
 	#counts turns up to 5 then resets
 	turn_increment = 0
 	#The number of sets of 5 turns that have occured, and been reset
@@ -1625,7 +1614,9 @@ main_menu()
 #- Implemented space to continue after scroll messages
 #- Created see all map debug key
 #- Created special room function, but is not seperated from the map because v+h_tunnel does not check for intersection
-#
+# - Added an effects class that can be applied to monsters in the same way equipment class was made.
+# - FIXED THE FUCKING DESCRIPTION FUNCTION, SELF.DESCRIPTION WAS SET AS = SELF.. I'M AN IDIOT.
+
 #To do:
 #- Fix evasion
 #- Mouse over + right click describe feature
@@ -1636,14 +1627,42 @@ main_menu()
 #- MAJOR: Create new map() functions for different terrain types
 #- MAJOR: Add attack types (slash, stab, crush, etc.)  for weapon classes.
 #- MAJOR: Add conversation system for effects
-#- MAJOR URGENT: Add an effect class that can be applied to monsters in the same way equipment class was made.
+# - MAJOR URGENT:
 #- MAJOR URGENT NEXT ISSUE: Maybe also implement scent tracking as well - http://codeumbra.eu/complete-roguelike-tutorial-using-c-and-libtcod-extra-3-scent-tracking
 #- MAJOR URGENT NEXT ISSUE: Levels 1-4 are the same, add more monsters and items to help you deal with the new monsters. It can't be one wooden shield and sword for 4 levels.
 #- Add monsters, items, equipment
 #- Add high score page at main menu based off total xp
-#- MOST MAJOR URGENT PROBLEM: Event class and how to implement it. Fuck me. What a nightmare. Maybe write a drawing to lay it out
+# - MOST MAJOR URGENT PROBLEM: Effect class and how to implement it. Fuck me. What a nightmare. Maybe write a drawing to lay it out
 #- Figure out how to change the walls to objects with a char.
 #- Implement mouse pathfinding - click to move.
 #- Figure out why pathfinding is not loading properly, probably a value isn't being saved.
 #- MAJOR: Turn system http://www.roguebasin.com/index.php?title=A_simple_turn_scheduling_system_--_Python_implementation
 #- MAJOR, URGENT?: Implement ascii/tileset option, create artwork using that pixel editor
+# - MJAOR, URGENT: Implement speed via angbands method here: http://journal.stuffwithstuff.com/2014/07/15/a-turn-based-game-loop/
+# Initial thoguhts: speed value is added to fighter class, an add energy function is applied to all objects with a
+#fighter class in the list objects, an if statment follows: if any object reaches 100 they must take an action
+#- Begin breaking game up into modules, initially the map init and fov init, which should allow me to debug and test new
+#areas outside of the game more easily (i.e. a program that imports all items and places them on the map so I can
+#see how they look
+#- Add all descriptions, change 'message.descriptio' to 'message_descrie.desription' where message_description is a
+# function that uses the menu as a display in the following terms: Name, /n/n desription /n/n danger to you
+(this
+will
+need
+to
+be
+a
+funtion
+adding
+their
+health, how
+many
+times
+they
+can
+hit
+you
+before
+you
+die
+etc.

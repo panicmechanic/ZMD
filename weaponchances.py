@@ -12,6 +12,20 @@ def from_dungeon_level(table):
 	return 0
 
 
+def eat_food(value):
+	# TODO: Allow system to call objects food value if any, and restore by that amount
+	# currently only allows for a fixed rate for one type of food
+	global hunger_level
+	#Lower their hunger level
+	[]
+	if hunger_level <= 40:
+		message('You are already full!', libtcod.white)
+		return 'cancelled'
+	else:
+		message('Mmm, that was delicious!', libtcod.light_green)
+		hunger_level -= value
+
+
 def random_choice_index(chances):  #choose one option from list of chances, returning its index
 	#the dice will land on some number between 1 and the sum of the chances
 	dice = libtcod.random_get_int(0, 1, sum(chances))
@@ -43,7 +57,7 @@ def add_food_and_scrolls(x, y):
 	item_chances = {}
 	item_chances['nothing'] = 50
 	item_chances['heal'] = 15
-	item_chances['bread'] = 8  #bread always shows up, even if all other items have 0 chance
+	item_chances['bread'] = 80  #bread always shows up, even if all other items have 0 chance
 	item_chances['lightning'] = from_dungeon_level([[25, 4]])
 	item_chances['fireball'] = from_dungeon_level([[25, 6]])
 	item_chances['confuse'] = from_dungeon_level([[10, 2]])
@@ -78,7 +92,7 @@ def add_food_and_scrolls(x, y):
 
 	elif choice == 'bread':
 		#create a piece of bread
-		item_component = Item(use_function=(eat_food(200)))
+		item_component = Item(use_function=(eat_food([200])))
 		item = Object(x, y, 'x', 'piece of bread', libtcod.darkest_red, item=item_component, always_visible=True)
 
 
@@ -452,7 +466,7 @@ def create_item(x, y):
 		item = Object(x, y, chr(249), 'Diamond ring of defense', libtcod.yellow, equipment=equipment_component,
 					  item=None, always_visible=True)
 
-	# #BOOTS##
+	##BOOTS##
 
 	elif choice == 'silk boots of health':
 		equipment_component = Equipment(slot='feet', max_hp_bonus=10)
@@ -483,3 +497,7 @@ def create_item(x, y):
 	item_chances = {}
 
 # TODO: implement food and scrolls rolling, and add more items
+	# - Make sure item 'nothing' is always sent to back otherwise it covers other objects
+	# - Fix eat_food being applied to the player every time a new map is made. Use debug on the eat)hunger function toi figure out why it's being called
+	#- levels 1-4 very easy
+	#
