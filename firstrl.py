@@ -909,7 +909,9 @@ def inventory_menu(header):#TODO: Find a way to sit all copies of an item into a
 	#if an item was chosen, return it
 	if index is None or len(inventory) == 0: return None
 	return inventory[index].item
-	#healing_potion = 0
+
+
+#healing_potion = 0
 	#for 'healing potion' in inventory:
 	#	healing_potion += 1
 	
@@ -1643,7 +1645,6 @@ main_menu()
 #- MAJOR: Create new map() functions for different terrain types
 #- MAJOR: Add attack types (slash, stab, crush, etc.)  for weapon classes.
 # - MAJOR: Add conversation system for effects
-# - MAJOR URGENT:
 #- MAJOR URGENT NEXT ISSUE: Maybe also implement scent tracking as well - http://codeumbra.eu/complete-roguelike-tutorial-using-c-and-libtcod-extra-3-scent-tracking
 #- MAJOR URGENT NEXT ISSUE: Levels 1-4 are the same, add more monsters and items to help you deal with the new monsters. It can't be one wooden shield and sword for 4 levels.
 #- Add monsters, items, equipment

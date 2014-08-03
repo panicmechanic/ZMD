@@ -12,7 +12,8 @@ def from_dungeon_level(table):
 	return 0
 
 
-def eat_food(value):
+def eat_food(
+		value):  # PUT THIS IN THE ITEM CLASS AND GIVE IT A FOOD_VALUE TO CALL FROM ALSO WITHIN THE ITEM CLASS, then fix save functionality.
 	# TODO: Allow system to call objects food value if any, and restore by that amount
 	# currently only allows for a fixed rate for one type of food
 	global hunger_level
