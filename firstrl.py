@@ -3,6 +3,10 @@ import math
 import textwrap
 import shelve
 import pdb
+import weaponchances
+from weaponchances import create_item
+
+
 
 #actual size of the window
 SCREEN_WIDTH = 130
@@ -64,7 +68,7 @@ POISON_DURATION = 0
 color_dark_wall = libtcod.Color(120, 90, 55)
 color_light_wall = libtcod.Color(150, 120, 85)
 color_dark_ground = libtcod.Color(110, 110, 110)
-color_light_ground = libtcod.Color(130, 130, 130)
+color_light_ground = libtcod.Color(150, 150, 150)
 
 class Tile:
 	# a tile of the map, and its properties
@@ -134,8 +138,8 @@ class Object:
 			#there must be a fighter component for the effect component to work properly
 			self.fighter = Fighter()
 			self.fighter.owner = self
-					
-		self.description = self
+
+		self.description = description
 		self.seen = seen
 		self.path = path
 		self.decorative = decorative
@@ -271,6 +275,7 @@ class BasicMonster:
 			if monster.distance_to(player) >= 2:
 				#compute how to reach the player
 				libtcod.path_compute(monster.path, monster.x, monster.y, player.x, player.y)
+				# TODO: Insert an if statement to check for a blocked tile, pick an adjacent one and move into it instead
 				#and move one tile towards them
 				nextx, nexty = libtcod.path_walk(monster.path,True)
 				monster.move_towards(nextx, nexty)
@@ -493,20 +498,6 @@ def place_objects(room):
 	#maximum number of items per room
 	max_items = from_dungeon_level([[1, 1], [2, 4], [3, 6]])
 	
-	#chance of each item (by default they have a chance of 0 at level 1, which then goes up)
-	item_chances = {}
-	item_chances['heal'] = 15 #healing potion always shows up, even if all other items have 0 chance
-	item_chances['bread'] = 8 #bread always shows up, even if all other items have 0 chance
-	item_chances['lightning'] = from_dungeon_level([[25, 4]])
-	item_chances['fireball'] = from_dungeon_level([[25, 6]])
-	item_chances['confuse'] = from_dungeon_level([[10, 2]])
-	item_chances['bones'] = from_dungeon_level([[70, 1]])
-	item_chances['wooden sword'] = from_dungeon_level([[5, 1], [10 ,2]])
-	item_chances['wooden shield'] = from_dungeon_level([[10, 2], [10, 2]]) 
-	item_chances['brass sword'] = from_dungeon_level([[5, 3], [10, 4]]) 
-	item_chances['steel sword'] = from_dungeon_level([[2, 3], [10, 5]]) 
-	item_chances['wooden plate armor'] = from_dungeon_level([[2, 2], [15, 5]]) 
-	
 	#choose random number of monsters
 	num_monsters = libtcod.random_get_int(0, 0, max_monsters)
 	
@@ -517,28 +508,31 @@ def place_objects(room):
 		#choose random spot for this monster
 		x = libtcod.random_get_int(0, room.x1+1, room.x2-1)
 		y = libtcod.random_get_int(0, room.y1+1, room.y2-1)
-		
+
 		#only place it if a tile is not blocked
 		if not is_blocked(x, y):
 			choice = random_choice(monster_chances)
 			if choice == 'Dog': 
 				#create an dog
 				fighter_component = Fighter(hp=20, defense=0, power=4, xp=35, ev=10, death_function=monster_death)
-				ai_component = BasicMonster()				
-				monster = Object(x, y, 'd', 'Dog', libtcod.darker_orange, blocks=True, fighter=fighter_component, ai=ai_component, description='A big angry dog')	
+				ai_component = BasicMonster()
+				monster = Object(x, y, 'd', 'Dog', libtcod.darker_orange, blocks=True, fighter=fighter_component,
+								 ai=ai_component, description='A large, brown muscular looking dog. His eyes glow red.')
 			
 			elif choice == 'Snake': 
 				#create a Snake
 				fighter_component = Fighter(hp=30, defense=3, power=5, xp=100, ev=2, death_function=monster_death)
-				ai_component = BasicMonster()				
-				monster = Object(x, y, 's', 'Snake', libtcod.darker_grey, blocks=True, fighter=fighter_component, ai=ai_component, description='A big angry dog')
+				ai_component = BasicMonster()
+				monster = Object(x, y, 's', 'Snake', libtcod.darker_grey, blocks=True, fighter=fighter_component,
+								 ai=ai_component,
+								 description='A dark green snake covered in thousands of small, glistening scales, it looks poisonous.')
 			
 			elif choice == 'Imp': 
 				#create an Imp
 				fighter_component = Fighter(hp=15, defense=1, power=4, xp=50, ev=99, death_function=monster_death)
 				ai_component = BasicMonster()
 				monster = Object(x, y, 'i', 'Imp', libtcod.darker_green, blocks=True, fighter=fighter_component, ai=ai_component, description='A big angry dog')
-			
+
 			elif choice == 'Eagle':
 				#create an eagle
 				fighter_component = Fighter(hp=40, defense=3, power=10, xp=200, ev=20, death_function=monster_death)
@@ -605,81 +599,38 @@ def place_objects(room):
 		#choose random spot for this item
 		x = libtcod.random_get_int(0, room.x1+1, room.x2-1)
 		y = libtcod.random_get_int(0, room.y1+1, room.y2-1)
-		
-		#only place it if the tile is not blocked
+
+		# Set weaponchances functions and variables to work
+		weaponchances.dungeon_level = dungeon_level
+		weaponchances.objects = objects
+		weaponchances.Equipment = Equipment
+		weaponchances.Object = Object
+		weaponchances.Item = Item
+		weaponchances.hunger_level = hunger_level
+		weaponchances.cast_heal = cast_heal
+		weaponchances.cast_lightning = cast_lightning
+		weaponchances.cast_confuse = cast_confuse
+		weaponchances.cast_fireball = cast_fireball
+		weaponchances.message = message
+
 		if not is_blocked(x, y):
-			choice = random_choice(item_chances)
-			
-			if choice == 'heal':
-				#create a healing potion
-				item_component = Item(use_function=cast_heal)
-				item = Object(x, y, chr(173), 'healing potion', libtcod.dark_green, item=item_component, always_visible=True)
-			
-			elif choice == 'lightning':
-				#create a lightning bolts scroll (15% chance)
-				item_component = Item(use_function=cast_lightning)
-				item = Object(x, y, '!', 'scroll of lightning bolt', libtcod.light_blue, item=item_component, always_visible=True)
-			
-			elif choice == 'fireball':
-				#create a fireball scroll (10% chance)
-				item_component = Item(use_function=cast_fireball)
-				item = Object(x, y, '#', 'scroll of fireball', libtcod.dark_orange, item=item_component, always_visible=True)
-			
-			elif choice == 'confuse':
-				#create a confuse scroll (15% chance)
-				item_component = Item(use_function=cast_confuse)
-				item = Object(x, y, '?', 'scroll of confusion', libtcod.darkest_yellow, item=item_component, always_visible=True)
-			elif choice == 'bread':
-				#create a piece of bread
-				item_component = Item(use_function=(eat_food(200)))
-				item = Object(x, y, 'x', 'piece of bread', libtcod.darkest_red, item=item_component, always_visible=True)
-			
-			elif choice == 'bones':#TODO: Need to create decorative item class, could do cool stuff, also make dead obdies appear over obnes
-				#create bones
-				item_component = Item(use_function=None)
-				item = Object(x, y, '%', 'Pile of bones', libtcod.lightest_grey, item=item_component, always_visible=False)
-				num_bones = libtcod.random_get_int(0, 0, 5)
-				for i in range(num_bones):
-					#choose random spot for bones
-					x = libtcod.random_get_int(0, item.x+2, item.x-2)
-					y = libtcod.random_get_int(0, item.y+2, item.y-2)
-					if not is_blocked(x, y):
-						#create other bones
-						item_component = Item(use_function=None)
-						xbones = Object(x, y, '%', 'Pile of bones', libtcod.lightest_grey, item=item_component, always_visible=False)
-						#append the bones
-						objects.append(xbones)
-						xbones.send_to_back()
-						
-			elif choice == 'wooden sword':#TODO: Equipment classes, wooden, iron, steel. Randomised from levels 
-											#(maybe borrow code from chance generation in place_items to pick a liklihood for an item type to spawn
-				#create a sword
-				equipment_component = Equipment(slot='right hand', power_bonus=4)
-				item = Object(x, y, '/', 'Wooden sword', libtcod.darker_orange, equipment=equipment_component, item=None, always_visible=True)
-				
-			elif choice == 'wooden shield':
-				#create a wooden shield
-				equipment_component = Equipment(slot='left hand', defense_bonus=2)
-				item = Object(x, y, '[', 'Wooden shield', libtcod.darker_orange, equipment=equipment_component, item=None, always_visible=True)
-				
-			elif choice == 'brass sword':
-				#create a brass sword
-				equipment_component = Equipment(slot='right hand', power_bonus=6)
-				item = Object(x, y, '/', 'Brass sword', libtcod.brass, equipment=equipment_component, item=None, always_visible=True)
-					
-			elif choice == 'steel sword':
-				#create a steel sword
-				equipment_component = Equipment(slot='right hand', power_bonus=8)
-				item = Object(x, y, '/', 'Steel sword', libtcod.silver, equipment=equipment_component, item=None, always_visible=True)
-				
-			elif choice == 'wooden plate armor':
-				#create a wooden plate armor
-				equipment_component = Equipment(slot='body', defense_bonus=2)
-				item = Object(x, y, chr(234), 'Wooden plate armor', libtcod.darkest_orange, equipment=equipment_component, item=None, always_visible=True)
-			
-			objects.append(item)
-			
-			item.send_to_back() #items appear below other objects
+			#only place it if the tile is not blocked
+
+			weaponchances.create_item(x, y)
+
+			# Roll new coordinates for food+scrolls
+			x_roll = libtcod.random_get_int(0, -1, 1)
+			y_roll = libtcod.random_get_int(0, -1, 1)
+			x1 = x
+			y1 = y
+			x = x1 + x_roll
+			y = y1 + y_roll
+
+			if not is_blocked(x, y):
+				weaponchances.add_food_and_scrolls(x, y)
+
+		add_bones(x, y)
+
 
 def place_special_rooms():#TODO: Redo the dungeon generation to allow for special rooms, or ensure v_tun and h_tun will not intersect special room
 	global map, objects, stairs, dungeon_level, rooms
@@ -743,8 +694,9 @@ def get_names_under_mouse():
 	
 	names = ', '.join(names) #join the names, seperated by commas
 	return names.capitalize()
-	
-def description_menu(header): #TODO: THIS NEEDS TO BE FINISHED
+
+
+def description_menu(header):
 
 	global mouse
 	
@@ -1102,6 +1054,7 @@ def player_move_or_attack(dx, dy):
 	#attack if target found, move otherwise
 	if target is not None:
 		player.fighter.attack(target)
+	# sword heal should be rolled for here
 	else:
 		player.move(dx, dy)
 		fov_recompute = True
@@ -1174,6 +1127,12 @@ def handle_keys():
 				for y in range(MAP_HEIGHT):
 					for x in range(MAP_WIDTH):
 						map[x][y].explored = True
+
+			# debug
+			if key_char == '@':
+				player.fighter.max_hp = 10000
+				player.fighter.defense = 10000
+				player.fighter.power = 10000
 			
 			if key_char == 'd':
 				#show the inventory; if an item is selected, drop it.
@@ -1185,7 +1144,10 @@ def handle_keys():
 				#show the description menu, if an item is selected, describe it.
 				chosen_object = description_menu('Press the key next to an object to see its description.\n')
 				if chosen_object is not None:
-					message(str(chosen_object.description), libtcod.white)
+					render_all()
+					length = '~' * len(str(chosen_object.description))
+					msgbox(str(chosen_object.name) + ':' + '\n\n' + str(chosen_object.description) + '\n',
+						   CHARACTER_SCREEN_WIDTH)
 				
 					
 			if key_char == '>':
@@ -1226,19 +1188,6 @@ def cast_heal():
 		render_all()
 		wait_for_spacekey()
 
-def eat_food(value):
-	#TODO: Allow system to call objects food value if any, and restore by that amount
-	#currently only allows for a fixed rate for one type of food
-	global hunger_level
-	#Lower their hunger level
-	
-	if hunger_level <= 40:
-		message('You are already full!', libtcod.white)
-		return 'cancelled'
-	else:
-		message('Mmm, that was delicious!', libtcod.light_green)
-		hunger_level -= value
-		
 
 def cast_lightning():
 	#find nearest enemy (inside a maximum range) and damage it
@@ -1361,7 +1310,7 @@ def new_game():
 	message('Zeus has killed Great Alexander in a fit of jealousy! He flees to the top of Mt. Olympus, give chase, and claim your retribution!', libtcod.red)
 
 	#initial equipment: a dagger
-	equipment_component = Equipment(slot='right hand', power_bonus=2)
+	equipment_component = Equipment(slot='left hand', power_bonus=2)
 	obj = Object(0, 0, '-', 'wooden dagger', libtcod.darkest_orange, equipment=equipment_component)
 	inventory.append(obj)
 	equipment_component.equip()
@@ -1477,7 +1426,7 @@ def save_game():
 def load_game():
 	#open the previously saved shelve and load the game data
 	global map, objects, player, inventory, game_msgs, game_state, stairs, dungeon_level, hunger_level, turn_increment, turn_5
-	
+
 	file = shelve.open('savegame', 'r')
 	map = file['map']
 	objects = file['objects']
@@ -1490,11 +1439,18 @@ def load_game():
 	hunger_level = file['hunger_level']
 	turn_increment = file['turn_increment']
 	turn_5 = file['turn_5']
-	
+
 	file.close()
 	
 	initialize_fov()
-	
+
+
+# Following will fix save issue,  but needs a map class created to make it work, will need to look
+#long and hard at seven trials implementation to do it alone.
+#if map.pathfinder is not None:
+#libtcod.path_delete(map.pathfinder)
+#map.pathfinder = libtcod.path_new_using_map(map.fov)
+
 def next_level():
 	global dungeon_level
 	#advance to the next level
@@ -1572,8 +1528,8 @@ def check_by_turn():
 	elif hunger_level == 800:
 		message('You are starving!', libtcod.light_red)
 		player.fighter.take_damage(1)
-	
-	#TODO: Create eventy class with poison function
+
+	#TODO: Create effects class with poison function
 	if player.fighter.poison >= 1 or POISON_COUNTDOWN >= 1:
 		#each instance of poison is 3 turns worth of damage
 		if player.fighter.poison >= 1:
@@ -1624,8 +1580,32 @@ def get_all_equipped(obj): #returns a list of equipped items
 		return equipped_list
 	else:
 		return [] #TODO: other objects have no equipment, but if you gave them a simpler inventory system (no need for menu) they could drop equipped items, and have random ones spawn.
-		
-	
+
+
+def add_bones(x, y):
+	roll = libtcod.random_get_int(0, 0, 10)
+	if roll >= 4:
+		if not is_blocked(x, y):
+			# create bones
+			item_component = Item(use_function=None)
+			item = Object(x, y, '%', 'Pile of bones', libtcod.lightest_grey, item=item_component, always_visible=False)
+			num_bones = libtcod.random_get_int(0, 0, 5)
+			for i in range(num_bones):
+				# choose random spot for bones
+				x = libtcod.random_get_int(0, item.x + 2, item.x - 2)
+				y = libtcod.random_get_int(0, item.y + 2, item.y - 2)
+				if not is_blocked(x, y):
+					#create other bones
+					item_component = Item(use_function=None)
+					xbones = Object(x, y, '%', 'Pile of bones', libtcod.lightest_grey, item=item_component,
+									always_visible=False)
+					#append the bones
+					objects.append(xbones)
+					xbones.send_to_back()
+
+			objects.append(item)
+			item.send_to_back()
+
 ##############################
 #INITIALISATION AND MAIN LOOP#		
 ##############################	
@@ -1650,7 +1630,9 @@ main_menu()
 #- Implemented space to continue after scroll messages
 #- Created see all map debug key
 #- Created special room function, but is not seperated from the map because v+h_tunnel does not check for intersection
-#
+# - Added an effects class that can be applied to monsters in the same way equipment class was made.
+# - FIXED THE FUCKING DESCRIPTION FUNCTION, SELF.DESCRIPTION WAS SET AS = SELF.. I'M AN IDIOT.
+
 #To do:
 #- Fix evasion
 #- Mouse over + right click describe feature
@@ -1660,14 +1642,24 @@ main_menu()
 #- Need to create decorative item class, could do cool stuff
 #- MAJOR: Create new map() functions for different terrain types
 #- MAJOR: Add attack types (slash, stab, crush, etc.)  for weapon classes.
-#- MAJOR: Add conversation system for events
-#- MAJOR URGENT: Add an effect class that can be applied to monsters in the same way equipment class was made.
+# - MAJOR: Add conversation system for effects
+# - MAJOR URGENT:
 #- MAJOR URGENT NEXT ISSUE: Maybe also implement scent tracking as well - http://codeumbra.eu/complete-roguelike-tutorial-using-c-and-libtcod-extra-3-scent-tracking
 #- MAJOR URGENT NEXT ISSUE: Levels 1-4 are the same, add more monsters and items to help you deal with the new monsters. It can't be one wooden shield and sword for 4 levels.
 #- Add monsters, items, equipment
 #- Add high score page at main menu based off total xp
-#- MOST MAJOR URGENT PROBLEM: Event class and how to implement it. Fuck me. What a nightmare. Maybe write a drawing to lay it out
+# - MOST MAJOR URGENT PROBLEM: Effect class and how to implement it. Fuck me. What a nightmare. Maybe write a drawing to lay it out
 #- Figure out how to change the walls to objects with a char.
-#- Implement mouse pathfinding - click to move
+#- Implement mouse pathfinding - click to move.
 #- Figure out why pathfinding is not loading properly, probably a value isn't being saved.
 #- MAJOR: Turn system http://www.roguebasin.com/index.php?title=A_simple_turn_scheduling_system_--_Python_implementation
+# - MAJOR, URGENT?: Implement ascii/tileset option, create artwork using that pixel editor
+# - MJAOR, URGENT: Implement speed via angbands method here: http://journal.stuffwithstuff.com/2014/07/15/a-turn-based-game-loop/
+# Initial thoguhts: speed value is added to fighter class, an add energy function is applied to all objects with a
+#fighter class in the list objects, an if statment follows: if any object reaches 100 they must take an action
+#- Begin breaking game up into modules, initially the map init and fov init, which should allow me to debug and test new
+#areas outside of the game more easily (i.e. a program that imports all items and places them on the map so I can
+#see how they look
+#- Add all descriptions, change 'message.description' to 'message_descrie.desription' where message_description is a
+# function that uses the menu as a display in the following terms: Name, /n/n desription /n/n danger to you
+# (this will need to be a function adding their health, how many times they can hit you before you die etc.)
