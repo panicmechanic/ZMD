@@ -33,6 +33,7 @@ def random_choice_index(chances):  # choose one option from list of chances, ret
 
 	#go through all the chances, keeping the sum so far
 	running_sum = 0
+
 	choice = 0
 	for w in chances:
 		running_sum += w

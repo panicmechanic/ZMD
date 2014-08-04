@@ -167,7 +167,13 @@ class Object:
 		dx = other.x - self.x
 		dy = other.y - self.y
 		return math.sqrt(dx ** 2 + dy ** 2)
-		
+
+	def distance_from(self, x, y):
+		# return the distance to another object
+		dx = x - self.x
+		dy = y - self.y
+		return math.sqrt(dx ** 2 + dy ** 2)
+
 	def distance(self, x, y):
 		#return the distance to some coordinates
 		return math.sqrt((x - self.x) ** 2 + (y - self.y) ** 2)
@@ -266,8 +272,9 @@ class BasicMonster:
 		#a basic monster takes its turn. If you can see it, it can see you.
 		monster = self.owner
 		#check for existing path
-		if monster.path == None:
-			monster.path = libtcod.path_new_using_map(fov_map,1.41)
+		# Used to be an 'if monster.path == None:' line here, broke load functionality as wasn't sure how to load old paths
+		# and it appeared to python that an old path existed, this way it loads a new path either way.
+		monster.path = libtcod.path_new_using_map(fov_map, 1.41)
 			
 		if libtcod.map_is_in_fov(fov_map, monster.x, monster.y):
 		
@@ -276,6 +283,8 @@ class BasicMonster:
 				#compute how to reach the player
 				libtcod.path_compute(monster.path, monster.x, monster.y, player.x, player.y)
 				# TODO: Insert an if statement to check for a blocked tile, pick an adjacent one and move into it instead
+				# or have other monsters be seen as a blocked tile? may need to write path function for this.
+
 				#and move one tile towards them
 				nextx, nexty = libtcod.path_walk(monster.path,True)
 				monster.move_towards(nextx, nexty)
@@ -1446,7 +1455,6 @@ def load_game():
 	
 	initialize_fov()
 
-
 # Following will fix save issue,  but needs a map class created to make it work, will need to look
 #long and hard at seven trials implementation to do it alone.
 #if map.pathfinder is not None:
@@ -1533,16 +1541,18 @@ def check_by_turn():
 
 	#TODO: Create effects class with poison function
 	if player.fighter.poison >= 1 or POISON_COUNTDOWN >= 1:
-		#each instance of poison is 3 turns worth of damage
+		#each instance of poison is 4 turns worth of damage
 		if player.fighter.poison >= 1:
-			message('You have been poisoned', libtcod.light_green)
+			message('You have been poisoned!', libtcod.light_green)
 			POISON_DURATION = (player.fighter.poison * 4)
 			player.fighter.poison = 0
 		if POISON_DURATION is not 0:
 			POISON_COUNTDOWN += POISON_DURATION
 			POISON_DURATION = 0
 		POISON_COUNTDOWN -= 1
-		player.fighter.take_damage(2)
+		player.fighter.take_damage(4)
+		message('You take 4 damage from poison.')
+
 		
 def total_turns():
 	total_turns = turn_increment + (turn_5 * 5)
