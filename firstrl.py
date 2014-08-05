@@ -133,8 +133,8 @@ class Object:
 			
 		self.effects = effects
 		if self.effects:#let the effect component know who owns it
-			self.effects.owner = self
-			
+			self.effects.owner =
+			self
 			#there must be a fighter component for the effect component to work properly
 			self.fighter = Fighter()
 			self.fighter.owner = self
@@ -231,8 +231,14 @@ class Fighter:
 	def max_hp(self): #return actual max_hp, by summing up the bonuses from all equipped items
 		bonus = sum(equipment.max_hp_bonus for equipment in get_all_equipped(self.owner))
 		return self.base_max_hp + bonus
-	
-	
+
+	def add_effect(self, Effect):  # Add effect to the fighter class's list of effects
+		self.effects.append(Effect)
+
+	def remove_effect(self, Effect):
+		if duration == turns_passed:
+			self.effects.remove(Effect)
+
 	def take_damage(self, damage):
 		#apply damage if possible
 		percentage_to_hit = libtcod.random_get_int(0, 0, 100)
@@ -436,24 +442,10 @@ class Effect:
 		self.burning = burning
 		
 		self.is_active = False
-	
-	def add_effect(Fighter): # If the effect has a name, add it to the fighter class's list of effects
-		if self.effect_name is not None:
-			self.effects.append(self.owner)
-	
-	def remove_effect(self):
-		if duration == turns_passed:
-			self.effects.remove(self.owner)
-			
 
-def apply_effect(self, effect, targetx, targety,):#must apply the effect component from the object to a target fighter.
-	for obj in objects:
-		if obj.x == targetx and obj.y == targety:
-			obj.fighter.effects.append(effect)
-		else:
-			print 'No target found'
-	
-def check_run_effects(obj):#Check for effects, if theere is one increase its turn_passed value by one, if it is equal to duration remove it.
+
+def check_run_effects(
+		obj):  # Check for effects, if there are and their turns_passed value is not == duration, increase its turn_passed value by one, if it is equal to duration remove it.
 	if obj.effects is not None:
 		for eff in effects:
 			if turns_passed is not duration:
@@ -1234,11 +1226,23 @@ def handle_keys():
 			if key_char == 'c':
 				level_up_xp = LEVEL_UP_BASE + player.level * LEVEL_UP_FACTOR
 				msgbox('Character Information\n\nLevel: ' + str(player.level) + '\nExperience: ' + str(player.fighter.xp) +
-					'\nExperience to level up: ' + str(level_up_xp) + '\n\nHP: ' + str(player.fighter.max_hp) +
-					'\nAttack: ' + str(player.fighter.power) + '\nDefense: ' + str(player.fighter.defense), CHARACTER_SCREEN_WIDTH)
+					'\nExperience to level up: ' + str(level_up_xp) + '\n\nHP: ' + str(player.fighter.max_hp) + '\nAttack: ' + str(
+					player.fighter.power) + '\nDefense: ' + str(
+					player.fighter.defense) + '\nEffects: ' + get_player_effects(),
+					   CHARACTER_SCREEN_WIDTH)  #TODO: figure out a way to display player.fighter.effects.effect_name
 						
 			return 'didnt-take-turn'
-			
+
+
+def get_player_effects():  # Get palyers effects anre return them in a readable string
+	list_effects = []
+	for e in player.fighter.effects:
+		list_effects.append(str(e))
+	name_effects = ', '.join(list_effects)  #join the list, seperated by commas
+	for i in name_effects:
+		return name_effects.capitalize()
+
+
 def closest_monster(max_range):
 	#find closest enemy, up to a maximum range, and in the players FOV
 	closest_enemy = None
@@ -1378,7 +1382,7 @@ def new_game():
 	#generate map
 	make_map()
 	initialize_fov()
-	
+	# add an effect like this: player.fighter.add_effect(Effect('Weakened', duration=500, turns_passed=0, power_effect=-10))
 	game_state = 'playing'
 	
 	
@@ -1520,19 +1524,14 @@ def load_game():
 	
 	initialize_fov()
 
-# Following will fix save issue,  but needs a map class created to make it work, will need to look
-#long and hard at seven trials implementation to do it alone.
-#if map.pathfinder is not None:
-#libtcod.path_delete(map.pathfinder)
-#map.pathfinder = libtcod.path_new_using_map(map.fov)
 
 def next_level():
 	global dungeon_level
 	#advance to the next level
 	message('Briefly crossing an unknown void, you feel a divine hand reach out and heal you.', libtcod.light_violet)
 	player.fighter.heal(player.fighter.max_hp) # heal player completely
-	
-	message('Fully healed, the world forms around you once again, you continue your journey...', libtcod.red)
+
+	message('Fully healed, the world forms around you once again, and you continue your journey...', libtcod.red)
 	dungeon_level += 1
 	make_map() # create a fresh new level!
 	initialize_fov()
@@ -1646,8 +1645,6 @@ def get_equipped_in_slot(slot): #returns the equipment in a slot or None if it's
 			return obj.equipment
 	return None
 
-		
-
 def get_all_equipped(obj): #returns a list of equipped items
 	if obj == player:
 		equipped_list = []
@@ -1730,12 +1727,13 @@ main_menu()
 #- Figure out why pathfinding is not loading properly, probably a value isn't being saved.
 #- MAJOR: Turn system http://www.roguebasin.com/index.php?title=A_simple_turn_scheduling_system_--_Python_implementation
 # - MAJOR, URGENT?: Implement ascii/tileset option, create artwork using that pixel editor
-# - MJAOR, URGENT: Implement speed via angbands method here: http://journal.stuffwithstuff.com/2014/07/15/a-turn-based-game-loop/
-# Initial thoguhts: speed value is added to fighter class, an add energy function is applied to all objects with a
+#- MJAOR, URGENT: Implement speed via angbands method here: http://journal.stuffwithstuff.com/2014/07/15/a-turn-based-game-loop/
+#= Initial thoughts: speed value is added to fighter class, an add energy function is applied to all objects with a
 #fighter class in the list objects, an if statment follows: if any object reaches 100 they must take an action
 #- Begin breaking game up into modules, initially the map init and fov init, which should allow me to debug and test new
-#areas outside of the game more easily (i.e. a program that imports all items and places them on the map so I can
+# areas outside of the game more easily (i.e. a program that imports all items and places them on the map so I can
 #see how they look
 #- Add all descriptions, change 'message.description' to 'message_descrie.desription' where message_description is a
-# function that uses the menu as a display in the following terms: Name, /n/n desription /n/n danger to you
-# (this will need to be a function adding their health, how many times they can hit you before you die etc.)
+# - function that uses the menu as a display in the following terms: Name, /n/n desription /n/n danger to you
+#- (this will need to be a function adding their health, how many times they can hit you before you die etc.)
+#- Figure out how to fix the display of an effect
