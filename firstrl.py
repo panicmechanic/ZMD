@@ -540,25 +540,32 @@ def place_objects(room):
 				#create an Imp
 				fighter_component = Fighter(hp=15, defense=1, power=4, xp=50, ev=99, death_function=monster_death)
 				ai_component = BasicMonster()
-				monster = Object(x, y, 'i', 'Imp', libtcod.darker_green, blocks=True, fighter=fighter_component, ai=ai_component, description='A big angry dog')
+				monster = Object(x, y, 'i', 'Imp', libtcod.darker_green, blocks=True, fighter=fighter_component,
+								 ai=ai_component, description='A green Imp, skilled in defensive fighting.')
 
 			elif choice == 'Eagle':
 				#create an eagle
 				fighter_component = Fighter(hp=40, defense=3, power=10, xp=200, ev=20, death_function=monster_death)
 				ai_component = BasicMonster()
-				monster = Object(x, y, 'e', 'Eagle', libtcod.darker_sepia, blocks=True, fighter=fighter_component, ai=ai_component, description='A big angry dog')
+				monster = Object(x, y, 'e', 'Eagle', libtcod.darker_sepia, blocks=True, fighter=fighter_component,
+								 ai=ai_component,
+								 description='A huge brown eagle, his muscular wings and razor sharp beak look threatening.')
 				
 			elif choice == 'Firefly':
 				#create a glow fly
 				fighter_component = Fighter(hp=8, defense=0, power=8, xp=50, ev=20, death_function=monster_death)
 				ai_component = BasicMonster()
-				monster = Object(x, y, 'f', 'Firefly', libtcod.darker_lime, blocks=True, fighter=fighter_component, ai=ai_component, description='A big angry dog')
+				monster = Object(x, y, 'f', 'Firefly', libtcod.darker_lime, blocks=True, fighter=fighter_component,
+								 ai=ai_component,
+								 description='A small power firefly. He moves very fast, but looks weak.')
 			
 			elif choice == 'Pygmy':
 				#create a pygmy
-				fighter_component = Fighter(hp=30, defense=4, power=4, xp=200, ev=20, death_function=monster_death)
+				fighter_component = Fighter(hp=50, defense=6, power=8, xp=250, ev=20, death_function=monster_death)
 				ai_component = BasicMonster()
-				monster = Object(x, y, 'p', 'Pygmy', libtcod.dark_pink, blocks=True, fighter=fighter_component, ai=ai_component, description='A big angry dog')
+				monster = Object(x, y, 'p', 'Pygmy Chieftain', libtcod.darkest_pink, blocks=True,
+								 fighter=fighter_component, ai=ai_component,
+								 description='A Pygmy chieftan, a particularly strong Pygmy who guides the others in matters of warfare. He looks much stronger than the others.')
 				#Generate random number of baby boars
 				num_pygmys = libtcod.random_get_int(0, 1, 6)
 				for i in range(num_pygmys):
@@ -569,7 +576,9 @@ def place_objects(room):
 						#create other pygmys
 						fighter_component = Fighter(hp=30, defense=4, power=4, xp=200, ev=20, death_function=monster_death)
 						ai_component = BasicMonster()				
-						other_pygmy = Object(x, y, 'p', 'Pygmy', libtcod.dark_pink, blocks=True, fighter=fighter_component, ai=ai_component, description='A baby boar, how cute.')
+						other_pygmy = Object(x, y, 'p', 'Pygmy', libtcod.dark_pink, blocks=True,
+											 fighter=fighter_component, ai=ai_component,
+											 description='A member of an ancient tribe of warrior midgets, they rarely hunt alone. His chieftan is sure to be nearby.')
 						#append the little fuckers
 						objects.append(other_pygmy)
 			
@@ -577,25 +586,33 @@ def place_objects(room):
 				#create a goat
 				fighter_component = Fighter(hp=35, defense=3, power=5, xp=60, ev=20, death_function=monster_death)
 				ai_component = BasicMonster()
-				monster = Object(x, y, 'g', 'Goat', libtcod.lighter_grey, blocks=True, fighter=fighter_component, ai=ai_component, description='A big angry dog')
+				monster = Object(x, y, 'g', 'Goat', libtcod.lighter_grey, blocks=True, fighter=fighter_component,
+								 ai=ai_component,
+								 description='A goat, with gnarled grey hair and wispy beard. He looks tough and nimble.')
 			
 			elif choice == 'Bull':
 				#create a bull
 				fighter_component = Fighter(hp=80, defense=1, power=8, xp=250, ev=20, death_function=monster_death)
 				ai_component = BasicMonster()
-				monster = Object(x, y, chr(208), 'Bull', libtcod.light_flame, blocks=True, fighter=fighter_component, ai=ai_component, description='A big angry dog')
+				monster = Object(x, y, chr(209), 'Bull', libtcod.light_flame, blocks=True, fighter=fighter_component,
+								 ai=ai_component,
+								 description='An enormous bull with two shining horns, they appear as if they have been polished. Perhaps by the bulls long rough tongue. He is extremely muscular and fast.')
 			
 			elif choice == 'Crab':
 				#create a crab
 				fighter_component = Fighter(hp=30, defense=4, power=5, xp=50, ev=20, death_function=monster_death)
 				ai_component = BasicMonster()
-				monster = Object(x, y, 'c', 'Crab', libtcod.dark_yellow, blocks=True, fighter=fighter_component, ai=ai_component, description='A big angry dog')
+				monster = Object(x, y, 'c', 'Crab', libtcod.dark_yellow, blocks=True, fighter=fighter_component,
+								 ai=ai_component,
+								 description='A very large yellow crab, he skitters sideways across the floor using his armored legs. He looks tough.')
 			
 			elif choice == 'Centaur':
 				#create a centaur
 				fighter_component = Fighter(hp=100, defense=7, power=10, xp=300, ev=20, death_function=monster_death)
 				ai_component = BasicMonster()
-				monster = Object(x, y, 'C', 'Centaur', libtcod.darker_magenta, blocks=True, fighter=fighter_component, ai=ai_component, description='A big angry dog')
+				monster = Object(x, y, 'C', 'Centaur', libtcod.darker_magenta, blocks=True, fighter=fighter_component,
+								 ai=ai_component,
+								 description='A mythical creature; half human, half horse. He has the strength of a beast, and the intelligence of a man.')
 			
 			
 			objects.append(monster)
@@ -823,6 +840,15 @@ def make_map():
 				
 			#finally, append the new room to the list
 			rooms.append(new_room)
+
+			# TODO: Get this to work tomorrow. Returning the following error:
+			#File "C:/Users/SABER/Desktop/Python/ZMD/firstrl.py", line 1028, in message_yn
+			#libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS|libtcod.EVENT_MOUSE,key,mouse)
+			#NameError: global name 'mouse' is not defined
+
+			#roll_lever = libtcod.random_get_int(0, 0, 1)
+			#if roll_lever == 1:
+			#	create_inscribed_lever(new_x-1, new_y+1)
 			num_rooms += 1
 	
 	#create stairs at the center of the last room
@@ -1003,10 +1029,49 @@ def wait_for_spacekey():#Make cast heal message appear without having to press t
 			return 'cancelled'
 			#check for keypress, render and flush the screen to present monster inside fov.
 		libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS|libtcod.EVENT_MOUSE,key,mouse)
-		
-		
-		
-	
+
+
+def message_yn(messagequestion, messagey, color1=libtcod.white, color2=libtcod.white):
+	message(messagequestion, color1)
+
+	key = libtcod.console_wait_for_keypress(True)
+
+	choice = None
+
+	while choice == None:  # keep asking until a choice is made
+		key_char = chr(key.c)
+		if key_char == 'y':
+			choice = 'y'
+			message(messagey, color2)
+			return choice
+		#check for keypress, render and flush the screen to present monster inside fov.
+		libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS | libtcod.EVENT_MOUSE, key, mouse)
+		render_all()
+
+		libtcod.console_flush()
+
+
+def cast_inscribed_lever():
+	message_yn(
+		'You see a lever made of gold in the floor, it is inscribed with thousands of glyphs you do not recognize, do you wish to pull it? (y=yes, else=no',
+		'You pull the lever.\nYou hear a thunderous CRACK split the air in two.', libtcod.yellow, libtcod.green)
+	# if player pulled lever
+	if message_yn == 'y':
+		#roll for outcome
+		roll = libtcod.random_get_int(0, 0, 2)
+		if roll == 0:  # Spawn 6 weapon/items
+			for i in range(0, 5, 1):
+				weaponchances.random_item()
+				weaponchances.create_item(player.x, player.y)
+
+
+def create_inscribed_lever(x, y):
+	item_component = Item(pick_up_function=cast_inscribed_lever())
+	lever = Object(x, y, chr(208), 'Inscribed lever', libtcod.gold, item=item_component, always_visible=True)
+	# needs to cast on pick up, not use.
+	objects.append(lever)
+
+
 def message_wait(char, messagetext, color = libtcod.white):
 	#display message once when char comes into FOV then set seen to true
 	for object in objects:
