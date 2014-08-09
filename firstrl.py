@@ -244,7 +244,6 @@ class Fighter:
 
 	def take_damage(self, damage):
 		#apply damage if possible
-		percentage_to_hit = libtcod.random_get_int(0, 0, 100)
 		if damage > 0: #and percentage_to_hit > self.ev:#TODO: need to create a better system to account for a skill with a weapon class and critical hits and message for missed hits on both players and monsters
 			self.hp -= damage
 					
@@ -262,6 +261,7 @@ class Fighter:
 		damage = self.power - target.fighter.defense
 		roll = libtcod.random_get_int(0, 0, target.fighter.ev)
 		if roll <= self.acc:
+
 			# #Player messages and colors##
 			if damage > 0 and self.owner.name == 'player':
 				#make the target take some damage and print the value
@@ -271,6 +271,7 @@ class Fighter:
 			elif damage <= 0 and self.owner.name == 'player':
 				#else print a message about how puny you are
 				message('You ' + ' hit the' + target.name + ' but it has no effect!', libtcod.grey)
+
 			##Monster messages and colors##
 			elif damage > 0 and self.owner.name != 'player':
 				#make the target take some damage and print the value
@@ -280,11 +281,20 @@ class Fighter:
 			elif damage <= 0 and self.owner.name != 'player':
 				message(self.owner.name.capitalize() + ' hits you but it has no effect!', libtcod.grey)
 
-		elif self.owner.name == 'player' and roll > target.fighter.acc:
+		elif self.owner.name == 'player' and roll > self.acc:
 			message('You missed the ' + target.name + '!', libtcod.red)
 
-		elif self.owner.name != 'player' and roll > target.fighter.acc:
+		elif self.owner.name != 'player' and roll > self.acc:
 			message('The ' + self.owner.name.capitalize() + ' missed you!', libtcod.dark_green)
+
+		else:
+			print roll
+			print damage
+			print target.fighter.acc
+			print self.acc
+			print self.owner.name
+			message('Error!')
+
 
 	def heal(self, amount):
 		#heal by the given amount, without going over the maximum
@@ -1421,7 +1431,7 @@ def new_game():
 	#generate map
 	make_map()
 	initialize_fov()
-	player.fighter.add_effect(Effect('Weakened', duration=500, turns_passed=0, power_effect=-10))
+	#Add an effect like so: player.fighter.add_effect(Effect('Weakened', duration=500, turns_passed=0, power_effect=-10))
 	game_state = 'playing'
 	
 	
@@ -1779,9 +1789,8 @@ main_menu()
 # - function that uses the menu as a display in the following terms: Name, /n/n desription /n/n danger to you
 #- (this will need to be a function adding their health, how many times they can hit you before you die etc.)
 #- Figure out how to fix the display of an effect
-# - Figure  out how to make stumble not call ai.take_turn.
-#- Fix bread/hunger and the applying of eat_food() every new level
-
+# - Figure  out how to make stumble not call ai.take_turn. Interestingly the health bar does not regenerate when
+# stumbling so some part of it is working as it should, but ai.take_turn is still being called again somewhereself.owner.name.capitalize()self.owner.name.capitalize()self.owner.name.capitalize()self.owner.name.capitalize()
 #- NEXT: ORDER TO DO LIST AND UPLOAD TO INFO.TXT FILE NO GIT
 
 # Add mutations/godly abilities/quests/new level types/evasion
