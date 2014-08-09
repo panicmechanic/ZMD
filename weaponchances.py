@@ -59,7 +59,7 @@ def add_food_and_scrolls(x, y):
 	item_chances = {}
 	item_chances['nothing'] = 50
 	item_chances['heal'] = 15
-	item_chances['bread'] = 80  #bread always shows up, even if all other items have 0 chance
+	item_chances['bread'] = 10  # bread always shows up, even if all other items have 0 chance
 	item_chances['lightning'] = from_dungeon_level([[25, 4]])
 	item_chances['fireball'] = from_dungeon_level([[25, 6]])
 	item_chances['confuse'] = from_dungeon_level([[10, 2]])
