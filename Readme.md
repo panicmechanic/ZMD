@@ -1,4 +1,4 @@
-Zeus must die - A python roguelike based off of the libtcod tutorial.
+Zeus must die - A python roguelike based on the libtcod tutorial.
 
 A work in progress.
 
