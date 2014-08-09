@@ -1266,10 +1266,10 @@ def handle_keys():
 			return 'didnt-take-turn'
 
 
-def get_player_effects():  # Get palyers effects anre return them in a readable string
+def get_player_effects():  # Get player effects and return them in a readable string
 	list_effects = []
 	for e in player.fighter.effects:
-		list_effects.append(str(e))
+		list_effects.append(str(e.effect_name))
 	name_effects = ', '.join(list_effects)  #join the list, seperated by commas
 	count = 0
 	for i in name_effects:
@@ -1421,7 +1421,7 @@ def new_game():
 	#generate map
 	make_map()
 	initialize_fov()
-	# add an effect like this: player.fighter.add_effect(Effect('Weakened', duration=500, turns_passed=0, power_effect=-10))
+	player.fighter.add_effect(Effect('Weakened', duration=500, turns_passed=0, power_effect=-10))
 	game_state = 'playing'
 	
 	
