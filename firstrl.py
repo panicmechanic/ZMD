@@ -232,6 +232,9 @@ class Fighter:
 		bonus = sum(equipment.max_hp_bonus for equipment in get_all_equipped(self.owner))
 		return self.base_max_hp + bonus
 
+	# @property
+	#def ev(self): #return actual evasion
+
 	def add_effect(self, Effect):  # Add effect to the fighter class's list of effects
 		self.effects.append(Effect)
 
@@ -1255,8 +1258,9 @@ def handle_keys():
 				level_up_xp = LEVEL_UP_BASE + player.level * LEVEL_UP_FACTOR
 				msgbox('Character Information\n\nLevel: ' + str(player.level) + '\nExperience: ' + str(player.fighter.xp) +
 					'\nExperience to level up: ' + str(level_up_xp) + '\n\nHP: ' + str(player.fighter.max_hp) + '\nAttack: ' + str(
-					player.fighter.power) + '\nDefense: ' + str(
-					player.fighter.defense) + '\nEffects: ' + get_player_effects(),
+					player.fighter.power) + '\nDefense: ' + str(player.fighter.defense) + '\nEvasion: ' + str(
+					player.fighter.ev) + '\nAccuracy: ' + str(
+					player.fighter.acc) + '\nEffects: ' + get_player_effects(),
 					   CHARACTER_SCREEN_WIDTH)  #TODO: figure out a way to display player.fighter.effects.effect_name
 						
 			return 'didnt-take-turn'
@@ -1267,8 +1271,15 @@ def get_player_effects():  # Get palyers effects anre return them in a readable 
 	for e in player.fighter.effects:
 		list_effects.append(str(e))
 	name_effects = ', '.join(list_effects)  #join the list, seperated by commas
+	count = 0
 	for i in name_effects:
-		return name_effects.capitalize()
+		count += 1
+	if count >= 1:
+		for i in name_effects:
+			return name_effects.capitalize()
+	else:
+		return 'None'
+
 
 
 def closest_monster(max_range):
