@@ -133,8 +133,7 @@ class Object:
 			
 		self.effects = effects
 		if self.effects:#let the effect component know who owns it
-			self.effects.owner =
-			self
+			self.effects.owner = self
 			#there must be a fighter component for the effect component to work properly
 			self.fighter = Fighter()
 			self.fighter.owner = self
@@ -205,13 +204,14 @@ class Object:
 		
 class Fighter:
 	#combat-related properties and methods (monster, player, npc).
-	def __init__(self, hp, defense, power, xp, ev, death_function=None, effects = [], poison=0):
+	def __init__(self, hp, defense, power, xp, ev, acc, death_function=None, effects=[], poison=0):
 		self.base_max_hp = hp
 		self.hp = hp
 		self.base_defense = defense
 		self.base_power = power
 		self.xp = xp
 		self.ev = ev
+		self.acc = acc
 		self.death_function = death_function
 		self.effects = effects
 		self.poison = poison
@@ -257,14 +257,32 @@ class Fighter:
 	def attack(self, target):
 		#a simple formula for attack damage
 		damage = self.power - target.fighter.defense
-		
-		if damage > 0:
-			#make the target take some damage
-			message(self.owner.name.capitalize() + ' attacks ' + target.name + ' for ' + str(damage) + ' hit points.')
-			target.fighter.take_damage(damage)
-		else:
-			message(self.owner.name.capitalize() + ' attacks ' + target.name + ' but it has no effect!')
-	
+		roll = libtcod.random_get_int(0, 0, target.fighter.ev)
+		if roll <= self.acc:
+			# #Player messages and colors##
+			if damage > 0 and self.owner.name == 'player':
+				#make the target take some damage and print the value
+				message('You hit the ' + target.name + ' for ' + str(damage) + ' hit points!', libtcod.green)
+				target.fighter.take_damage(damage)
+
+			elif damage <= 0 and self.owner.name == 'player':
+				#else print a message about how puny you are
+				message('You ' + ' hit the' + target.name + ' but it has no effect!', libtcod.grey)
+			##Monster messages and colors##
+			elif damage > 0 and self.owner.name != 'player':
+				#make the target take some damage and print the value
+				message(self.owner.name.capitalize() + ' hits you for ' + str(damage) + ' hit points!', libtcod.red)
+				target.fighter.take_damage(damage)
+
+			elif damage <= 0 and self.owner.name != 'player':
+				message(self.owner.name.capitalize() + ' hits you but it has no effect!', libtcod.grey)
+
+		elif self.owner.name == 'player' and roll > target.fighter.acc:
+			message('You missed the ' + target.name + '!', libtcod.red)
+
+		elif self.owner.name != 'player' and roll > target.fighter.acc:
+			message('The ' + self.owner.name.capitalize() + ' missed you!', libtcod.dark_green)
+
 	def heal(self, amount):
 		#heal by the given amount, without going over the maximum
 		self.hp += amount
@@ -297,8 +315,9 @@ class BasicMonster:
 				check_run_effects(monster)
 			#close enough, attack! (if the player is still alive.)
 			elif player.fighter.hp > 0:
+				#create a roll of the players ev
 				monster.fighter.attack(player)
-				
+
 				#poison if attack is by snake 
 				roll = libtcod.random_get_int(0, 0, 10)
 				if monster.char == 's' and roll >= 7:
@@ -515,14 +534,14 @@ def place_objects(room):
 			choice = random_choice(monster_chances)
 			if choice == 'Dog': 
 				#create an dog
-				fighter_component = Fighter(hp=20, defense=0, power=4, xp=35, ev=10, death_function=monster_death)
+				fighter_component = Fighter(hp=20, defense=0, power=4, xp=35, ev=5, acc=5, death_function=monster_death)
 				ai_component = BasicMonster()
 				monster = Object(x, y, 'd', 'Dog', libtcod.darker_orange, blocks=True, fighter=fighter_component,
 								 ai=ai_component, description='A large, brown muscular looking dog. His eyes glow red.')
 			
 			elif choice == 'Snake': 
 				#create a Snake
-				fighter_component = Fighter(hp=30, defense=3, power=5, xp=100, ev=2, death_function=monster_death)
+				fighter_component = Fighter(hp=30, defense=3, power=5, xp=100, ev=2, acc=5, death_function=monster_death)
 				ai_component = BasicMonster()
 				monster = Object(x, y, 's', 'Snake', libtcod.darker_grey, blocks=True, fighter=fighter_component,
 								 ai=ai_component,
@@ -530,7 +549,7 @@ def place_objects(room):
 			
 			elif choice == 'Imp': 
 				#create an Imp
-				fighter_component = Fighter(hp=15, defense=1, power=4, xp=50, ev=99, death_function=monster_death)
+				fighter_component = Fighter(hp=15, defense=1, power=4, xp=50, ev=9, acc=5, death_function=monster_death)
 				ai_component = BasicMonster()
 				monster = Object(x, y, 'i', 'Imp', libtcod.darker_green, blocks=True, fighter=fighter_component,
 								 ai=ai_component, description='A green Imp, skilled in defensive fighting.')
@@ -671,6 +690,7 @@ def place_special_rooms():#TODO: Redo the dungeon generation to allow for specia
 		#place objects in room:
 		for x in range(9):
 			decy -= 2
+
 			decoration = Object(decx, decy, chr(159), 'Fountain', libtcod.lighter_blue, blocks=False, decorative=True)
 			objects.append(decoration)
 		decx = new_x+2
@@ -1121,11 +1141,19 @@ def player_move_or_attack(dx, dy):
 	
 	#attack if target found, move otherwise
 	if target is not None:
+		#Ev is rolled for here, and if lower or equal to acc damage is taken.
 		player.fighter.attack(target)
+
+
 	# sword heal should be rolled for here
 	else:
-		player.move(dx, dy)
-		fov_recompute = True
+		if is_blocked(x, y):
+			message('You stumble into the wall!')
+			return 'stumble'
+		else:
+			player.move(dx, dy)
+			fov_recompute = True
+			return 'moved'
 	
 	
 	
@@ -1143,28 +1171,28 @@ def handle_keys():
 	#movement keys
 		if key.vk == libtcod.KEY_UP or key.vk == libtcod.KEY_KP8:
 			player_move_or_attack(0, -1)
-			return 'moved'
+
 		elif key.vk == libtcod.KEY_DOWN or key.vk == libtcod.KEY_KP2:
 			player_move_or_attack(0, 1)
-			return 'moved'
+
 		elif key.vk == libtcod.KEY_LEFT or key.vk == libtcod.KEY_KP4:
 			player_move_or_attack(-1, 0)
-			return 'moved'
+
 		elif key.vk == libtcod.KEY_RIGHT or key.vk == libtcod.KEY_KP6:
 			player_move_or_attack(1, 0)
-			return 'moved'
+
 		elif key.vk == libtcod.KEY_HOME or key.vk == libtcod.KEY_KP7:
 			player_move_or_attack(-1, -1)
-			return 'moved'
+
 		elif key.vk == libtcod.KEY_PAGEUP or key.vk == libtcod.KEY_KP9:
 			player_move_or_attack(1, -1)
-			return 'moved'
+
 		elif key.vk == libtcod.KEY_END or key.vk == libtcod.KEY_KP1:
 			player_move_or_attack(-1, 1)
-			return 'moved'
+
 		elif key.vk == libtcod.KEY_PAGEDOWN or key.vk == libtcod.KEY_KP3:
 			player_move_or_attack(1, 1)
-			return 'moved'
+
 		elif key.vk == libtcod.KEY_KP5:
 			pass #do nothing ie wait for the monster to come to you
 			return 'moved'
@@ -1365,7 +1393,7 @@ def target_monster(max_range=None):
 def new_game():
 	global player, inventory, game_msgs, game_state, dungeon_level, turn_increment, heal_rate, turn_5, hunger_level
 	#create object representing player
-	fighter_component = Fighter(hp=100, defense=1, power=2, xp=0, ev=20, death_function=player_death)
+	fighter_component = Fighter(hp=100, defense=1, power=2, xp=0, ev=20, acc=10, death_function=player_death)
 	player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter_component)
 	player.level = 1
 	#Create the list of game messages and their colors, starts empty
@@ -1391,7 +1419,8 @@ def new_game():
 
 	#initial equipment: a dagger
 	equipment_component = Equipment(slot='left hand', power_bonus=2)
-	obj = Object(0, 0, '-', 'wooden dagger', libtcod.darkest_orange, equipment=equipment_component)
+	obj = Object(0, 0, '-', 'wooden dagger', libtcod.darkest_orange, equipment=equipment_component,
+				 description='A small wodden dagger, it provides a bonus to attack.')
 	inventory.append(obj)
 	equipment_component.equip()
 	obj.always_visible = True
@@ -1443,10 +1472,11 @@ def play_game():
 		if player_action == 'moved':
 			check_by_turn()
 			check_run_effects(player)
-			
-		
-		
-		#let monsters take their turn
+
+
+
+
+	#let monsters take their turn
 		if game_state == 'playing' and player_action != 'didnt-take-turn':
 			for object in objects:
 				if object.ai:
@@ -1706,6 +1736,7 @@ main_menu()
 #- Created special room function, but is not seperated from the map because v+h_tunnel does not check for intersection
 # - Added an effects class that can be applied to monsters in the same way equipment class was made.
 # - FIXED THE FUCKING DESCRIPTION FUNCTION, SELF.DESCRIPTION WAS SET AS = SELF.. I'M AN IDIOT.
+# - Implemented EV! Took like 5 minutes..
 
 #To do:
 #- Fix evasion
@@ -1728,12 +1759,27 @@ main_menu()
 #- MAJOR: Turn system http://www.roguebasin.com/index.php?title=A_simple_turn_scheduling_system_--_Python_implementation
 # - MAJOR, URGENT?: Implement ascii/tileset option, create artwork using that pixel editor
 #- MJAOR, URGENT: Implement speed via angbands method here: http://journal.stuffwithstuff.com/2014/07/15/a-turn-based-game-loop/
-#= Initial thoughts: speed value is added to fighter class, an add energy function is applied to all objects with a
-#fighter class in the list objects, an if statment follows: if any object reaches 100 they must take an action
+# - Initial thoughts: speed value is added to fighter class, an add energy function is applied to all objects with a
+#- fighter class in the list objects, an if statment follows: if any object reaches 100 they must take an action
 #- Begin breaking game up into modules, initially the map init and fov init, which should allow me to debug and test new
 # areas outside of the game more easily (i.e. a program that imports all items and places them on the map so I can
-#see how they look
-#- Add all descriptions, change 'message.description' to 'message_descrie.desription' where message_description is a
+# see how they look
+#- Add all descriptions, change 'message.description' to 'message_describe.desription' where message_description is a
 # - function that uses the menu as a display in the following terms: Name, /n/n desription /n/n danger to you
 #- (this will need to be a function adding their health, how many times they can hit you before you die etc.)
 #- Figure out how to fix the display of an effect
+# - Figure  out how to make stumble not call ai.take_turn.
+#- Fix bread/hunger and the applying of eat_food() every new level
+
+#- NEXT: ORDER TO DO LIST AND UPLOAD TO INFO.TXT FILE NO GIT
+
+# Add mutations/godly abilities/quests/new level types/evasion
+# new level types  will require some new learning and research, for instance the gates
+# of hell will not be able to be based off example code
+#- Decide on features needed for an alpha release to get feedback and playtesting. New menu/UI, a few more items, more monsters, 
+#some click to move functionality, skills (think sil) and mutations. Keep it simple, play tggw to get some idea of what
+#is need for a release. Add new scrolls, new effects, fix evasion. Then work towards those features exclusively.
+
+#- Add new UI to right hand bar, one box for mouse over description, another for a list of enemies and their health bars 
+#with mouse-over-to-target functionality
+	
