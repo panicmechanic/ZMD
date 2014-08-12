@@ -1369,24 +1369,7 @@ def handle_keys():
                 player.fighter.take_damage(10)
 
             if key_char == 'r':
-                carry_on = True
-                while carry_on == True:
-                    if player.fighter.hp <= player.fighter.max_hp:
-                        for obj in objects:
-                            if obj.fighter and libtcod.map_is_in_fov(fov_map, obj.x, obj.y) and obj.name != 'player':
-                                carry_on = False
-
-                    if hunger_level >= 800:
-                        carry_on = False
-
-                    if carry_on == True:
-                        check_by_turn()
-
-                    if player.fighter.hp == player.fighter.max_hp:
-                        carry_on = False
-
-
-
+                player_rest()
 
             if key_char == 'd':
                 #show the inventory; if an item is selected, drop it.
@@ -1419,6 +1402,36 @@ def handle_keys():
                         player.fighter.acc) + '\nEffects: ' + get_player_effects(), CHARACTER_SCREEN_WIDTH)
 
             return 'didnt-take-turn'
+
+def player_rest():
+    carry_on = True
+    while carry_on == True:
+        if player.fighter.hp <= player.fighter.max_hp:
+            for obj in objects:
+                if obj.fighter and libtcod.map_is_in_fov(fov_map, obj.x, obj.y) and obj.name != 'player':
+                    carry_on = False
+
+        if hunger_level >= 700:
+            carry_on = False
+            message('You are too hungry to rest! Eat some food.', libtcod.red)
+
+        if carry_on == True:
+            check_by_turn()
+
+        if player.fighter.hp == (player.fighter.max_hp/2)-1:
+            carry_on = False
+            message('You rest to regain some of your health', libtcod.darkest_green)
+            player.fighter.hp +=1
+
+        if player.fighter.hp == (player.fighter.max_hp/1.25)-1:
+            carry_on = False
+            message('You rest to regain most of your health', libtcod.darker_green)
+            player.fighter.hp +=1
+
+        if player.fighter.hp == player.fighter.max_hp:
+            carry_on = False
+            message('You rest to regain all of your health', libtcod.green)
+
 
 
 def get_player_effects():  # Get player effects and return them in a readable string
