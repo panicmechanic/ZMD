@@ -26,6 +26,24 @@ properly and get it on GitHub. Any help/advice is greatly appreciated.
 TO PLAY:
 Download as a zip, extract into a folder of your choosing, and run firstrl.py.
 
+CONTROLS:
+
+Move with the numpad or arrow keys
+Rest - Numpad 5
+AutoRest - 'r'
+Inventory - 'i'
+Describe object - Right mouse click over tile to bring up description menu
+Pick up - 'g'
+Drop item - 'd'
+Go down stairs - '>' or '.'
+Character stats - 'c'
+
+#Debug keys#
+God mode - '@'
+See all map - ']'
+Heal player - '['
+Damage player - '#'
+
 MINOR TODO/BUGS:
 #- Figure out how to stop stumbling from calling ai.take_turn().
 #- get_player_effects and iterate_through_list seem to only

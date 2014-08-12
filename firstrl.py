@@ -1386,7 +1386,7 @@ def handle_keys():
                     msgbox(str(chosen_object.name) + ':' + '\n\n' + str(chosen_object.description) + '\n',
                            CHARACTER_SCREEN_WIDTH)
 
-            if key_char == '>':
+            if key_char == '>' or '.':
                 #go down stairs, if the player is on them
                 if stairs.x == player.x and stairs.y == player.y:
                     next_level()
