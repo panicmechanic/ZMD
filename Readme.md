@@ -61,11 +61,11 @@ Damage player - '#'
 
 - get_player_effects and iterate_through_list seem to only
 	want to show the first element of each list on the GUI.	
-- Fix eat_food being called on map creation in weaponchances.py.
 - Add estimated time length to major todo list below.
-- Figure out how to get fatal effect warning to display on panel1, line 535.
+- Figure out how to get fatal effect warning to display on panel2, line 535.
 - Finish lever object
 - Have evasion and accuracy both draw their values from a new fighter variable 'dex'.
+- Add more food types
 
 
 
@@ -81,7 +81,6 @@ Damage player - '#'
 - Click-to-path for map and GUI
 - New level types (forest, swamp, mountain range, meadow)
 - Quest system
-- Shift-heal, shift-run
 - Auto-explore
 - Graphical overhaul (possibly tileset)
 - High score page
@@ -97,6 +96,7 @@ Damage player - '#'
 
 
 #Done:
+- Fixed eat_food being called every map gen, also fixed eat_food by nesting it under Fighter class.
 - Fixed stumbling
 - Fixed player_move_or_attack and made sure handle_keys returns its value properly
 - Fixed occasional startup error due to pygmys spawning outside the map

@@ -60,7 +60,7 @@ heal_rate = 1
 
 #Food properties
 FOOD_BREAD = 380
-HUNGER_RATE = 10
+HUNGER_RATE = 2
 
 #Player parameters
 LEVEL_UP_BASE = 200
@@ -249,6 +249,17 @@ class Fighter:
     # @property
     #def ev(self): #return actual evasion
 
+    def player_eat_food(self, Item):
+        global hunger_level
+
+        if hunger_level <= 40:
+            message('You are already full!', libtcod.white)
+        else:
+            message('Mmm, that was delicious!', libtcod.light_green)
+            hunger_level -= Item.food_value
+
+
+
     def add_effect(self, Effect, object_origin_name):  # Add effect to the fighter class's list of effects
         # check if the effect already exists, if it does, just increase the duration
         effect_on = False
@@ -421,8 +432,11 @@ class ConfusedMonster:
 
 class Item:
     #An item that can be picked up and used
-    def __init__(self, use_function=None):
+    def __init__(self, use_function=None, pick_up_function=None, food_value=None):
         self.use_function = use_function
+        self.pick_up_function = pick_up_function
+        self.food_value = food_value
+
 
 
     def use(self):
@@ -430,8 +444,10 @@ class Item:
         if self.owner.equipment:
             self.owner.equipment.toggle_equip()
             return
+        elif self.food_value != None:
+            player.fighter.player_eat_food(self)
         #just call the "use function" if it is defined
-        if self.use_function is None:
+        elif self.use_function is None:
             message('The ' + self.owner.name + ' cannot be used.')
         else:
             if self.use_function() != 'cancelled':
@@ -439,6 +455,11 @@ class Item:
 
 
     def pick_up(self):
+
+        if self.pick_up_function != None:
+            #the object has a pickup function, so use it and break the loop
+            self.pick_up_function()
+
         #add to the player's inventory and remove from the map
         if len(inventory) >= 26:
             message('Your inventory is too full, cannot pick up ' + self.owner.name + '.', libtcod.yellow)
@@ -944,14 +965,13 @@ def make_map():
             #finally, append the new room to the list
             rooms.append(new_room)
 
-            # TODO: Get this to work tomorrow. Returning the following error:
-            #File "C:/Users/SABER/Desktop/Python/ZMD/firstrl.py", line 1028, in message_yn
-            #libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS|libtcod.EVENT_MOUSE,key,mouse)
-            #NameError: global name 'mouse' is not defined
+            # TODO: Get this to work, currently calls it's pick_up_function like eat_food does, have to
+            # press 'y' over and over after starting a new game as It appears to hang.
 
             #roll_lever = libtcod.random_get_int(0, 0, 1)
             #if roll_lever == 1:
-            #	create_inscribed_lever(new_x-1, new_y+1)
+                #create_inscribed_lever(new_x-1, new_y+1)
+
             num_rooms += 1
 
     #create stairs at the center of the last room
@@ -1178,6 +1198,7 @@ def wait_for_spacekey():  #Make cast heal message appear without having to press
 
 
 def message_yn(messagequestion, messagey, color1=libtcod.white, color2=libtcod.white):
+
     message(messagequestion, color1)
 
     key = libtcod.console_wait_for_keypress(True)
@@ -1190,11 +1211,11 @@ def message_yn(messagequestion, messagey, color1=libtcod.white, color2=libtcod.w
             choice = 'y'
             message(messagey, color2)
             return choice
-        #check for keypress, render and flush the screen to present monster inside fov.
-        libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS | libtcod.EVENT_MOUSE, key, mouse)
-        render_all()
+        if key_char == 'n':
+            choice = 'n'
+            return choice
 
-        libtcod.console_flush()
+
 
 
 def cast_inscribed_lever():
@@ -1216,7 +1237,7 @@ def cast_inscribed_lever():
 
 def create_inscribed_lever(x, y):
     item_component = Item(pick_up_function=cast_inscribed_lever())
-    lever = Object(x, y, chr(208), 'Inscribed lever', libtcod.gold, item=item_component, always_visible=True)
+    lever = Object(x, y, chr(207), 'Inscribed lever', libtcod.gold, item=item_component, always_visible=True)
     # needs to cast on pick up, not use.
     objects.append(lever)
 
@@ -1388,7 +1409,7 @@ def handle_keys():
                     msgbox(str(chosen_object.name) + ':' + '\n\n' + str(chosen_object.description) + '\n',
                            CHARACTER_SCREEN_WIDTH)
 
-            if key_char == '>' or '.':
+            if key_char == '>':
                 #go down stairs, if the player is on them
                 if stairs.x == player.x and stairs.y == player.y:
                     next_level()
@@ -1416,6 +1437,10 @@ def player_rest():
         if hunger_level >= 700:
             carry_on = False
             message('You are too hungry to rest! Eat some food.', libtcod.red)
+
+        if FATAL_EFFECT == True:
+            carry_on = False
+            message('You cannot rest while fatally ' + FATAL_NAME + '!')
 
         if carry_on == True:
             check_by_turn()
