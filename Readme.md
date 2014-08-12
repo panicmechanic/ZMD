@@ -45,30 +45,13 @@ Heal player - '['
 Damage player - '#'
 
 MINOR TODO/BUGS:
-#- Figure out how to stop stumbling from calling ai.take_turn().
 #- get_player_effects and iterate_through_list seem to only
 	want to show the first element of each list on the GUI.
 #- Fix eat_food being called on map creation in weaponchances.py.
 #- Add estimated time length to major todo list below.
-#- Fix player_move_or_attack/play_game one of which seems to not be functioning correctly
-	and returning their moved/stumbled string properly.
-#- Fix this error that occurs occasionally on startup:
 
-			File "firstrl.py", line 662, in is_blocked
-				if map[x][y].blocked:
-			IndexError: list index out of range
+#- Figure out how to get fatal effect warning to display on panel1, line 535.
 
-	I think it is because pygmys are trying to spawn beyond the wall/map.
-
-#- Occasional error:
-
-			File "weaponchances.py", line 493, in create_item
-    		objects.append(item)
-			UnboundLocalError: local variable 'item' referenced before assignment
-
-#- Figure out how to get fatal effect warning to display, line 535.
-#- Not sure if wander randomly works.
-#-
 
 
 MAJOR TODO (in rough order):
@@ -98,6 +81,10 @@ MAJOR TODO (in rough order):
 
 
 DONE:
+#- Fixed stumbling
+#- Fixed player_move_or_attack and made sure handle_keys returns its value properly
+#- Fixed occasional startup error due to pygmys spawning outside the map
+#- Implemented Auto rest function, stops on 50, 80 and 100 hp. Will also stop if too hungry or monster in FOV.
 #- Fixed snake poison bug where the effect would be applied to the player and all snakes in FOV.
 	Nested the check_for_poison function in the attack function. Probably should have been
 	there in the first place. May be a similar bug in the eat_food() function.
@@ -115,6 +102,7 @@ DONE:
 #- Added accuracy roll, a min/max system.
 #- Added a new GUI to the right, displays monster.fighter hp bars when in FOV
 #- Added character info box to panel2, discarded irrelevant/duplicated information like xp.
+
 
 
 
