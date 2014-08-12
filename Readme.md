@@ -50,6 +50,7 @@ MINOR TODO/BUGS:
 
 #- Figure out how to get fatal effect warning to display, line 535.
 #- Not sure if wander randomly works.
+#-
 
 
 MAJOR TODO (in rough order):
