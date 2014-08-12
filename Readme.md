@@ -1,6 +1,6 @@
-Zeus must die - A python roguelike based on the libtcod tutorial.
+#Zeus must die - A python roguelike based on the libtcod tutorial.
 
-Mission statement:
+#Mission statement:
 
 ZMD is a roguelike in which you play an ancient Greek gladiator, hunting a bezerk Zeus.
 You seek retribution and will have to journey to the top of Mount Olympus to claim your
@@ -23,85 +23,106 @@ may change in the future.
 Originally just a way for me to learn python, as it grew I decided to manage the project
 properly and get it on GitHub. Any help/advice is greatly appreciated.
 
-TO PLAY:
+#To play:
 Download as a zip, extract into a folder of your choosing, and run firstrl.py.
 
-CONTROLS:
+#Controls:
 
 Move with the numpad or arrow keys
+
 Rest - Numpad 5
+
 AutoRest - 'r'
+
 Inventory - 'i'
+
 Describe object - Right mouse click over tile to bring up description menu
+
 Pick up - 'g'
+
 Drop item - 'd'
+
 Go down stairs - '>' or '.'
+
 Character stats - 'c'
 
-#Debug keys#
+#Debug keys:
+
 God mode - '@'
+
 See all map - ']'
+
 Heal player - '['
+
 Damage player - '#'
 
-MINOR TODO/BUGS:
-#- get_player_effects and iterate_through_list seem to only
+
+#Minor TODO/bugs:
+
+- get_player_effects and iterate_through_list seem to only
 	want to show the first element of each list on the GUI.
-#- Fix eat_food being called on map creation in weaponchances.py.
-#- Add estimated time length to major todo list below.
+	
+- Fix eat_food being called on map creation in weaponchances.py.
 
-#- Figure out how to get fatal effect warning to display on panel1, line 535.
+- Add estimated time length to major todo list below.
 
-
-
-MAJOR TODO (in rough order):
-#- Break up firstrl.py into modules
-#- Turn system
-#- Fighter speed system
-#- Add monster drops based on difficulty, to encourage risk/reward
-#- Release a playable alpha
-#- Scent tracking
-#- Mutations/Godly powers
-#- Click-to-path for map and GUI
-#- New level types (forest, swamp, mountain range, meadow)
-#- Quest system
-#- Shift-heal, shift-run
-#- Auto-explore
-#- Graphical overhaul (possibly tileset)
-#- High score page
-#- Add all descriptions
-#- Add danger_evaluate function for describe feature
-#- Add ranged combat
-#- Add more content (weapons/items/effects/monsters)
-#- Add random generators for items and weapons
-#- Improve monster pathfinding, will probably require path function.
-#- Stealth system
-#- Puzzles(?)
-#- armor/skin/muscle/attack type simulation
+- Figure out how to get fatal effect warning to display on panel1, line 535.
 
 
-DONE:
-#- Fixed stumbling
-#- Fixed player_move_or_attack and made sure handle_keys returns its value properly
-#- Fixed occasional startup error due to pygmys spawning outside the map
-#- Implemented Auto rest function, stops on 50, 80 and 100 hp. Will also stop if too hungry or monster in FOV.
-#- Fixed snake poison bug where the effect would be applied to the player and all snakes in FOV.
+
+
+#Major TODO (in rough order):
+- Break up firstrl.py into modules
+
+- Turn system
+
+- Fighter speed system
+
+- Add monster drops based on difficulty, to encourage risk/reward
+
+- Release a playable alpha
+- Scent tracking
+- Mutations/Godly powers
+- Click-to-path for map and GUI
+- New level types (forest, swamp, mountain range, meadow)
+- Quest system
+- Shift-heal, shift-run
+- Auto-explore
+- Graphical overhaul (possibly tileset)
+- High score page
+- Add all descriptions
+- Add danger_evaluate function for describe feature
+- Add ranged combat
+- Add more content (weapons/items/effects/monsters)
+- Add random generators for items and weapons
+- Improve monster pathfinding, will probably require path function.
+- Stealth system
+- Puzzles(?)
+- armor/skin/muscle/attack type simulation
+
+
+#Done:
+- Fixed stumbling
+- Fixed player_move_or_attack and made sure handle_keys returns its value properly
+- Fixed occasional startup error due to pygmys spawning outside the map
+- Implemented Auto rest function, stops on 50, 80 and 100 hp. Will also stop if too hungry or monster in FOV.
+- Fixed snake poison bug where the effect would be applied to the player and all snakes in FOV.
 	Nested the check_for_poison function in the attack function. Probably should have been
 	there in the first place. May be a similar bug in the eat_food() function.
-#- Implemented singular boss system (will do for now)
-#- Implemented message_wait system for discoveries the player needs to pay attention to.
-#- Implemented (and fixed!) describe feature
-#- Implemented hunger system. Food still buggy so only one type right now.
-#- Implemented (and fixed!) Effects feature
-#- Implemented wait for space key feature
-#- Gave monsters (more or less) proper pathfinding.
-#- Implemented space to continue function for scroll messages
-#- A see all map debug key
-#- Created singular special room function, but is not seperated from the map because v+h_tunnel does not check for intersection
-#- Implemented evasion! Took like 5 minutes.
-#- Added accuracy roll, a min/max system.
-#- Added a new GUI to the right, displays monster.fighter hp bars when in FOV
-#- Added character info box to panel2, discarded irrelevant/duplicated information like xp.
+- Implemented singular boss system (will do for now)
+- Implemented message_wait system for discoveries the player needs to pay attention to.
+- Implemented (and fixed!) describe feature
+- Implemented hunger system. Food still buggy so only one type right now.
+- Implemented (and fixed!) Effects feature
+- Implemented wait for space key feature
+- Gave monsters (more or less) proper pathfinding.
+- Implemented space to continue function for scroll messages
+- A see all map debug key
+- Created singular special room function, but is not seperated from the map because v+h_tunnel does not check for intersection
+- Implemented evasion! Took like 5 minutes.
+- Added accuracy roll, a min/max system.
+- Added a new GUI to the right, displays monster.fighter hp bars when in FOV
+- Added character info box to panel2, discarded irrelevant/duplicated information like xp.
 
 
 
