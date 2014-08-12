@@ -1204,11 +1204,14 @@ def cast_inscribed_lever():
     # if player pulled lever
     if message_yn == 'y':
         #roll for outcome
-        roll = libtcod.random_get_int(0, 0, 2)
+        roll = libtcod.random_get_int(0, 0, 1)
         if roll == 0:  # Spawn 6 weapon/items
             for i in range(0, 5, 1):
                 weaponchances.random_item()
                 weaponchances.create_item(player.x, player.y)
+        else:
+            pass
+
 
 
 def create_inscribed_lever(x, y):

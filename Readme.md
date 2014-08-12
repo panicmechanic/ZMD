@@ -60,27 +60,21 @@ Damage player - '#'
 #Minor TODO/bugs:
 
 - get_player_effects and iterate_through_list seem to only
-	want to show the first element of each list on the GUI.
-	
+	want to show the first element of each list on the GUI.	
 - Fix eat_food being called on map creation in weaponchances.py.
-
 - Add estimated time length to major todo list below.
-
 - Figure out how to get fatal effect warning to display on panel1, line 535.
 - Finish lever object
+- Have evasion and accuracy both draw their values from a new fighter variable 'dex'.
 
 
 
 
 #Major TODO (in rough order):
 - Break up firstrl.py into modules
-
 - Turn system
-
 - Fighter speed system
-
 - Add monster drops based on difficulty, to encourage risk/reward
-
 - Release a playable alpha
 - Scent tracking
 - Mutations/Godly powers
