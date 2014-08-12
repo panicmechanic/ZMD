@@ -568,9 +568,6 @@ def check_run_effects(obj):
             elif eff.turns_passed == eff.duration:
                 obj.fighter.remove_effect(eff)
 
-
-
-
     else:
         return 'no effects'
 
@@ -1444,6 +1441,8 @@ def player_rest():
 
         if carry_on == True:
             check_by_turn()
+            #TODO: this will not work unless it runs through every fighter in objects.
+            #check_run_effects(player)
 
         if player.fighter.hp == (player.fighter.max_hp/2)-1:
             carry_on = False

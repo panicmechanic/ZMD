@@ -485,6 +485,8 @@ def create_item(x, y):
 
     objects.append(item)
     item.send_to_back()
+    if choice == 'nothing':
+        objects.remove(item)
     item_chances = {}
 
 

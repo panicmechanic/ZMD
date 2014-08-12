@@ -65,7 +65,7 @@ Damage player - '#'
 - Figure out how to get fatal effect warning to display on panel2, line 535.
 - Finish lever object
 - Have evasion and accuracy both draw their values from a new fighter variable 'dex'.
-- Add more food types
+- Add more food types (so far; feta, bread)
 
 
 
