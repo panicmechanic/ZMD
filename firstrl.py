@@ -61,7 +61,7 @@ heal_rate = 1
 
 #Food properties
 FOOD_BREAD = 380
-HUNGER_RATE = 1.5
+HUNGER_RATE = 10
 
 #Player parameters
 LEVEL_UP_BASE = 200
@@ -1261,7 +1261,7 @@ def message(new_msg, color=libtcod.white):  #TODO: Why can't this function end w
 def player_move_or_attack(dx, dy):
     global fov_recompute
 
-    ret = None
+    outcome = None
 
     x = player.x + dx
     y = player.y + dy
@@ -1274,21 +1274,22 @@ def player_move_or_attack(dx, dy):
 
     if target != None:
         player.fighter.attack(target)
-        ret = 'moved'
+        outcome = 'moved'
 
     elif is_blocked(x, y):
         message('You stumble into the wall..', libtcod.white)
-        ret = 'stumble'
+        outcome = 'stumble'
 
     elif is_blocked(x, y) == False:
         player.move(dx, dy)
         fov_recompute = True
-        ret = 'moved'
+        outcome = 'moved'
 
-    return ret
+    return outcome
 
 def handle_keys():
     global keys;
+    global hunger_level
 
     if key.vk == libtcod.KEY_ENTER and key.lalt:
         #Alt + Enter toggle fullscreen
@@ -1327,6 +1328,7 @@ def handle_keys():
         elif key.vk == libtcod.KEY_KP5:
             pass  #do nothing ie wait for the monster to come to you
             return 'moved'
+
         else:
             #test for other keys
             key_char = chr(key.c)
@@ -1361,6 +1363,30 @@ def handle_keys():
                 player.fighter.max_hp = 10000
                 player.fighter.defense = 10000
                 player.fighter.power = 10000
+
+            #debug
+            if key_char == '#':
+                player.fighter.take_damage(10)
+
+            if key_char == 'r':
+                carry_on = True
+                while carry_on == True:
+                    if player.fighter.hp <= player.fighter.max_hp:
+                        for obj in objects:
+                            if obj.fighter and libtcod.map_is_in_fov(fov_map, obj.x, obj.y) and obj.name != 'player':
+                                carry_on = False
+
+                    if hunger_level >= 800:
+                        carry_on = False
+
+                    if carry_on == True:
+                        check_by_turn()
+
+                    if player.fighter.hp == player.fighter.max_hp:
+                        carry_on = False
+
+
+
 
             if key_char == 'd':
                 #show the inventory; if an item is selected, drop it.
@@ -1626,7 +1652,7 @@ def play_game():
             save_game()
             break
 
-        #TODO: this line is not firing
+
         if player_action == 'moved' and game_state == 'playing':
             check_by_turn()
             check_run_effects(player)
@@ -1788,17 +1814,23 @@ def from_dungeon_level(table):
 def check_by_turn():
     global heal_rate, turn_increment, turn_5, hunger_level
     turn_increment += 1
+
+    #heal player if turn_increment is == 5
     if turn_increment == 5:
         player.fighter.heal(heal_rate)
-        turn_increment -= 5
-        turn_5 += 1
+
 
     #Take care of the hunger variables here, may be better in their own function
-    if hunger_level < 200:
+    if turn_increment == 5 and hunger_level < 800:
         hunger_level += HUNGER_RATE
-    elif hunger_level == 800:
+    elif hunger_level >= 800:
         message('You are starving!', libtcod.light_red)
-        player.fighter.take_damage(1)
+        player.fighter.take_damage(2)
+
+    #reset turn incrememnt to 0 if it is 5, at the end of the function
+    if turn_increment == 5:
+        turn_increment -= 5
+        turn_5 += 1
 
 
 def total_turns():
@@ -1820,7 +1852,7 @@ def hunger():
         return 'Hungry'
     elif hunger_level <= 799:
         return 'Very hungry'
-    elif hunger_level == 800:
+    elif hunger_level >= 800:
         return 'Starving!'
 
 
