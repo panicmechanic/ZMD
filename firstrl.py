@@ -3,7 +3,6 @@ import libtcodpy as libtcod
 import math
 import textwrap
 import shelve
-import pdb
 import weaponchances
 from weaponchances import create_item
 

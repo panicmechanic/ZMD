@@ -67,6 +67,7 @@ Damage player - '#'
 - Add estimated time length to major todo list below.
 
 - Figure out how to get fatal effect warning to display on panel1, line 535.
+- Finish lever object
 
 
 
