@@ -1,4 +1,5 @@
 import libtcodpy as libtcod
+
 import math
 import textwrap
 import shelve
@@ -6,20 +7,25 @@ import pdb
 import weaponchances
 from weaponchances import create_item
 
-
+# FATAL EFFECT
+FATAL_EFFECT = False
+FATAL_NAME = None
 
 #actual size of the window
 SCREEN_WIDTH = 130
 SCREEN_HEIGHT = 60
 
 #size of the map
-MAP_WIDTH = 130
+MAP_WIDTH = 105
 MAP_HEIGHT = 53
 
 #parameters for dungeon generator
-ROOM_MAX_SIZE = 10
-ROOM_MIN_SIZE = 6
-MAX_ROOMS = 35
+ROOM_MAX_SIZE = 12
+ROOM_MIN_SIZE = 5
+MAX_ROOMS = 55
+
+
+
 
 
 #sizes and coordinates relevant for GUI
@@ -31,7 +37,12 @@ MSG_WIDTH = SCREEN_WIDTH - BAR_WIDTH - 2
 MSG_HEIGHT = PANEL_HEIGHT - 1
 INVENTORY_WIDTH = 50
 LEVEL_SCREEN_WIDTH = 40
-CHARACTER_SCREEN_WIDTH = 30
+CHARACTER_SCREEN_WIDTH = 25
+
+# PANEL 2
+PANEL2_HEIGHT = 53
+PANEL2_WIDTH = 25
+RECT_HEIGHT = 16 - PANEL2_HEIGHT  # 16 being the max height of the enemy fov panel.
 
 #FOV
 FOV_ALGO = 0 #Default FOV algorithm
@@ -56,13 +67,11 @@ HUNGER_RATE = 1.5
 LEVEL_UP_BASE = 200
 LEVEL_UP_FACTOR = 200
 
+
 #FPS
 LIMIT_FPS = 20  #20 frames-per-second maximum
 
-#Player effects
-POISON_TURN = 0
-POISON_COUNTDOWN = 0
-POISON_DURATION = 0
+
 
 #TODO: NEED TO CHANGE THESE VALUES AT SOME POINT, MAYBE AFTER NOISE SYSTEM
 color_dark_wall = libtcod.Color(120, 90, 55)
@@ -134,6 +143,7 @@ class Object:
 		self.effects = effects
 		if self.effects:#let the effect component know who owns it
 			self.effects.owner = self
+
 			#there must be a fighter component for the effect component to work properly
 			self.fighter = Fighter()
 			self.fighter.owner = self
@@ -235,16 +245,30 @@ class Fighter:
 	# @property
 	#def ev(self): #return actual evasion
 
-	def add_effect(self, Effect):  # Add effect to the fighter class's list of effects
-		self.effects.append(Effect)
+	def add_effect(self, Effect, object_origin_name):  # Add effect to the fighter class's list of effects
+		# check if the effect already exists, if it does, just increase the duration
+		effect_on = False
+		#if effects is not empty, iterate through them
+		if self.effects != []:
+			for i in self.effects:
+				if i.effect_name == Effect.effect_name and effect_on == False:
+					i.duration += Effect.duration
+					effect_on = True
+					message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you further!',
+							libtcod.yellow)
+
+		else:
+			self.effects.append(Effect)
+			message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you!', libtcod.yellow)
+
 
 	def remove_effect(self, Effect):
-		if duration == turns_passed:
+		if Effect.duration == Effect.turns_passed:
 			self.effects.remove(Effect)
 
 	def take_damage(self, damage):
 		#apply damage if possible
-		if damage > 0: #and percentage_to_hit > self.ev:#TODO: need to create a better system to account for a skill with a weapon class and critical hits and message for missed hits on both players and monsters
+		if damage > 0:
 			self.hp -= damage
 					
 		#check for death, if there's a death function, call it.
@@ -255,12 +279,14 @@ class Fighter:
 			
 			if self.owner != player: #yield experience to the player
 				player.fighter.xp += self.xp
-			
+
 	def attack(self, target):
 		#a simple formula for attack damage
 		damage = self.power - target.fighter.defense
-		roll = libtcod.random_get_int(0, 0, target.fighter.ev)
-		if roll <= self.acc:
+		ev_roll = libtcod.random_get_int(0, 0, target.fighter.ev)
+		acc_min = self.acc / 2
+		acc_roll = libtcod.random_get_int(0, acc_min, self.acc)
+		if ev_roll <= acc_roll:
 
 			# #Player messages and colors##
 			if damage > 0 and self.owner.name == 'player':
@@ -270,30 +296,31 @@ class Fighter:
 
 			elif damage <= 0 and self.owner.name == 'player':
 				#else print a message about how puny you are
-				message('You ' + ' hit the' + target.name + ' but it has no effect!', libtcod.grey)
+				message('You hit the ' + target.name + ' but it has no effect!', libtcod.grey)
 
 			##Monster messages and colors##
 			elif damage > 0 and self.owner.name != 'player':
 				#make the target take some damage and print the value
 				message(self.owner.name.capitalize() + ' hits you for ' + str(damage) + ' hit points!', libtcod.red)
 				target.fighter.take_damage(damage)
+				self.roll_for_poison(target)
 
 			elif damage <= 0 and self.owner.name != 'player':
 				message(self.owner.name.capitalize() + ' hits you but it has no effect!', libtcod.grey)
+				self.roll_for_poison(target)
 
-		elif self.owner.name == 'player' and roll > self.acc:
+		elif self.owner.name == 'player' and ev_roll > acc_roll:
 			message('You missed the ' + target.name + '!', libtcod.red)
 
-		elif self.owner.name != 'player' and roll > self.acc:
+		elif self.owner.name != 'player' and ev_roll > acc_roll:
 			message('The ' + self.owner.name.capitalize() + ' missed you!', libtcod.dark_green)
 
-		else:
-			print roll
-			print damage
-			print target.fighter.acc
-			print self.acc
-			print self.owner.name
-			message('Error!')
+
+	# poison if attack is by snake and roll is good.
+	def roll_for_poison(self, target):
+		roll = libtcod.random_get_int(0, 0, 10)
+		if self.owner.char == 's' and roll >= 6:
+			target.fighter.add_effect(Effect('Poisoned', duration=5, damage_by_turn=2), self.owner.name.capitalize())
 
 
 	def heal(self, amount):
@@ -301,7 +328,8 @@ class Fighter:
 		self.hp += amount
 		if self.hp > self.max_hp:
 			self.hp = self.max_hp
-	
+
+
 class BasicMonster:
 	global path
 	#AI for a basic monster.
@@ -316,7 +344,14 @@ class BasicMonster:
 		if libtcod.map_is_in_fov(fov_map, monster.x, monster.y):
 		
 			#move towards player if far away
-			if monster.distance_to(player) >= 2:
+
+			# pygmys can attack one block further in every direction.
+			if monster.char == 'p' and monster.distance_to(player) <= 2:
+				if player.fighter.hp > 0:
+					monster.fighter.attack(player)
+
+
+			elif monster.distance_to(player) >= 2:
 				#compute how to reach the player
 				libtcod.path_compute(monster.path, monster.x, monster.y, player.x, player.y)
 				# TODO: Insert an if statement to check for a blocked tile, pick an adjacent one and move into it instead
@@ -326,16 +361,12 @@ class BasicMonster:
 				nextx, nexty = libtcod.path_walk(monster.path,True)
 				monster.move_towards(nextx, nexty)
 				check_run_effects(monster)
+
 			#close enough, attack! (if the player is still alive.)
 			elif player.fighter.hp > 0:
-				#create a roll of the players ev
 				monster.fighter.attack(player)
 
-				#poison if attack is by snake 
-				roll = libtcod.random_get_int(0, 0, 10)
-				if monster.char == 's' and roll >= 7:
-					player.fighter.poison=1
-		
+
 		else:
 			#the player cannot see the monster
 			#if we have an old path, follow it
@@ -371,7 +402,7 @@ class ConfusedMonster:
 	def __init__(self, old_ai, num_turns=CONFUSE_NUM_TURNS):
 		self.old_ai = old_ai
 		self.num_turns = num_turns
-		
+		libtcod.mouse
 	def take_turn(self):
 		if self.num_turns > 0: #still confused...
 			#move in a random direction, and decrease the number of turns confused
@@ -463,7 +494,8 @@ class Equipment:
 
 class Effect:
 	#an effect that can be applied to the character, yielding bonuses or nerfs
-	def __init__(self, effect_name, duration=0, turns_passed=0, power_effect=0, defense_effect=0, max_hp_effect=0, confused=False, burning=False):
+	def __init__(self, effect_name, duration=0, turns_passed=0, power_effect=0, defense_effect=0, max_hp_effect=0,
+				 confused=False, burning=False, damage_by_turn=None):
 		self.effect_name = effect_name
 		self.duration = duration
 		self.turns_passed = turns_passed
@@ -472,18 +504,46 @@ class Effect:
 		self.max_hp_effect = max_hp_effect
 		self.confused = confused
 		self.burning = burning
+		self.damage_by_turn = damage_by_turn
 		
 		self.is_active = False
 
 
-def check_run_effects(
-		obj):  # Check for effects, if there are and their turns_passed value is not == duration, increase its turn_passed value by one, if it is equal to duration remove it.
-	if obj.effects is not None:
-		for eff in effects:
-			if turns_passed is not duration:
-				turns_passed += 1
-			elif turns_passed == duration:
-				remove_effect(eff)
+def check_run_effects(obj):
+	# Check for effects, if there is 1 or more and their turns_passed value is not == duration, increase its turn_passed value by one, if it is equal to duration remove it.
+	if obj.fighter.effects is not None:
+		for eff in obj.fighter.effects:
+
+			# If it is the first time
+			if eff.turns_passed == 0:
+				is_active = True
+
+			#Run for damage_by_turn:
+			if eff.damage_by_turn is not None:
+				obj.fighter.take_damage(eff.damage_by_turn)
+
+
+			#If turns_passed is not equal to the duration, add one turn
+			if eff.turns_passed is not eff.duration:
+				eff.turns_passed += 1
+
+			# check for fatal turn_by_damage limit
+			total_dmg = eff.duration * eff.damage_by_turn
+			if total_dmg >= obj.fighter.hp:
+				FATAL_EFFECT = True
+				FATAL_NAME = str(eff.effect_name)
+				message('You are fatally ' + eff.effect_name + '!')
+				#works up to here, then doesn't want to print the warning
+				libtcod.console_print_ex(panel, 1, 4, libtcod.BKGND_NONE, libtcod.LEFT, 'Fatally ' + FATAL_NAME + '!')
+
+
+			#if turns_passed is equal to duration, remove the effect
+			elif eff.turns_passed == eff.duration:
+				obj.fighter.remove_effect(eff)
+
+
+
+
 	else:
 		return 'no effects'
 				
@@ -517,14 +577,14 @@ def place_objects(room):
 	
 	#chance of each monsters
 	monster_chances = {}
-	monster_chances['Dog'] = 80 #Dog always spawns, even if all other monsters have 0 chance
-	monster_chances['Snake'] = from_dungeon_level([[5, 2], [30, 5], [50, 7]])
-	monster_chances['Imp'] = from_dungeon_level([[15, 1], [30, 5], [50, 7]])
+	monster_chances['Dog'] = 1  #Dog always spawns, even if all other monsters have 0 chance
+	monster_chances['Snake'] = from_dungeon_level([[500, 1], [300, 5], [50, 7]])
+	monster_chances['Imp'] = from_dungeon_level([[1, 1], [30, 5], [50, 7]])
 	monster_chances['Firefly'] = from_dungeon_level([[10, 2], [30, 3], [60, 7]])
 	monster_chances['Crab'] = from_dungeon_level([[10, 2], [30, 3], [60, 7]])
 	monster_chances['Goat'] = from_dungeon_level([[15, 2], [30, 8], [60, 10]])
 	monster_chances['Eagle'] = from_dungeon_level([[15, 5], [30, 8], [60, 10]])
-	monster_chances['Pygmy'] = from_dungeon_level([[10, 5], [40, 8], [50, 10]])
+	monster_chances['Pygmy'] = from_dungeon_level([[10, 5], [40, 8], [500, 10]])
 	monster_chances['Bull'] = from_dungeon_level([[10, 6], [40, 7], [10, 9]])
 	monster_chances['Centaur'] = from_dungeon_level([[5, 6], [20, 7], [30, 9]])
 	
@@ -554,7 +614,8 @@ def place_objects(room):
 			
 			elif choice == 'Snake': 
 				#create a Snake
-				fighter_component = Fighter(hp=30, defense=3, power=5, xp=100, ev=2, acc=5, death_function=monster_death)
+				fighter_component = Fighter(hp=30, defense=3, power=5, xp=100, ev=2, acc=10,
+											death_function=monster_death)
 				ai_component = BasicMonster()
 				monster = Object(x, y, 's', 'Snake', libtcod.darker_grey, blocks=True, fighter=fighter_component,
 								 ai=ai_component,
@@ -569,7 +630,8 @@ def place_objects(room):
 
 			elif choice == 'Eagle':
 				#create an eagle
-				fighter_component = Fighter(hp=40, defense=3, power=10, xp=200, ev=20, death_function=monster_death)
+				fighter_component = Fighter(hp=40, defense=3, power=10, xp=200, ev=20, acc=10,
+											death_function=monster_death)
 				ai_component = BasicMonster()
 				monster = Object(x, y, 'e', 'Eagle', libtcod.darker_sepia, blocks=True, fighter=fighter_component,
 								 ai=ai_component,
@@ -577,7 +639,8 @@ def place_objects(room):
 				
 			elif choice == 'Firefly':
 				#create a glow fly
-				fighter_component = Fighter(hp=8, defense=0, power=8, xp=50, ev=20, death_function=monster_death)
+				fighter_component = Fighter(hp=8, defense=0, power=8, xp=50, ev=20, acc=10,
+											death_function=monster_death)
 				ai_component = BasicMonster()
 				monster = Object(x, y, 'f', 'Firefly', libtcod.darker_lime, blocks=True, fighter=fighter_component,
 								 ai=ai_component,
@@ -585,10 +648,10 @@ def place_objects(room):
 			
 			elif choice == 'Pygmy':
 				#create a pygmy
-				fighter_component = Fighter(hp=50, defense=6, power=8, xp=250, ev=20, death_function=monster_death)
+				fighter_component = Fighter(hp=50, defense=6, power=8, xp=250, ev=20, acc=10,
+											death_function=monster_death)
 				ai_component = BasicMonster()
-				monster = Object(x, y, 'p', 'Pygmy Chieftain', libtcod.darkest_pink, blocks=True,
-								 fighter=fighter_component, ai=ai_component,
+				monster = Object(x, y, 'p', 'Chieftain', libtcod.darkest_pink, blocks=True, fighter=fighter_component, ai=ai_component,
 								 description='A Pygmy chieftan, a particularly strong Pygmy who guides the others in matters of warfare. He looks much stronger than the others.')
 				#Generate random number of baby boars
 				num_pygmys = libtcod.random_get_int(0, 1, 6)
@@ -598,17 +661,19 @@ def place_objects(room):
 					y = libtcod.random_get_int(0, monster.y+2, monster.y-2)
 					if not is_blocked(x, y):
 						#create other pygmys
-						fighter_component = Fighter(hp=30, defense=4, power=4, xp=200, ev=20, death_function=monster_death)
+						fighter_component = Fighter(hp=30, defense=4, power=4, xp=200, ev=20, acc=10,
+													death_function=monster_death)
 						ai_component = BasicMonster()				
 						other_pygmy = Object(x, y, 'p', 'Pygmy', libtcod.dark_pink, blocks=True,
 											 fighter=fighter_component, ai=ai_component,
-											 description='A member of an ancient tribe of warrior midgets, they rarely hunt alone. His chieftan is sure to be nearby.')
+											 description='A member of an ancient tribe of warrior midgets, they rarely hunt alone. They carry long spears. His chieftan is sure to be nearby.')
 						#append the little fuckers
 						objects.append(other_pygmy)
 			
 			elif choice == 'Goat':
 				#create a goat
-				fighter_component = Fighter(hp=35, defense=3, power=5, xp=60, ev=20, death_function=monster_death)
+				fighter_component = Fighter(hp=35, defense=3, power=5, xp=60, ev=20, acc=10,
+											death_function=monster_death)
 				ai_component = BasicMonster()
 				monster = Object(x, y, 'g', 'Goat', libtcod.lighter_grey, blocks=True, fighter=fighter_component,
 								 ai=ai_component,
@@ -616,15 +681,17 @@ def place_objects(room):
 			
 			elif choice == 'Bull':
 				#create a bull
-				fighter_component = Fighter(hp=80, defense=1, power=8, xp=250, ev=20, death_function=monster_death)
+				fighter_component = Fighter(hp=80, defense=1, power=8, xp=250, ev=20, acc=10,
+											death_function=monster_death)
 				ai_component = BasicMonster()
-				monster = Object(x, y, chr(209), 'Bull', libtcod.light_flame, blocks=True, fighter=fighter_component,
+				monster = Object(x, y, chr(143), 'Bull', libtcod.light_flame, blocks=True, fighter=fighter_component,
 								 ai=ai_component,
 								 description='An enormous bull with two shining horns, they appear as if they have been polished. Perhaps by the bulls long rough tongue. He is extremely muscular and fast.')
 			
 			elif choice == 'Crab':
 				#create a crab
-				fighter_component = Fighter(hp=30, defense=4, power=5, xp=50, ev=20, death_function=monster_death)
+				fighter_component = Fighter(hp=30, defense=4, power=5, xp=50, ev=20, acc=10,
+											death_function=monster_death)
 				ai_component = BasicMonster()
 				monster = Object(x, y, 'c', 'Crab', libtcod.dark_yellow, blocks=True, fighter=fighter_component,
 								 ai=ai_component,
@@ -632,7 +699,8 @@ def place_objects(room):
 			
 			elif choice == 'Centaur':
 				#create a centaur
-				fighter_component = Fighter(hp=100, defense=7, power=10, xp=300, ev=20, death_function=monster_death)
+				fighter_component = Fighter(hp=100, defense=7, power=10, xp=300, ev=20, acc=10,
+											death_function=monster_death)
 				ai_component = BasicMonster()
 				monster = Object(x, y, 'C', 'Centaur', libtcod.darker_magenta, blocks=True, fighter=fighter_component,
 								 ai=ai_component,
@@ -712,12 +780,9 @@ def place_special_rooms():#TODO: Redo the dungeon generation to allow for specia
 			decy -= 2
 			decoration = Object(decx, decy, chr(159), 'Fountain', libtcod.lighter_blue, blocks=False, decorative=True)
 			objects.append(decoration)
-			
-		
-		
-		
-			
-def render_bar(x, y, total_width, name, value, maximum, bar_color, back_color):
+
+
+def render_bar(panel, x, y, total_width, name, value, maximum, bar_color, back_color):
 	#render a bar (HP, experience, etc.) first calculate the width of the bar
 	bar_width = int(float(value) / maximum * total_width)
 	
@@ -816,8 +881,8 @@ def make_map():
 		w = libtcod.random_get_int(0, ROOM_MIN_SIZE, ROOM_MAX_SIZE)
 		h = libtcod.random_get_int(0, ROOM_MIN_SIZE, ROOM_MAX_SIZE)
 		#random position without going out of the boundaries of the map
-		x = libtcod.random_get_int(0, 0, MAP_WIDTH - w - 1)
-		y = libtcod.random_get_int(0, 0, MAP_HEIGHT - h - 1)
+		x = libtcod.random_get_int(0, 0, MAP_WIDTH - w - 2)
+		y = libtcod.random_get_int(0, 0, MAP_HEIGHT - h - 2)
 	
 		#"Rect" class makes rectangles easier to work with
 		new_room = Rect(x, y, w, h)
@@ -888,7 +953,7 @@ def make_map():
 	
 def boar_mother(x, y):
 	global map, rooms
-	fighter_component = Fighter(hp=35, defense=2, power=6, xp=400, ev=20, death_function=monster_death)
+	fighter_component = Fighter(hp=35, defense=2, power=6, xp=400, ev=20, acc=10, death_function=monster_death)
 	ai_component = BasicMonster()
 	boar = Object(x, y, 'B', 'Giant Boar Mother', libtcod.darker_red, blocks=True, fighter=fighter_component, ai=ai_component, description='A big angry ')
 	#Generate random number of baby boars
@@ -901,7 +966,7 @@ def boar_mother(x, y):
 		y = libtcod.random_get_int(0, boar.y+2, boar.y-2)
 		if not is_blocked(x, y):
 			#create baby boars
-			fighter_component = Fighter(hp=2, defense=0, power=3, xp=5, ev=1, death_function=monster_death)
+			fighter_component = Fighter(hp=2, defense=0, power=3, xp=5, ev=1, acc=10, death_function=monster_death)
 			ai_component = BasicMonster()				
 			monster = Object(x, y, 'b', 'Baby boar', libtcod.darkest_red, blocks=True, fighter=fighter_component, ai=ai_component, description='A baby boar, how cute.')
 			#append the little fuckers
@@ -1016,7 +1081,7 @@ def render_all():
 		if object != player:
 			object.draw()
 	player.draw()
-	
+
 	#blit the contents of "con" to root console and present it
 	libtcod.console_blit(con, 0, 0, MAP_WIDTH, MAP_HEIGHT, 0, 0, 0)
 
@@ -1032,17 +1097,54 @@ def render_all():
 		y += 1
 	
 	#show the player's stats
-	render_bar(1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.light_red, libtcod.darker_red)
-	libtcod.console_print_ex(panel, 1, 3, libtcod.BKGND_NONE, libtcod.LEFT, 'Dungeon level ' + str(dungeon_level))
+	level_up_xp = LEVEL_UP_BASE + player.level * LEVEL_UP_FACTOR
+	render_bar(panel, 1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.red, libtcod.darker_red)
+	render_bar(panel, 1, 2, BAR_WIDTH, 'XP', player.fighter.xp, level_up_xp, libtcod.light_purple, libtcod.darker_purple)
+	libtcod.console_print_ex(panel, 1, 3, libtcod.BKGND_NONE, libtcod.LEFT, 'Dungeon level: ' + str(dungeon_level))
 	libtcod.console_print_ex(panel, 1, 5, libtcod.BKGND_NONE, libtcod.LEFT, 'Hunger:' + str(hunger()))
-	
-	
+
+
+
+
 	#display names of objects under the mouse
 	libtcod.console_set_default_foreground(panel, libtcod.light_gray)
 	libtcod.console_print_ex(panel, 1, 0, libtcod.BKGND_NONE, libtcod.LEFT, get_names_under_mouse())
 		
 	#blit the contents of "panel" to the root console
 	libtcod.console_blit(panel, 0, 0, SCREEN_WIDTH, PANEL_HEIGHT, 0, 0, PANEL_Y)
+
+	#prepare to render the second GUI panel
+	libtcod.console_set_default_background(panel2, libtcod.black)
+	libtcod.console_clear(panel2)
+
+	# display a title
+	libtcod.console_print_ex(panel2, 5, 0, libtcod.BKGND_NONE, libtcod.LEFT, 'Enemies in FOV:')
+
+	#print the enemy fighters hp, and a bar below them, as long as the total width does not exceed 16
+	y = 2
+
+	for obj in objects:
+		# if object is in fov and is a fighter and is not the player, and the list of objects is not too
+		#  long, render a bar for that object
+		if libtcod.map_is_in_fov(fov_map, obj.x, obj.y) and obj.fighter and obj.name != 'player' and y <= 14:
+			render_bar(panel2, 3, y, BAR_WIDTH, str(obj.name.capitalize()), obj.fighter.hp, obj.fighter.max_hp,
+					   libtcod.red, libtcod.darker_red)
+			y += 2
+
+	# Print char box
+	libtcod.console_print_rect_ex(panel2, 1, 24, PANEL2_WIDTH, RECT_HEIGHT, libtcod.BKGND_NONE, libtcod.LEFT,
+								  'Character Information:\n')
+
+	char_info = '\nLevel: ' + str(player.level) + '\nAttack: ' + str(player.fighter.power) + '\nDefense: ' + str(
+		player.fighter.defense) + '\nEvasion: ' + str(player.fighter.ev) + '\nAccuracy: ' + str(
+		player.fighter.acc) + '\nEffects: ' + get_player_effects() + '\n\nEquipped Items:' + '\n' + iterate_through_list(
+		get_all_equipped(player))
+
+	libtcod.console_print_ex(panel2, 1, 26, libtcod.BKGND_NONE, libtcod.LEFT, char_info)
+
+	#blit the contents of "panel2" to the root console
+	libtcod.console_blit(panel2, 0, 0, PANEL2_WIDTH, MAP_HEIGHT, 0, MAP_WIDTH, 0)
+
 
 def wait_for_spacekey():#Make cast heal message appear without having to press the same key twice
 	libtcod.console_flush()
@@ -1151,7 +1253,8 @@ def player_move_or_attack(dx, dy):
 		if object.fighter and object.x == x and object.y == y:
 			target = object
 			break
-	
+
+
 	#attack if target found, move otherwise
 	if target is not None:
 		#Ev is rolled for here, and if lower or equal to acc damage is taken.
@@ -1160,9 +1263,11 @@ def player_move_or_attack(dx, dy):
 
 	# sword heal should be rolled for here
 	else:
+
 		if is_blocked(x, y):
 			message('You stumble into the wall!')
 			return 'stumble'
+
 		else:
 			player.move(dx, dy)
 			fov_recompute = True
@@ -1184,28 +1289,28 @@ def handle_keys():
 	#movement keys
 		if key.vk == libtcod.KEY_UP or key.vk == libtcod.KEY_KP8:
 			player_move_or_attack(0, -1)
-
+			return 'moved'
 		elif key.vk == libtcod.KEY_DOWN or key.vk == libtcod.KEY_KP2:
 			player_move_or_attack(0, 1)
-
+			return 'moved'
 		elif key.vk == libtcod.KEY_LEFT or key.vk == libtcod.KEY_KP4:
 			player_move_or_attack(-1, 0)
-
+			return 'moved'
 		elif key.vk == libtcod.KEY_RIGHT or key.vk == libtcod.KEY_KP6:
 			player_move_or_attack(1, 0)
-
+			return 'moved'
 		elif key.vk == libtcod.KEY_HOME or key.vk == libtcod.KEY_KP7:
 			player_move_or_attack(-1, -1)
-
+			return 'moved'
 		elif key.vk == libtcod.KEY_PAGEUP or key.vk == libtcod.KEY_KP9:
 			player_move_or_attack(1, -1)
-
+			return 'moved'
 		elif key.vk == libtcod.KEY_END or key.vk == libtcod.KEY_KP1:
 			player_move_or_attack(-1, 1)
-
+			return 'moved'
 		elif key.vk == libtcod.KEY_PAGEDOWN or key.vk == libtcod.KEY_KP3:
 			player_move_or_attack(1, 1)
-
+			return 'moved'
 		elif key.vk == libtcod.KEY_KP5:
 			pass #do nothing ie wait for the monster to come to you
 			return 'moved'
@@ -1216,14 +1321,15 @@ def handle_keys():
 			if key_char == 'g':
 				#pick up an item
 				for object in objects: #look for an item in the players tile
-					if object.x == player.x and object.y == player.y and object.item and object.char is not '%':
+					if object.x == player.x and object.y == player.y and object.item and object.char != '%':
 						object.item.pick_up()
 						break
 						
 			if key_char == 'i':
 				#show the inventory; if an item is selected, use it. 
 				#\n is a line break to keep a space between header and options
-				chosen_item = inventory_menu('Press the key next to an item to use it, or any other to cancel.\n') 
+				chosen_item = inventory_menu('Press the key next to an item to use it, or any other to cancel.\n')
+
 				if chosen_item is not None:
 					chosen_item.use()
 			
@@ -1248,17 +1354,16 @@ def handle_keys():
 				chosen_item = inventory_menu('Press the key next to an item to drop it, or any other to canel.\n')
 				if chosen_item is not None:
 					chosen_item.drop()
-					
-			if key_char == 'D':#TODO: Fix this bullsheet
+
+			if mouse.rbutton_pressed:
 				#show the description menu, if an item is selected, describe it.
 				chosen_object = description_menu('Press the key next to an object to see its description.\n')
+
 				if chosen_object is not None:
 					render_all()
-					length = '~' * len(str(chosen_object.description))
 					msgbox(str(chosen_object.name) + ':' + '\n\n' + str(chosen_object.description) + '\n',
 						   CHARACTER_SCREEN_WIDTH)
-				
-					
+
 			if key_char == '>':
 				#go down stairs, if the player is on them
 				if stairs.x == player.x and stairs.y == player.y:
@@ -1270,8 +1375,7 @@ def handle_keys():
 					'\nExperience to level up: ' + str(level_up_xp) + '\n\nHP: ' + str(player.fighter.max_hp) + '\nAttack: ' + str(
 					player.fighter.power) + '\nDefense: ' + str(player.fighter.defense) + '\nEvasion: ' + str(
 					player.fighter.ev) + '\nAccuracy: ' + str(
-					player.fighter.acc) + '\nEffects: ' + get_player_effects(),
-					   CHARACTER_SCREEN_WIDTH)  #TODO: figure out a way to display player.fighter.effects.effect_name
+					player.fighter.acc) + '\nEffects: ' + get_player_effects(), CHARACTER_SCREEN_WIDTH)
 						
 			return 'didnt-take-turn'
 
@@ -1286,7 +1390,7 @@ def get_player_effects():  # Get player effects and return them in a readable st
 		count += 1
 	if count >= 1:
 		for i in name_effects:
-			return name_effects.capitalize()
+			return '\n' + name_effects.capitalize()
 	else:
 		return 'None'
 
@@ -1333,7 +1437,7 @@ def cast_lightning():
 	
 def cast_confuse():
 	#ask the player for a target to confuse
-	message('Left-lick to target an enemy and confuse it, right-click to cancel.', libtcod.light_cyan)
+	message('Left-click to target an enemy and confuse it, right-click to cancel.', libtcod.light_cyan)
 	monster = target_monster(CONFUSE_RANGE)
 	if monster is None: return 'cancelled'
 		
@@ -1361,7 +1465,7 @@ def cast_fireball():#FIGURE OUT HOW TO PAUSE AFTER THIS MESSAGE BEFORE DEALING D
 def player_death(player):
 	#the game ended!
 	global game_state
-	message('You died! Zeus will continue his rampage.', libtcod.red)
+	message('You died! Zeus will live on to terrorize the world. Good job.', libtcod.red)
 	game_state = 'dead'
 	
 	#for added effect, transform the player into a corpse!
@@ -1376,7 +1480,7 @@ def monster_death(monster):
 	monster.blocks = False
 	monster.fighter = None
 	monster.ai = None
-	monster.name = 'remains of ' + monster.name
+	monster.name = 'Remains of ' + monster.name
 	monster.send_to_back()
 
 	
@@ -1410,18 +1514,19 @@ def target_monster(max_range=None):
 		for obj in objects:
 			if obj.x == x and obj.y == y and obj.fighter and obj != player:
 				return obj
-				
+
 def new_game():
 	global player, inventory, game_msgs, game_state, dungeon_level, turn_increment, heal_rate, turn_5, hunger_level
 	#create object representing player
-	fighter_component = Fighter(hp=100, defense=1, power=2, xp=0, ev=20, acc=10, death_function=player_death)
+	fighter_component = Fighter(hp=100, defense=1, power=10, xp=0, ev=10, acc=10, death_function=player_death,
+								effects=[])
 	player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter_component)
 	player.level = 1
 	#Create the list of game messages and their colors, starts empty
 	game_msgs = []
 	inventory = []
 	player_effects = []
-	dungeon_level = 1
+	dungeon_level = 15
 	#counts turns up to 5 then resets
 	turn_increment = 0
 	#The number of sets of 5 turns that have occured, and been reset
@@ -1431,12 +1536,13 @@ def new_game():
 	#generate map
 	make_map()
 	initialize_fov()
-	#Add an effect like so: player.fighter.add_effect(Effect('Weakened', duration=500, turns_passed=0, power_effect=-10))
+	# Add an effect like this:
+	#player.fighter.add_effect(Effect('cruelly hurt', duration=5, damage_by_turn=10), 'Game developer')
 	game_state = 'playing'
 	
 	
 	#a warm welcoming message!
-	message('Zeus has killed Great Alexander in a fit of jealousy! He flees to the top of Mt. Olympus, give chase, and claim your retribution!', libtcod.red)
+	message('Zeus is a dick! Go fuck him up.', libtcod.purple)
 
 	#initial equipment: a dagger
 	equipment_component = Equipment(slot='left hand', power_bonus=2)
@@ -1465,10 +1571,11 @@ def play_game():
 	player_action = None
 	mouse = libtcod.Mouse()
 	key = libtcod.Key()
+
 	##MAIN LOOP##
 	while not libtcod.console_is_window_closed():
 
-	#render the screen
+        #render the screen
 		libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS|libtcod.EVENT_MOUSE,key,mouse)
 		render_all()
 		
@@ -1490,21 +1597,17 @@ def play_game():
 		if player_action == 'exit':
 			save_game()
 			break
-		if player_action == 'moved':
-			check_by_turn()
-			check_run_effects(player)
+
+        if player_action == 'moved':
+            check_by_turn()
+            check_run_effects(player)
+            # let monsters take their turn
+            if game_state == 'playing' and player_action == 'moved':
+                for object in objects:
+                    if object.ai:
+                        object.ai.take_turn()
 
 
-
-
-	#let monsters take their turn
-		if game_state == 'playing' and player_action != 'didnt-take-turn':
-			for object in objects:
-				if object.ai:
-					object.ai.take_turn()
-					
-			
-		
 def main_menu():
 	roll = libtcod.random_get_int(0, 0, 12)
 	if roll >= 6:
@@ -1597,11 +1700,14 @@ def check_level_up():#TODO: Add cool mutations to fighter class like horns
 		message('Your battle prowess grows! You have reached level ' + str(player.level) + '!', libtcod.yellow)
 		choice = None
 		while choice == None: #keep asking until a choice is made
+			render_all()
 			choice = menu('Level up! Choose a stat to raise:\n',
 				['Constitution (+20 HP, from ' + str(player.fighter.max_hp) + ')',
 				'Strength (+1 Attack, from ' + str(player.fighter.power) + ')',
-				'Agility (+1 Defense, from ' + str(player.fighter.defense) + ')'], LEVEL_SCREEN_WIDTH)
-				
+				'Defense (+1 Defense, from ' + str(player.fighter.defense) + ')',
+				'Evasion (+2 Evasion, from ' + str(player.fighter.ev) + ')',
+				'Accuracy (+2 Accuracy, from ' + str(player.fighter.acc) + ')'], LEVEL_SCREEN_WIDTH)
+			# May be better to leave evasion and accuracy out of the players hands, to keep it simple
 			if choice == 0:
 				player.fighter.max_hp += 20
 				player.fighter.hp += 20
@@ -1609,6 +1715,12 @@ def check_level_up():#TODO: Add cool mutations to fighter class like horns
 				player.fighter.power += 1
 			elif choice == 2:
 				player.fighter.defense += 1
+			elif choice == 3:
+				player.fighter.ev += 2
+			elif choice == 4:
+				player.fighter.acc += 2
+
+
 				
 def random_choice_index(chances):#choose one option from list of chances, returning its index
 	#the dice will land on some number between 1 and the sum of the chances
@@ -1640,7 +1752,7 @@ def from_dungeon_level(table):
 	return 0
 
 def check_by_turn():
-	global heal_rate, turn_increment, turn_5, hunger_level, POISON_COUNTDOWN, POISON_DURATION
+	global heal_rate, turn_increment, turn_5, hunger_level
 	turn_increment += 1
 	if turn_increment == 5:
 		player.fighter.heal(heal_rate)
@@ -1654,21 +1766,6 @@ def check_by_turn():
 		message('You are starving!', libtcod.light_red)
 		player.fighter.take_damage(1)
 
-	#TODO: Create effects class with poison function
-	if player.fighter.poison >= 1 or POISON_COUNTDOWN >= 1:
-		#each instance of poison is 4 turns worth of damage
-		if player.fighter.poison >= 1:
-			message('You have been poisoned!', libtcod.light_green)
-			POISON_DURATION = (player.fighter.poison * 4)
-			player.fighter.poison = 0
-		if POISON_DURATION is not 0:
-			POISON_COUNTDOWN += POISON_DURATION
-			POISON_DURATION = 0
-		POISON_COUNTDOWN -= 1
-		player.fighter.take_damage(4)
-		message('You take 4 damage from poison.')
-
-		
 def total_turns():
 	total_turns = turn_increment + (turn_5 * 5)
 	return str(total_turns)
@@ -1707,6 +1804,15 @@ def get_all_equipped(obj): #returns a list of equipped items
 		return [] #TODO: other objects have no equipment, but if you gave them a simpler inventory system (no need for menu) they could drop equipped items, and have random ones spawn.
 
 
+def iterate_through_list(x):
+	count = 0
+	for i in x:
+		count += 1
+		if count == 1:
+			return str(i.owner.name).capitalize()
+		elif count >= 2:
+			return str(i.owner.name).capitalize()
+
 def add_bones(x, y):
 	roll = libtcod.random_get_int(0, 0, 10)
 	if roll >= 4:
@@ -1731,6 +1837,7 @@ def add_bones(x, y):
 			objects.append(item)
 			item.send_to_back()
 
+
 ##############################
 #INITIALISATION AND MAIN LOOP#		
 ##############################	
@@ -1739,6 +1846,7 @@ libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'python/First RL', False)
 libtcod.sys_set_fps(LIMIT_FPS)
 con = libtcod.console_new(MAP_WIDTH, MAP_HEIGHT)
 panel = libtcod.console_new(SCREEN_WIDTH, PANEL_HEIGHT)
+panel2 = libtcod.console_new(PANEL2_WIDTH, SCREEN_HEIGHT)
 main_menu()
 
 
@@ -1758,25 +1866,25 @@ main_menu()
 # - Added an effects class that can be applied to monsters in the same way equipment class was made.
 # - FIXED THE FUCKING DESCRIPTION FUNCTION, SELF.DESCRIPTION WAS SET AS = SELF.. I'M AN IDIOT.
 # - Implemented EV! Took like 5 minutes..
+# - Added accuracy roll, a min/max system; roll = libtcod.random_get_int(0, acc_min, acc_max) where acc_min is acc_max/2
+# - Added a new gui to the right, displays monster.fighter hp bars when in FOV
+# - Added character info box to panel2, discard irrelevant/duplicated information like xp.
+# - Figured out why health only regenerates when pressing 5, other turns weren't returning 'moved'
+# - Figured out why effects weren't working, the check_run_effects function was never finding effects as a result of a
+#line, once fixed this revealed a small cascade of errors and incomplete programming, all fixed now!
 
 #To do:
-#- Fix evasion
-#- Mouse over + right click describe feature
 #- Add mutations n shit
-#- Fix the description feature
+
 #- Add a monster.drop_item system to drop shit like gnoll tooth which you need for quests etc.
 #- Need to create decorative item class, could do cool stuff
 #- MAJOR: Create new map() functions for different terrain types
 #- MAJOR: Add attack types (slash, stab, crush, etc.)  for weapon classes.
-# - MAJOR: Add conversation system for effects
+#- MAJOR: Add conversation system for effects
 #- MAJOR URGENT NEXT ISSUE: Maybe also implement scent tracking as well - http://codeumbra.eu/complete-roguelike-tutorial-using-c-and-libtcod-extra-3-scent-tracking
-#- MAJOR URGENT NEXT ISSUE: Levels 1-4 are the same, add more monsters and items to help you deal with the new monsters. It can't be one wooden shield and sword for 4 levels.
-#- Add monsters, items, equipment
 #- Add high score page at main menu based off total xp
-# - MOST MAJOR URGENT PROBLEM: Effect class and how to implement it. Fuck me. What a nightmare. Maybe write a drawing to lay it out
 #- Figure out how to change the walls to objects with a char.
 #- Implement mouse pathfinding - click to move.
-#- Figure out why pathfinding is not loading properly, probably a value isn't being saved.
 #- MAJOR: Turn system http://www.roguebasin.com/index.php?title=A_simple_turn_scheduling_system_--_Python_implementation
 # - MAJOR, URGENT?: Implement ascii/tileset option, create artwork using that pixel editor
 #- MJAOR, URGENT: Implement speed via angbands method here: http://journal.stuffwithstuff.com/2014/07/15/a-turn-based-game-loop/
@@ -1785,21 +1893,21 @@ main_menu()
 #- Begin breaking game up into modules, initially the map init and fov init, which should allow me to debug and test new
 # areas outside of the game more easily (i.e. a program that imports all items and places them on the map so I can
 # see how they look
-#- Add all descriptions, change 'message.description' to 'message_describe.desription' where message_description is a
-# - function that uses the menu as a display in the following terms: Name, /n/n desription /n/n danger to you
-#- (this will need to be a function adding their health, how many times they can hit you before you die etc.)
-#- Figure out how to fix the display of an effect
-# - Figure  out how to make stumble not call ai.take_turn. Interestingly the health bar does not regenerate when
-# stumbling so some part of it is working as it should, but ai.take_turn is still being called again somewhereself.owner.name.capitalize()self.owner.name.capitalize()self.owner.name.capitalize()self.owner.name.capitalize()
-#- NEXT: ORDER TO DO LIST AND UPLOAD TO INFO.TXT FILE NO GIT
-
+# - Figure  out how to make stumble not call ai.take_turn.
 # Add mutations/godly abilities/quests/new level types/evasion
 # new level types  will require some new learning and research, for instance the gates
 # of hell will not be able to be based off example code
 #- Decide on features needed for an alpha release to get feedback and playtesting. New menu/UI, a few more items, more monsters, 
-#some click to move functionality, skills (think sil) and mutations. Keep it simple, play tggw to get some idea of what
+# some click to move functionality, skills (think sil) and mutations. Keep it simple, play tggw to get some idea of what
 #is need for a release. Add new scrolls, new effects, fix evasion. Then work towards those features exclusively.
-
+# Gotta fix that bread bug before a playable alpha.
 #- Add new UI to right hand bar, one box for mouse over description, another for a list of enemies and their health bars 
 #with mouse-over-to-target functionality
-	
+# - add accuracy roll, maybe a min/max system; roll = libtcod.random_get_int(0, acc_min, acc_max)
+# - Add click to path functionality on monster hp bars.
+# - get_player_effects and iterate_through_list seem to only want to show the first element of each list
+# rather than print them line by line, figure it out dum dum. Use info on how message() uses the
+# list new_msg_lines to print them one by one. Line 1210.
+# - A quest in which you msut retrieve the cyclops eye patch, new level, labyrinth, long journey, difficult foes
+# when you reach the cyclops, you may fight him, or doing something clever but not immediately
+# obvious to kill him instantly.
