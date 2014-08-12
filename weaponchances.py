@@ -72,8 +72,7 @@ def add_food_and_scrolls(x, y):
 		item = Object(x, y, chr(173), 'healing potion', libtcod.dark_green, item=item_component, always_visible=True)
 
 	elif choice == 'nothing':  # Allows a possibility to spawn nothing
-		item = item = Object(x, y, chr(0), 'nothing', libtcod.darker_orange, equipment=None, item=None,
-							 always_visible=False)
+		item = Object(x, y, chr(0), 'nothing', libtcod.darker_orange, equipment=None, item=None, always_visible=False)
 
 	elif choice == 'lightning':
 		#create a lightning bolts scroll (15% chance)
@@ -279,38 +278,36 @@ def create_item(x, y):
 
 	elif choice == 'stone war hammer':
 		equipment_component = Equipment(slot='left hand', power_bonus=5)
-		item = Object(x, y, chr(25), 'Stone war hammer', libtcod.darker_grey, equipment=equipment_component, item=None,
+		item = Object(x, y, chr(24), 'Stone war hammer', libtcod.darker_grey, equipment=equipment_component, item=None,
 					  always_visible=True)
 
 	elif choice == 'bronze war hammer':
 		equipment_component = Equipment(slot='left hand', power_bonus=8)
-		item = Object(x, y, chr(25), 'Bronze war hammer', libtcod.orange, equipment=equipment_component, item=None,
+		item = Object(x, y, chr(24), 'Bronze war hammer', libtcod.orange, equipment=equipment_component, item=None,
 					  always_visible=True)
 
 	elif choice == 'pig iron war hammer':
 		equipment_component = Equipment(slot='left hand', power_bonus=12)
-		item = Object(x, y, chr(25), 'Pig iron war hammer', libtcod.light_grey, equipment=equipment_component,
-					  item=None, always_visible=True)
+		item = Object(x, y, chr(24), 'Pig iron war hammer', libtcod.light_grey, equipment=equipment_component, item=None, always_visible=True)
 
 	elif choice == 'steel war hammer':
 		equipment_component = Equipment(slot='left hand', power_bonus=15)
-		item = Object(x, y, chr(25), 'Steel war hammer', libtcod.silver, equipment=equipment_component, item=None,
+		item = Object(x, y, chr(24), 'Steel war hammer', libtcod.silver, equipment=equipment_component, item=None,
 					  always_visible=True)
 
 	elif choice == 'obsidian war hammer':
 		equipment_component = Equipment(slot='left hand', power_bonus=20)
-		item = Object(x, y, chr(25), 'Obsidian war hammer', libtcod.darkest_grey, equipment=equipment_component,
+		item = Object(x, y, chr(24), 'Obsidian war hammer', libtcod.darkest_grey, equipment=equipment_component,
 					  item=None, always_visible=True)
 
 	elif choice == 'unobtanium war hammer':
 		equipment_component = Equipment(slot='left hand', power_bonus=30)
-		item = Object(x, y, chr(25), 'Unobtanium war hammer', libtcod.desaturated_green, equipment=equipment_component,
+		item = Object(x, y, chr(24), 'Unobtanium war hammer', libtcod.desaturated_green, equipment=equipment_component,
 					  item=None, always_visible=True)
 
 	elif choice == 'godsbane war hammer':
 		equipment_component = Equipment(slot='left hand', power_bonus=45)
-		item = Object(x, y, chr(25), 'godsbane war hammer', libtcod.light_grey, equipment=equipment_component,
-					  item=None, always_visible=True)
+		item = Object(x, y, chr(24), 'godsbane war hammer', libtcod.light_grey, equipment=equipment_component, item=None, always_visible=True)
 
 	#######
 	#ARMOR#
@@ -356,8 +353,7 @@ def create_item(x, y):
 	##BODY ARMOR##
 
 	elif choice == 'nothing':  #Allows a possibility to spawn nothing
-		item = item = Object(x, y, chr(0), 'nothing', libtcod.darker_orange, equipment=None, item=None,
-							 always_visible=False)
+		item = Object(x, y, chr(0), 'nothing', libtcod.darker_orange, equipment=None, item=None, always_visible=False)
 
 	elif choice == 'wooden ring mail':
 		equipment_component = Equipment(slot='body', defense_bonus=2)
@@ -488,12 +484,13 @@ def create_item(x, y):
 		item = Object(x, y, chr(28), 'Obsidian boots of defense', libtcod.black, equipment=equipment_component,
 					  item=None, always_visible=True)
 
+	else:
+		item = Object(x, y, chr(0), 'nothing', libtcod.darker_orange, equipment=None, item=None, always_visible=False)
+		print 'Error no object found'
+
 	objects.append(item)
 	item.send_to_back()
 	item_chances = {}
 
-	# TODO: implement food and scrolls rolling, and add more items
-	# - Make sure item 'nothing' is always sent to back otherwise it covers other objects
+
 	# - Fix eat_food being applied to the player every time a new map is made. Use debug on the eat)hunger function toi figure out why it's being called
-	#- levels 1-4 very easy
-	#

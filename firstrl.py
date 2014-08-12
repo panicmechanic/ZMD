@@ -1526,7 +1526,7 @@ def new_game():
 	game_msgs = []
 	inventory = []
 	player_effects = []
-	dungeon_level = 15
+	dungeon_level = 1
 	#counts turns up to 5 then resets
 	turn_increment = 0
 	#The number of sets of 5 turns that have occured, and been reset
@@ -1566,37 +1566,36 @@ def initialize_fov():
 	libtcod.console_clear(con) # unexplored areas start black		
 			
 def play_game():
-	global key, mouse, turn_increment, heal_rate
-		
-	player_action = None
-	mouse = libtcod.Mouse()
-	key = libtcod.Key()
+    global key, mouse, turn_increment, heal_rate
 
-	##MAIN LOOP##
-	while not libtcod.console_is_window_closed():
+    player_action = None
+    mouse = libtcod.Mouse()
+    key = libtcod.Key()
 
+    ##MAIN LOOP##
+    while not libtcod.console_is_window_closed():
         #render the screen
-		libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS|libtcod.EVENT_MOUSE,key,mouse)
-		render_all()
-		
-		libtcod.console_flush()
-		
-		check_level_up()
-		
-		#check for message wait conditions
-		message_wait('B', 'You see an enormous hairy boar and what appear to be her offspring, she looks angry! Press SPACE to continue..', libtcod.red)
-		
-		
-		
-		#erase all objects at their old locations, before they move
-		for object in objects:
-			object.clear()
-		
-		#handles keys and exit game if needed
-		player_action = handle_keys()
-		if player_action == 'exit':
-			save_game()
-			break
+        libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS|libtcod.EVENT_MOUSE,key,mouse)
+        render_all()
+
+        libtcod.console_flush()
+
+        check_level_up()
+
+        #check for message wait conditions
+        message_wait('B', 'You see an enormous hairy boar and what appear to be her offspring, she looks angry! Press SPACE to continue..', libtcod.red)
+
+
+
+        #erase all objects at their old locations, before they move
+        for object in objects:
+            object.clear()
+
+        #handles keys and exit game if needed
+        player_action = handle_keys()
+        if player_action == 'exit':
+            save_game()
+            break
 
         if player_action == 'moved':
             check_by_turn()
