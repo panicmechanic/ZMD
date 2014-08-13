@@ -102,6 +102,7 @@ Damage player - '#'
 
 
 #Done:
+- Added poison bar, moved dungeon level to char info
 - Fixed eat_food being called every map gen, also fixed eat_food by nesting it under Fighter class.
 - Fixed stumbling
 - Fixed player_move_or_attack and made sure handle_keys returns its value properly

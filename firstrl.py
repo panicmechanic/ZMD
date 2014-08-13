@@ -336,6 +336,7 @@ class Fighter:
             target.fighter.add_effect(Effect('Poisoned', duration=5, damage_by_turn=2), self.owner.name.capitalize())
 
 
+
     def heal(self, amount):
         #heal by the given amount, without going over the maximum
         self.hp += amount
@@ -556,9 +557,6 @@ def check_run_effects(obj):
             # check for fatal turn_by_damage limit
             turns_left = eff.duration - eff.turns_passed
             total_dmg = turns_left * eff.damage_by_turn
-            print 'Turns left: ' + str(turns_left)
-            print 'Total damage: ' + str(total_dmg)
-            print 'HP: ' + str(obj.fighter.hp)
             if total_dmg >= obj.fighter.hp:
                 FATAL_EFFECT = True
                 FATAL_NAME = str(eff.effect_name)
@@ -606,18 +604,21 @@ def place_objects(room):
     #chance of each monsters
     monster_chances = {}
     monster_chances['Dog'] = 10  #Dog always spawns, even if all other monsters have 0 chance
-    monster_chances['Snake'] = from_dungeon_level([[500, 1], [300, 5], [50, 7]])
+    monster_chances['Snake'] = from_dungeon_level([[3, 1], [5, 3], [50, 7]])
     monster_chances['Imp'] = from_dungeon_level([[10, 1], [30, 5], [50, 7]])
     monster_chances['Firefly'] = from_dungeon_level([[3, 1], [30, 3], [60, 7]])
     monster_chances['Crab'] = from_dungeon_level([[1, 1], [30, 3], [60, 7]])
     monster_chances['Goat'] = from_dungeon_level([[15, 2], [30, 8], [60, 10]])
     monster_chances['Eagle'] = from_dungeon_level([[15, 5], [30, 8], [60, 10]])
-    monster_chances['Pygmy'] = from_dungeon_level([[10, 5], [40, 8], [500, 10]])
+    monster_chances['Pygmy'] = from_dungeon_level([[10, 5], [40, 8], [50, 10]])
     monster_chances['Bull'] = from_dungeon_level([[10, 6], [40, 7], [10, 9]])
     monster_chances['Centaur'] = from_dungeon_level([[5, 6], [20, 7], [30, 9]])
 
     #maximum number of items per room
-    max_items = from_dungeon_level([[1, 1], [2, 4], [3, 6]])
+    max_items = from_dungeon_level([[3, 1], [6, 4], [8, 6]])
+
+    #minimum number of item attempts per room
+    min_items = from_dungeon_level([[1, 1], [2, 4], [3, 6]])
 
     #choose random number of monsters
     num_monsters = libtcod.random_get_int(0, 0, max_monsters)
