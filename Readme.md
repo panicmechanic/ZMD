@@ -61,12 +61,14 @@ Damage player - '#'
 
 - get_player_effects and iterate_through_list seem to only
 	want to show the first element of each list on the GUI.	
+- Put 2 new boxes with equipped items and effects iterated and displayed with \n
 - Add estimated time length to major todo list below.
 - Figure out how to get fatal effect warning to display on panel2, line 535.
 - Finish lever object
 - Have evasion and accuracy both draw their values from a new fighter variable 'dex'.
 - Add more food types (so far; feta, bread)
 - Add hunger bar
+- Add potion random names by setting variables first time the create_items function is run and apply the function to the names of the potions
 - Add paralyse effect: For duration of effect, while turn_increment is not == duration: Run monster.ai check_heal and check_run_effects
 
 

@@ -598,11 +598,11 @@ def place_objects(room):
 
     #chance of each monsters
     monster_chances = {}
-    monster_chances['Dog'] = 1  #Dog always spawns, even if all other monsters have 0 chance
-    monster_chances['Snake'] = from_dungeon_level([[500, 1], [300, 5], [50, 7]])
-    monster_chances['Imp'] = from_dungeon_level([[1, 1], [30, 5], [50, 7]])
-    monster_chances['Firefly'] = from_dungeon_level([[10, 2], [30, 3], [60, 7]])
-    monster_chances['Crab'] = from_dungeon_level([[10, 2], [30, 3], [60, 7]])
+    monster_chances['Dog'] = 10  #Dog always spawns, even if all other monsters have 0 chance
+    monster_chances['Snake'] = from_dungeon_level([[5, 1], [300, 5], [50, 7]])
+    monster_chances['Imp'] = from_dungeon_level([[10, 1], [30, 5], [50, 7]])
+    monster_chances['Firefly'] = from_dungeon_level([[3, 1], [30, 3], [60, 7]])
+    monster_chances['Crab'] = from_dungeon_level([[1, 1], [30, 3], [60, 7]])
     monster_chances['Goat'] = from_dungeon_level([[15, 2], [30, 8], [60, 10]])
     monster_chances['Eagle'] = from_dungeon_level([[15, 5], [30, 8], [60, 10]])
     monster_chances['Pygmy'] = from_dungeon_level([[10, 5], [40, 8], [500, 10]])
@@ -1150,7 +1150,6 @@ def render_all():
     render_bar(panel, 1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.red, libtcod.darker_red)
     render_bar(panel, 1, 2, BAR_WIDTH, 'XP', player.fighter.xp, level_up_xp, libtcod.light_purple,
                libtcod.darker_purple)
-    libtcod.console_print_ex(panel, 1, 5, libtcod.BKGND_NONE, libtcod.LEFT, 'Dungeon level: ' + str(dungeon_level))
     render_bar_hunger(panel, 1, 3, BAR_WIDTH, str(hunger()), hunger_level, 800, libtcod.orange,
                libtcod.darker_orange)
 
@@ -1185,7 +1184,7 @@ def render_all():
     libtcod.console_print_rect_ex(panel2, 1, 24, PANEL2_WIDTH, RECT_HEIGHT, libtcod.BKGND_NONE, libtcod.LEFT,
                                   'Character Information:\n')
 
-    char_info = '\nLevel: ' + str(player.level) + '\nAttack: ' + str(player.fighter.power) + '\nDefense: ' + str(
+    char_info = '\nLevel: ' + str(player.level) + '\nDungeon level: ' + str(dungeon_level) + '\nAttack: ' + str(player.fighter.power) + '\nDefense: ' + str(
         player.fighter.defense) + '\nEvasion: ' + str(player.fighter.ev) + '\nAccuracy: ' + str(
         player.fighter.acc) + '\nEffects: ' + get_player_effects() + '\n\nEquipped Items:' + '\n' + iterate_through_list(
         get_all_equipped(player))

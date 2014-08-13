@@ -104,6 +104,7 @@ def random_item():  #all item chance totals for a subtype will be self contained
         rand_weapon_type = libtcod.random_get_int(0, 0, 2)  # Weapon types, starts at 0, Swords,
 
         if rand_weapon_type == 0:  # Swords
+            item_chances['nothing'] = 10
             item_chances['wooden sword'] = from_dungeon_level([[5, 1], [10, 2]])
             item_chances['brass sword'] = from_dungeon_level([[5, 3], [10, 4]])
             item_chances['steel sword'] = from_dungeon_level([[1, 3], [15, 5]])
@@ -115,7 +116,7 @@ def random_item():  #all item chance totals for a subtype will be self contained
         if rand_weapon_type == 1:  # Axes
 
             item_chances['nothing'] = 10
-            item_chances['bronze axe'] = from_dungeon_level([[5, 3], [10, 4]])
+            item_chances['bronze axe'] = from_dungeon_level([[1, 1], [10, 4]])
             item_chances['rusty steel axe'] = from_dungeon_level([[1, 3], [3, 5], [30, 6]])
             item_chances['steel axe'] = from_dungeon_level([[1, 3], [20, 5]])
             item_chances['diamond axe'] = from_dungeon_level([[5, 5], [10, 8]])
@@ -124,7 +125,7 @@ def random_item():  #all item chance totals for a subtype will be self contained
 
         if rand_weapon_type == 2:  # War Hammers
 
-            item_chances['nothing'] = 1
+            item_chances['nothing'] = 10
             item_chances['stone war hammer'] = from_dungeon_level([[5, 1], [60, 2]])
             item_chances['bronze war hammer'] = from_dungeon_level([[5, 3], [10, 4]])
             item_chances['pig iron war hammer'] = from_dungeon_level([[1, 3], [3, 5]])
@@ -138,10 +139,10 @@ def random_item():  #all item chance totals for a subtype will be self contained
         rand_armor_type = libtcod.random_get_int(0, 0, 1)  # Armor types, starts at 0, gauntlets
         if rand_armor_type == 0:  # gauntlets
 
-            item_chances['nothing'] = 90
-            item_chances['silk gauntlets'] = from_dungeon_level([[5, 1], [40, 2]])
-            item_chances['wooden gauntlets'] = from_dungeon_level([[5, 3], [10, 4]])
-            item_chances['bronze gauntlets'] = from_dungeon_level([[1, 3], [30, 5]])
+            item_chances['nothing'] = 10
+            item_chances['silk gauntlets'] = from_dungeon_level([[1, 1], [10, 2]])
+            item_chances['wooden gauntlets'] = from_dungeon_level([[1, 3], [10, 4]])
+            item_chances['bronze gauntlets'] = from_dungeon_level([[1, 3], [30, 5], [10, 6]])
             item_chances['iron gauntlets'] = from_dungeon_level([[5, 5], [10, 8]])
             item_chances['steel gauntlets'] = from_dungeon_level([[1, 8], [5, 10]])
             item_chances['obsidian gauntlets'] = from_dungeon_level([[1, 10], [4, 12]])
@@ -150,8 +151,8 @@ def random_item():  #all item chance totals for a subtype will be self contained
         if rand_armor_type == 1:  # body armor
 
             item_chances['nothing'] = 20  #Gives a chance to spawn nothing
-            item_chances['wooden ring mail'] = from_dungeon_level([[5, 1], [30, 2]])
-            item_chances['bronze ring mail'] = from_dungeon_level([[5, 3], [20, 4]])
+            item_chances['wooden ring mail'] = from_dungeon_level([[1, 1], [10, 2]])
+            item_chances['bronze ring mail'] = from_dungeon_level([[1, 3], [10, 4]])
             item_chances['steel ring mail'] = from_dungeon_level([[1, 3], [5, 5]])
             item_chances['steel plate armor'] = from_dungeon_level([[1, 3], [10, 5]])
             item_chances['obsidian plate armor'] = from_dungeon_level([[5, 5], [10, 8]])
@@ -163,16 +164,16 @@ def random_item():  #all item chance totals for a subtype will be self contained
         rand_item_type = libtcod.random_get_int(0, 0, 1)  # W/Item types, starts at 0, rings
         if rand_item_type == 0:  # rings
 
-            item_chances['nothing'] = 30
-            item_chances['wooden ring of health'] = from_dungeon_level([[5, 1], [20, 5]])
-            item_chances['wooden ring of strength'] = from_dungeon_level([[5, 1], [20, 5]])
-            item_chances['wooden ring of defense'] = from_dungeon_level([[5, 1], [20, 5]])
+            item_chances['nothing'] = 10
+            item_chances['wooden ring of health'] = from_dungeon_level([[1, 1], [10, 5]])
+            item_chances['wooden ring of strength'] = from_dungeon_level([[1, 1], [10, 5]])
+            item_chances['wooden ring of defense'] = from_dungeon_level([[1, 1], [10, 5]])
             item_chances['steel ring of health'] = from_dungeon_level([[5, 5], [8, 8]])
             item_chances['steel ring of strength'] = from_dungeon_level([[5, 5], [8, 8]])
             item_chances['steel ring of defense'] = from_dungeon_level([[5, 5], [8, 8]])
-            item_chances['golden ring of health'] = from_dungeon_level([[3, 8], [6, 12]])
-            item_chances['golden ring of strength'] = from_dungeon_level([[3, 8], [6, 12]])
-            item_chances['golden ring of defense'] = from_dungeon_level([[3, 8], [6, 12]])
+            item_chances['golden ring of health'] = from_dungeon_level([[3, 8], [4, 12]])
+            item_chances['golden ring of strength'] = from_dungeon_level([[3, 8], [4, 12]])
+            item_chances['golden ring of defense'] = from_dungeon_level([[3, 8], [4, 12]])
             item_chances['diamond ring of health'] = from_dungeon_level([[1, 12], [3, 15]])
             item_chances['diamond ring of strength'] = from_dungeon_level([[1, 12], [3, 15]])
             item_chances['diamond ring of defense'] = from_dungeon_level([[1, 12], [3, 15]])
