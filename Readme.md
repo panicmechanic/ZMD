@@ -70,7 +70,7 @@ Damage player - '#'
 - Add hunger bar
 - Add potion random names by setting variables first time the create_items function is run and apply the function to the names of the potions
 - Add paralyse effect: For duration of effect, while turn_increment is not == duration: Run monster.ai check_heal and check_run_effects
-
+- 
 
 
 

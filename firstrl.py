@@ -213,7 +213,7 @@ class Object:
 
 class Fighter:
     #combat-related properties and methods (monster, player, npc).
-    def __init__(self, hp, defense, power, xp, ev, acc, death_function=None, effects=[], poison=0):
+    def __init__(self, hp, defense, power, xp, ev, acc, death_function=None, effects=[], cast_effect=None, cast_roll=0):
         self.base_max_hp = hp
         self.hp = hp
         self.base_defense = defense
@@ -223,7 +223,9 @@ class Fighter:
         self.acc = acc
         self.death_function = death_function
         self.effects = effects
-        self.poison = poison
+        self.cast_effect = cast_effect
+        self.cast_roll = cast_roll
+
 
 
     @property
@@ -316,11 +318,11 @@ class Fighter:
                 #make the target take some damage and print the value
                 message(self.owner.name.capitalize() + ' hits you for ' + str(damage) + ' hit points!', libtcod.red)
                 target.fighter.take_damage(damage)
-                self.roll_for_poison(target)
+                self.roll_for_effect(target)
 
             elif damage <= 0 and self.owner.name != 'player':
                 message(self.owner.name.capitalize() + ' hits you but it has no effect!', libtcod.grey)
-                self.roll_for_poison(target)
+                self.roll_for_effect(target)
 
         elif self.owner.name == 'player' and ev_roll > acc_roll:
             message('You missed the ' + target.name + '!', libtcod.red)
@@ -329,11 +331,12 @@ class Fighter:
             message('The ' + self.owner.name.capitalize() + ' missed you!', libtcod.dark_green)
 
 
-    # poison if attack is by snake and roll is good.
-    def roll_for_poison(self, target):
+    # check for auto cast_effect
+    def roll_for_effect(self, target):
+        #if the fighter has an effect to be cast, and the roll is > cast_roll - add effect to target.
         roll = libtcod.random_get_int(0, 0, 10)
-        if self.owner.char == 's' and roll >= 6:
-            target.fighter.add_effect(Effect('Poisoned', duration=5, damage_by_turn=2), self.owner.name.capitalize())
+        if self.cast_effect and roll >= self.cast_roll:
+            target.fighter.add_effect(self.cast_effect, self.owner.name)
 
 
 
@@ -604,7 +607,7 @@ def place_objects(room):
     #chance of each monsters
     monster_chances = {}
     monster_chances['Dog'] = 10  #Dog always spawns, even if all other monsters have 0 chance
-    monster_chances['Snake'] = from_dungeon_level([[3, 1], [5, 3], [50, 7]])
+    monster_chances['Snake'] = from_dungeon_level([[3000, 1], [5, 3], [50, 7]])
     monster_chances['Imp'] = from_dungeon_level([[10, 1], [30, 5], [50, 7]])
     monster_chances['Firefly'] = from_dungeon_level([[3, 1], [30, 3], [60, 7]])
     monster_chances['Crab'] = from_dungeon_level([[1, 1], [30, 3], [60, 7]])
@@ -643,8 +646,9 @@ def place_objects(room):
 
             elif choice == 'Snake':
                 #create a Snake
-                fighter_component = Fighter(hp=30, defense=3, power=5, xp=100, ev=2, acc=10,
-                                            death_function=monster_death)
+                effect_component = Effect('Poisoned', duration=5, damage_by_turn=2)
+                effect_roll = 7
+                fighter_component = Fighter(hp=30, defense=3, power=5, xp=100, ev=2, acc=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
                 ai_component = BasicMonster()
                 monster = Object(x, y, 's', 'Snake', libtcod.darker_grey, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
