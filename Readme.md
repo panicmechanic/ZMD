@@ -6,7 +6,7 @@ ZMD is a roguelike in which you play an ancient Greek gladiator, hunting a bezer
 You seek retribution and will have to journey to the top of Mount Olympus to claim your
 prize. On the way you will encounter many different randomised level types; forests,
 dungeons, the sea of the dead and the infamous Mt. Olympus. You will have to outwit
-great foes, avoid traps, solve puzzles and battle mythic monsters.
+great foes, avoid traps, solve puzzles, gather legendary items and battle mythic monsters.
 
 The game seeks to (eventually) have a feeling of undertaking a great journey, different
 every time you play. As inspired by the Odyssey and LOTR. Think an Odyssey Simulator.
@@ -66,6 +66,9 @@ Damage player - '#'
 - Finish lever object
 - Have evasion and accuracy both draw their values from a new fighter variable 'dex'.
 - Add more food types (so far; feta, bread)
+- Add hunger bar
+- Add paralyse effect: For duration of effect, while turn_increment is not == duration: Run monster.ai check_heal and check_run_effects
+
 
 
 
@@ -90,6 +93,7 @@ Damage player - '#'
 - Add more content (weapons/items/effects/monsters)
 - Add random generators for items and weapons
 - Improve monster pathfinding, will probably require path function.
+- Create a jelly_monster that splits when hit.
 - Stealth system
 - Puzzles(?)
 - armor/skin/muscle/attack type simulation

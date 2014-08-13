@@ -23,10 +23,6 @@ ROOM_MAX_SIZE = 12
 ROOM_MIN_SIZE = 5
 MAX_ROOMS = 55
 
-
-
-
-
 #sizes and coordinates relevant for GUI
 BAR_WIDTH = 20
 PANEL_HEIGHT = 7
@@ -825,6 +821,23 @@ def render_bar(panel, x, y, total_width, name, value, maximum, bar_color, back_c
     libtcod.console_print_ex(panel, x + total_width / 2, y, libtcod.BKGND_NONE, libtcod.CENTER,
                              name + ': ' + str(value) + '/' + str(maximum))
 
+def render_bar_hunger(panel, x, y, total_width, name, value, maximum, bar_color, back_color):
+    #render a bar (HP, experience, etc.) first calculate the width of the bar
+    bar_width = int(float(value) / maximum * total_width)
+
+    #render the background first
+    libtcod.console_set_default_background(panel, back_color)
+    libtcod.console_rect(panel, x, y, total_width, 1, False, libtcod.BKGND_SCREEN)
+
+    #now render the bar on top
+    libtcod.console_set_default_background(panel, bar_color)
+    if bar_width > 0:
+        libtcod.console_rect(panel, x, y, bar_width, 1, False, libtcod.BKGND_SCREEN)
+
+    #finally, some centered text with the values
+    libtcod.console_set_default_foreground(panel, libtcod.white)
+    libtcod.console_print_ex(panel, x + total_width / 2, y, libtcod.BKGND_NONE, libtcod.CENTER,
+                             name)
 
 def get_names_under_mouse():
     global mouse
@@ -1084,6 +1097,7 @@ def render_all():
     global fov_recompute
     global objects
     global turn
+    global hunger_level
 
     if fov_recompute:
         #recompute FOV if needed (the player moved or something)
@@ -1136,9 +1150,9 @@ def render_all():
     render_bar(panel, 1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.red, libtcod.darker_red)
     render_bar(panel, 1, 2, BAR_WIDTH, 'XP', player.fighter.xp, level_up_xp, libtcod.light_purple,
                libtcod.darker_purple)
-    libtcod.console_print_ex(panel, 1, 3, libtcod.BKGND_NONE, libtcod.LEFT, 'Dungeon level: ' + str(dungeon_level))
-    libtcod.console_print_ex(panel, 1, 5, libtcod.BKGND_NONE, libtcod.LEFT, 'Hunger:' + str(hunger()))
-
+    libtcod.console_print_ex(panel, 1, 5, libtcod.BKGND_NONE, libtcod.LEFT, 'Dungeon level: ' + str(dungeon_level))
+    render_bar_hunger(panel, 1, 3, BAR_WIDTH, str(hunger()), hunger_level, 800, libtcod.orange,
+               libtcod.darker_orange)
 
 
 
@@ -1431,7 +1445,7 @@ def player_rest():
                 if obj.fighter and libtcod.map_is_in_fov(fov_map, obj.x, obj.y) and obj.name != 'player':
                     carry_on = False
 
-        if hunger_level >= 700:
+        if hunger_level <= 100:
             carry_on = False
             message('You are too hungry to rest! Eat some food.', libtcod.red)
 
@@ -1626,7 +1640,7 @@ def new_game():
     #The number of sets of 5 turns that have occured, and been reset
     turn_5 = 0
     #hunger rate
-    hunger_level = 0
+    hunger_level = 800
     #generate map
     make_map()
     initialize_fov()
@@ -1860,9 +1874,9 @@ def check_by_turn():
 
 
     #Take care of the hunger variables here, may be better in their own function
-    if turn_increment == 5 and hunger_level < 800:
-        hunger_level += HUNGER_RATE
-    elif hunger_level >= 800:
+    if turn_increment == 5 and hunger_level <= 800:
+        hunger_level -= HUNGER_RATE
+    elif hunger_level <= 0:
         message('You are starving!', libtcod.light_red)
         player.fighter.take_damage(2)
 
@@ -1881,17 +1895,17 @@ def hunger():
     #return string of hunger level (Full, Content, Peckish, Hungry, Starving)
     #TODO: make starving, v. hungry different colors
     global hunger_level
-    if hunger_level <= 80:
+    if hunger_level <= 800:
         return 'Full'
-    elif hunger_level <= 240:
+    elif hunger_level <= 600:
         return 'Content'
     elif hunger_level <= 400:
         return 'Peckish'
-    elif hunger_level <= 560:
+    elif hunger_level <= 250:
         return 'Hungry'
-    elif hunger_level <= 799:
+    elif hunger_level <= 100:
         return 'Very hungry'
-    elif hunger_level >= 800:
+    elif hunger_level >= 0:
         return 'Starving!'
 
 
