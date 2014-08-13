@@ -98,10 +98,11 @@ Damage player - '#'
 - Create a jelly_monster that splits when hit.
 - Stealth system
 - Puzzles(?)
-- armor/skin/muscle/attack type simulation
+- Armor/skin/muscle/attack type simulation
 
 
 #Done:
+- Added roll_for_effect to allow fighters to apply an effect to another fighter.
 - Added poison bar, moved dungeon level to char info
 - Fixed eat_food being called every map gen, also fixed eat_food by nesting it under Fighter class.
 - Fixed stumbling
