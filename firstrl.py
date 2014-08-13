@@ -262,8 +262,10 @@ class Fighter:
         #if effects is not empty, iterate through them
         if self.effects != []:
             for i in self.effects:
+                #If an effect with the same name already exists, add its duration to the existing copy.
                 if i.effect_name == Effect.effect_name and effect_on == False:
                     i.duration += Effect.duration
+                    i.applied_times += 1
                     effect_on = True
                     message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you further!',
                             libtcod.yellow)
@@ -517,14 +519,14 @@ class Equipment:
 
 class Effect:
     #an effect that can be applied to the character, yielding bonuses or nerfs
-    def __init__(self, effect_name, duration=0, turns_passed=0, power_effect=0, defense_effect=0, max_hp_effect=0,
-                 confused=False, burning=False, damage_by_turn=None):
+    def __init__(self, effect_name, duration=0, turns_passed=0, power_effect=0, defense_effect=0, max_hp_effect=0, applied_times=1, confused=False, burning=False, damage_by_turn=None):
         self.effect_name = effect_name
         self.duration = duration
         self.turns_passed = turns_passed
         self.power_effect = power_effect
         self.defense_effect = defense_effect
         self.max_hp_effect = max_hp_effect
+        self.applied_times = applied_times
         self.confused = confused
         self.burning = burning
         self.damage_by_turn = damage_by_turn
@@ -541,7 +543,8 @@ def check_run_effects(obj):
             if eff.turns_passed == 0:
                 is_active = True
 
-            #Run for damage_by_turn:
+
+            #Run for damage_by_turn value in effects class, if there is a value, damage the obj by that value:
             if eff.damage_by_turn is not None:
                 obj.fighter.take_damage(eff.damage_by_turn)
 
@@ -551,7 +554,11 @@ def check_run_effects(obj):
                 eff.turns_passed += 1
 
             # check for fatal turn_by_damage limit
-            total_dmg = eff.duration * eff.damage_by_turn
+            turns_left = eff.duration - eff.turns_passed
+            total_dmg = turns_left * eff.damage_by_turn
+            print 'Turns left: ' + str(turns_left)
+            print 'Total damage: ' + str(total_dmg)
+            print 'HP: ' + str(obj.fighter.hp)
             if total_dmg >= obj.fighter.hp:
                 FATAL_EFFECT = True
                 FATAL_NAME = str(eff.effect_name)
@@ -599,7 +606,7 @@ def place_objects(room):
     #chance of each monsters
     monster_chances = {}
     monster_chances['Dog'] = 10  #Dog always spawns, even if all other monsters have 0 chance
-    monster_chances['Snake'] = from_dungeon_level([[5, 1], [300, 5], [50, 7]])
+    monster_chances['Snake'] = from_dungeon_level([[500, 1], [300, 5], [50, 7]])
     monster_chances['Imp'] = from_dungeon_level([[10, 1], [30, 5], [50, 7]])
     monster_chances['Firefly'] = from_dungeon_level([[3, 1], [30, 3], [60, 7]])
     monster_chances['Crab'] = from_dungeon_level([[1, 1], [30, 3], [60, 7]])
@@ -821,7 +828,7 @@ def render_bar(panel, x, y, total_width, name, value, maximum, bar_color, back_c
     libtcod.console_print_ex(panel, x + total_width / 2, y, libtcod.BKGND_NONE, libtcod.CENTER,
                              name + ': ' + str(value) + '/' + str(maximum))
 
-def render_bar_hunger(panel, x, y, total_width, name, value, maximum, bar_color, back_color):
+def render_bar_simple(panel, x, y, total_width, name, value, maximum, bar_color, back_color):
     #render a bar (HP, experience, etc.) first calculate the width of the bar
     bar_width = int(float(value) / maximum * total_width)
 
@@ -1150,8 +1157,15 @@ def render_all():
     render_bar(panel, 1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.red, libtcod.darker_red)
     render_bar(panel, 1, 2, BAR_WIDTH, 'XP', player.fighter.xp, level_up_xp, libtcod.light_purple,
                libtcod.darker_purple)
-    render_bar_hunger(panel, 1, 3, BAR_WIDTH, str(hunger()), hunger_level, 800, libtcod.orange,
+    render_bar_simple(panel, 1, 3, BAR_WIDTH, str(hunger()), hunger_level, 800, libtcod.orange,
                libtcod.darker_orange)
+    #Check for effects
+    for eff in player.fighter.effects:
+        count = 4
+        if eff.effect_name == 'Poisoned':
+            render_bar_simple(panel, 1, count, BAR_WIDTH, 'Poisoned X ' + str(eff.applied_times), eff.duration-eff.turns_passed, eff.duration, libtcod.darker_green,
+               libtcod.darkest_green)
+            count +=1
 
 
 
@@ -1332,7 +1346,7 @@ def handle_keys():
         return 'exit'  #Exit game
 
     if game_state == 'playing':
-        
+
         #movement keys
         if key.vk == libtcod.KEY_UP or key.vk == libtcod.KEY_KP8:
             outcome = player_move_or_attack(0, -1)
@@ -1443,6 +1457,7 @@ def player_rest():
             for obj in objects:
                 if obj.fighter and libtcod.map_is_in_fov(fov_map, obj.x, obj.y) and obj.name != 'player':
                     carry_on = False
+                    message('That ' + obj.name + ' is too close for you to rest!', libtcod.red)
 
         if hunger_level <= 100:
             carry_on = False
@@ -1962,8 +1977,8 @@ def add_bones(x, y):
 
 
 ##############################
-#INITIALISATION AND MAIN LOOP#		
-##############################	
+#INITIALISATION AND MAIN LOOP#
+##############################
 libtcod.console_set_custom_font("terminal8x12_gs_ro.png", libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_ASCII_INROW)
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'python/First RL', False)
 libtcod.sys_set_fps(LIMIT_FPS)
@@ -2020,11 +2035,11 @@ main_menu()
 # Add mutations/godly abilities/quests/new level types/evasion
 # new level types  will require some new learning and research, for instance the gates
 # of hell will not be able to be based off example code
-#- Decide on features needed for an alpha release to get feedback and playtesting. New menu/UI, a few more items, more monsters, 
+#- Decide on features needed for an alpha release to get feedback and playtesting. New menu/UI, a few more items, more monsters,
 # some click to move functionality, skills (think sil) and mutations. Keep it simple, play tggw to get some idea of what
 #is need for a release. Add new scrolls, new effects, fix evasion. Then work towards those features exclusively.
 # Gotta fix that bread bug before a playable alpha.
-#- Add new UI to right hand bar, one box for mouse over description, another for a list of enemies and their health bars 
+#- Add new UI to right hand bar, one box for mouse over description, another for a list of enemies and their health bars
 #with mouse-over-to-target functionality
 # - add accuracy roll, maybe a min/max system; roll = libtcod.random_get_int(0, acc_min, acc_max)
 # - Add click to path functionality on monster hp bars.
