@@ -260,22 +260,26 @@ class Fighter:
 
     def add_effect(self, Effect, object_origin_name):  # Add effect to the fighter class's list of effects
         # check if the effect already exists, if it does, just increase the duration
-        effect_on = False
+
         #if effects is not empty, iterate through them
         if self.effects != []:
             for i in self.effects:
                 #If an effect with the same name already exists, add its duration to the existing copy.
-                if i.effect_name == Effect.effect_name and effect_on == False:
+                if i.effect_name == Effect.effect_name:
                     i.duration += Effect.duration
                     i.applied_times += 1
-                    effect_on = True
+
                     message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you further!',
                             libtcod.yellow)
 
         else:
             self.effects.append(Effect)
             message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you!', libtcod.yellow)
-
+            print Effect.effect_name
+            print Effect.turns_passed
+            print Effect.duration
+            for i in self.effects:
+                print i
 
     def remove_effect(self, Effect):
         if Effect.duration == Effect.turns_passed:
@@ -571,6 +575,9 @@ def check_run_effects(obj):
             #if turns_passed is equal to duration, remove the effect
             elif eff.turns_passed == eff.duration:
                 obj.fighter.remove_effect(eff)
+                #reset turns_passed to 0 as this seemed to cause a bug where poison effect in snakes fighter class
+                    #would have it's turns passed set to the duration after the first time it was applied
+                eff.turns_passed = 0
 
     else:
         return 'no effects'
