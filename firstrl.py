@@ -640,9 +640,9 @@ def place_objects(room):
     #chance of each monsters
     monster_chances = {}
     monster_chances['Dog'] = 10  #Dog always spawns, even if all other monsters have 0 chance
-    monster_chances['Snake'] = from_dungeon_level([[3000, 1], [5, 3], [50, 7]])
+    monster_chances['Snake'] = from_dungeon_level([[3, 1], [5, 3], [50, 7]])
     monster_chances['Imp'] = from_dungeon_level([[10, 1], [30, 5], [50, 7]])
-    monster_chances['Firefly'] = from_dungeon_level([[3, 1], [30, 3], [60, 7]])
+    #monster_chances['Firefly'] = from_dungeon_level([[3, 1], [30, 3], [60, 7]]) TODO: Fix paralyse bug
     monster_chances['Crab'] = from_dungeon_level([[1, 1], [30, 3], [60, 7]])
     monster_chances['Goat'] = from_dungeon_level([[15, 2], [30, 8], [60, 10]])
     monster_chances['Eagle'] = from_dungeon_level([[15, 5], [30, 8], [60, 10]])

@@ -70,7 +70,20 @@ Damage player - '#'
 - Add hunger bar
 - Add potion random names by setting variables first time the create_items function is run and apply the function to the names of the potions
 - Add paralyse effect: For duration of effect, while turn_increment is not == duration: Run monster.ai check_heal and check_run_effects
-
+- Fix Firefly paralyse effect when applied returns this error:
+    
+    Traceback (most recent call last):
+  File "****ZMD/firstrl.py", line 2027, in <module>
+    main_menu()
+  File "****ZMD/firstrl.py", line 1793, in main_menu
+    play_game()
+  File "****ZMD/firstrl.py", line 1764, in play_game
+    check_run_effects(player)
+  File "****ZMD/firstrl.py", line 587, in check_run_effects
+    obj.fighter.remove_effect(eff)
+  File "****ZMD/firstrl.py", line 286, in remove_effect
+    self.effects.remove(Effect)
+  ValueError: list.remove(x): x not in list
 
 
 
@@ -101,6 +114,8 @@ Damage player - '#'
 
 
 #Done:
+- Fixed check_run_effects to properly remove effects, display them correctly. Also made 
+    function message player when lethal effect is no longer true.
 - Fixed check_run_effects to reset turns_passed to 0 when effect is removed.
 - Added roll_for_effect to allow fighters to apply an effect to another fighter.
 - Added poison bar, moved dungeon level to char info
