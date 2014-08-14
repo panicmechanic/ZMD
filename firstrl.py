@@ -148,7 +148,9 @@ class Object:
 
         self.description = description
         self.seen = seen
+
         self.path = path
+
         self.decorative = decorative
 
     def move(self, dx, dy):
@@ -158,15 +160,34 @@ class Object:
             self.y += dy
 
     def move_towards(self, target_x, target_y):
-        #vector from this object to the target, and distance
-        dx = target_x - self.x
-        dy = target_y - self.y
-        distance = math.sqrt(dx ** 2 + dy ** 2)
+        #A lot of this is taken directly from SevenTrials (https://github.com/nefD/SevenTrials)
+        #and modified to work here.
 
-        #normalise it to 1 length (preserving direction), then round it and
-        #convert to integer so the movement is restricted to the map grid
-        dx = int(round(dx / distance))
-        dy = int(round(dy / distance))
+        #This creates the path needed, in seven trials this is done in play_game loop,
+        # load_game() and use() functions.
+        self.path = libtcod.path_new_using_map(fov_map)
+
+        #COmpute path to player
+        libtcod.path_compute(self.path, self.x, self.y, player.x, player.y)
+
+        #vector from this object to the target, and distance
+        if not libtcod.path_is_empty(self.path):
+
+
+            path_x, path_y = libtcod.path_get(self.path, 0)
+
+            #normalise it to 1 length (preserving direction), then round it and
+            #convert to integer so the movement is restricted to the map grid
+            dx = path_x - self.x
+            dy = path_y - self.y
+
+        else:
+            dx = target_x - self.x
+            dy = target_y - self.y
+            distance = math.sqrt(dx ** 2 + dy ** 2)
+            dx = int(round(dx / distance))
+            dy = int(round(dy / distance))
+
         self.move(dx, dy)
 
     def distance_to(self, other):
@@ -353,7 +374,7 @@ class Fighter:
             self.hp = self.max_hp
 
 
-class BasicMonster:
+class BasicMonsterAI:
     global path
     #AI for a basic monster.
     def take_turn(self):
@@ -366,32 +387,32 @@ class BasicMonster:
         # a new path either way.
         # This has broken "move to last seen" functionality. Needs to be fixed.
 
-        monster.path = libtcod.path_new_using_map(fov_map, 1.41)
-        
-        if libtcod.map_is_in_fov(fov_map, monster.x, monster.y):
+        if monster.path == None:
 
-            #move towards player if far away
+            # TODO: When this block is preceded by the line "if monster.path == None", the following line
+                #does not ever return True
+            if libtcod.map_is_in_fov(fov_map, monster.x, monster.y): #If the monster is in the players FOV
 
-            # pygmys can attack one block further in every direction.
-            if monster.char == 'p' and monster.distance_to(player) <= 2:
-                if player.fighter.hp > 0:
+                #move towards player if far away
+
+                # pygmys can attack one block further in every direction.
+                if monster.char == 'p' and monster.distance_to(player) <= 2:
+                    if player.fighter.hp > 0:
+                        monster.fighter.attack(player)
+
+
+                elif monster.distance_to(player) >= 2:
+                    #compute how to reach the player
+                    # TODO: Insert an if statement to check for a blocked tile, pick an adjacent one and move into it instead
+                    # or have other monsters be seen as a blocked tile? may need to write path function for this.
+
+                    #and move one tile towards them
+                    monster.move_towards(player.x, player.y)
+                    check_run_effects(monster)
+
+                #close enough, attack! (if the player is still alive.)
+                elif player.fighter.hp > 0:
                     monster.fighter.attack(player)
-
-
-            elif monster.distance_to(player) >= 2:
-                #compute how to reach the player
-                libtcod.path_compute(monster.path, monster.x, monster.y, player.x, player.y)
-                # TODO: Insert an if statement to check for a blocked tile, pick an adjacent one and move into it instead
-                # or have other monsters be seen as a blocked tile? may need to write path function for this.
-
-                #and move one tile towards them
-                nextx, nexty = libtcod.path_walk(monster.path, True)
-                monster.move_towards(nextx, nexty)
-                check_run_effects(monster)
-
-            #close enough, attack! (if the player is still alive.)
-            elif player.fighter.hp > 0:
-                monster.fighter.attack(player)
 
 
         else:
@@ -558,7 +579,7 @@ def check_for_paralysis(fighter):
                 check_by_turn()
                 for obj in objects:
                     if obj.ai:
-                        obj.ai.take_turn()
+                        obj.ai.take_turn
                         render_all()
                 if eff.turns_passed is not eff.duration:
                     eff.turns_passed += 1
@@ -682,7 +703,7 @@ def place_objects(room):
             if choice == 'Dog':
                 #create an dog
                 fighter_component = Fighter(hp=20, defense=0, power=4, xp=35, ev=5, acc=5, death_function=monster_death)
-                ai_component = BasicMonster()
+                ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'd', 'Dog', libtcod.darker_orange, blocks=True, fighter=fighter_component,
                                  ai=ai_component, description='A large, brown muscular looking dog. His eyes glow red.')
 
@@ -691,7 +712,7 @@ def place_objects(room):
                 effect_component = Effect('Poisoned', duration=5, damage_by_turn=2, base_duration=5)
                 effect_roll = 7
                 fighter_component = Fighter(hp=30, defense=3, power=5, xp=100, ev=2, acc=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
-                ai_component = BasicMonster()
+                ai_component = BasicMonsterAI()
                 monster = Object(x, y, 's', 'Snake', libtcod.darker_grey, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
                                  description='A dark green snake covered in thousands of small, glistening scales, it looks poisonous.')
@@ -699,7 +720,7 @@ def place_objects(room):
             elif choice == 'Imp':
                 #create an Imp
                 fighter_component = Fighter(hp=15, defense=1, power=4, xp=50, ev=9, acc=5, death_function=monster_death)
-                ai_component = BasicMonster()
+                ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'i', 'Imp', libtcod.darker_green, blocks=True, fighter=fighter_component,
                                  ai=ai_component, description='A green Imp, skilled in defensive fighting.')
 
@@ -707,7 +728,7 @@ def place_objects(room):
                 #create an eagle
                 fighter_component = Fighter(hp=40, defense=3, power=10, xp=200, ev=20, acc=10,
                                             death_function=monster_death)
-                ai_component = BasicMonster()
+                ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'e', 'Eagle', libtcod.darker_sepia, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
                                  description='A huge brown eagle, his muscular wings and razor sharp beak look threatening.')
@@ -717,7 +738,7 @@ def place_objects(room):
                 effect_component = Effect('Paralysed', duration=5, paralysed=True, base_duration=5)
                 effect_roll = 7
                 fighter_component = Fighter(hp=8, defense=0, power=8, xp=50, ev=20, acc=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
-                ai_component = BasicMonster()
+                ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'f', 'Firefly', libtcod.darker_lime, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
                                  description='A small power firefly. He moves very fast, but looks weak.')
@@ -726,7 +747,7 @@ def place_objects(room):
                 #create a pygmy
                 fighter_component = Fighter(hp=50, defense=6, power=8, xp=250, ev=20, acc=10,
                                             death_function=monster_death)
-                ai_component = BasicMonster()
+                ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'p', 'Chieftain', libtcod.darkest_pink, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
                                  description='A Pygmy chieftan, a particularly strong Pygmy who guides the others in matters of warfare. He looks much stronger than the others.')
@@ -740,7 +761,7 @@ def place_objects(room):
                         #create other pygmys
                         fighter_component = Fighter(hp=30, defense=4, power=4, xp=200, ev=20, acc=10,
                                                     death_function=monster_death)
-                        ai_component = BasicMonster()
+                        ai_component = BasicMonsterAI()
                         other_pygmy = Object(x, y, 'p', 'Pygmy', libtcod.dark_pink, blocks=True,
                                              fighter=fighter_component, ai=ai_component,
                                              description='A member of an ancient tribe of warrior midgets, they rarely hunt alone. They carry long spears. His chieftan is sure to be nearby.')
@@ -751,7 +772,7 @@ def place_objects(room):
                 #create a goat
                 fighter_component = Fighter(hp=35, defense=4, power=5, xp=60, ev=25, acc=10,
                                             death_function=monster_death)
-                ai_component = BasicMonster()
+                ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'g', 'Goat', libtcod.lighter_grey, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
                                  description='A goat, with gnarled grey hair and wispy beard. He looks tough and nimble.')
@@ -760,7 +781,7 @@ def place_objects(room):
                 #create a bull
                 fighter_component = Fighter(hp=80, defense=1, power=8, xp=250, ev=20, acc=10,
                                             death_function=monster_death)
-                ai_component = BasicMonster()
+                ai_component = BasicMonsterAI()
                 monster = Object(x, y, chr(143), 'Bull', libtcod.light_flame, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
                                  description='An enormous bull with two shining horns, they appear as if they have been polished. Perhaps by the bulls long rough tongue. He is extremely muscular and fast.')
@@ -769,7 +790,7 @@ def place_objects(room):
                 #create a crab
                 fighter_component = Fighter(hp=30, defense=6, power=5, xp=50, ev=30, acc=10,
                                             death_function=monster_death)
-                ai_component = BasicMonster()
+                ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'c', 'Crab', libtcod.dark_yellow, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
                                  description='A very large yellow crab, he skitters sideways across the floor using his armored legs. He looks tough.')
@@ -778,7 +799,7 @@ def place_objects(room):
                 #create a centaur
                 fighter_component = Fighter(hp=100, defense=7, power=10, xp=300, ev=20, acc=10,
                                             death_function=monster_death)
-                ai_component = BasicMonster()
+                ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'C', 'Centaur', libtcod.darker_magenta, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
                                  description='A mythical creature; half human, half horse. He has the strength of a beast, and the intelligence of a man.')
@@ -1053,7 +1074,7 @@ def make_map():
 def boar_mother(x, y):
     global map, rooms
     fighter_component = Fighter(hp=35, defense=2, power=6, xp=400, ev=20, acc=10, death_function=monster_death)
-    ai_component = BasicMonster()
+    ai_component = BasicMonsterAI()
     boar = Object(x, y, 'B', 'Giant Boar Mother', libtcod.darker_red, blocks=True, fighter=fighter_component,
                   ai=ai_component, description='A big angry ')
     #Generate random number of baby boars
@@ -1067,7 +1088,7 @@ def boar_mother(x, y):
         if not is_blocked(x, y):
             #create baby boars
             fighter_component = Fighter(hp=2, defense=0, power=3, xp=5, ev=1, acc=10, death_function=monster_death)
-            ai_component = BasicMonster()
+            ai_component = BasicMonsterAI()
             monster = Object(x, y, 'b', 'Baby boar', libtcod.darkest_red, blocks=True, fighter=fighter_component,
                              ai=ai_component, description='A baby boar, how cute.')
             #append the little fuckers
@@ -1709,6 +1730,9 @@ def new_game():
     #generate map
     make_map()
     initialize_fov()
+
+
+
     # Add an effect like this:
     #player.fighter.add_effect(Effect('cruelly hurt', duration=5, damage_by_turn=10), 'Game developer')
     game_state = 'playing'
@@ -1774,9 +1798,9 @@ def play_game():
         if player_action == 'moved' and game_state == 'playing':
             check_by_turn()
             check_run_effects(player)
-            for object in objects:
-                if object.ai:
-                    object.ai.take_turn()
+            for obj in objects:
+                if obj.ai:
+                    obj.ai.take_turn()
 
 
 def main_menu():

@@ -105,6 +105,7 @@ Damage player - '#'
 - Break up firstrl.py into modules
 - Turn system
 - Fighter speed system
+- Add objects x 3/5/1 in inventory and floor
 - Add monster drops based on difficulty, to encourage risk/reward
 - Improve GUI. Maybe a border.
 - Release a playable alpha
