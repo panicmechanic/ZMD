@@ -109,7 +109,11 @@ Damage player - '#'
 - Armor/skin/muscle/attack type simulation
 
 
+
 #Done:
+- Added critical hits for player, currently hidden from monsters.
+- Made damage in attack vary blow by blow by including "acc_roll-ev_roll + power-defense"
+    also added a stain floor with blood, but needs to be rarer/removed entirely.
 - Added a monster_death explode function for aesthetics. Currently fires when player wields warhammers.
 - Fixed monster pathfinding to last seen location, fixed load functionality, created monster_move_or_attack
 - Added hunger bar, fixed eat_food() to not exceed 800. 800 should probably be a global value.

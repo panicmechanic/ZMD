@@ -328,12 +328,32 @@ class Fighter:
                 player.fighter.xp += self.xp
 
     def attack(self, target):
+
         #a simple formula for attack damage
-        damage = self.power - target.fighter.defense
+
         ev_roll = libtcod.random_get_int(0, 0, target.fighter.ev)
         acc_min = self.acc / 2
         acc_roll = libtcod.random_get_int(0, acc_min, self.acc)
+        #Figure out the total difference between evasion and accuracy
+        dam_max = acc_roll
+        dam_min = 5 - acc_min
+        dam_roll = libtcod.random_get_int(0, dam_min, dam_max)
+        #damage is power+ acc_roll - target.defense
+        damage = (self.power + dam_roll) - target.fighter.defense
+
+        crit_roll = libtcod.random_get_int(0, 0, 500)
+
         if ev_roll <= acc_roll:
+
+            #check for crit if player is the attacker
+            if crit_roll <= acc_roll and self.owner.name == 'player':
+                damage += damage*3
+
+                #color the floor with blood
+                libtcod.console_set_char_background(con, target.x, target.y, libtcod.darker_red, libtcod.BKGND_SET)
+                map[target.x][target.y].diff_color = libtcod.darker_red
+                message('You deal a devastating critical blow to the ' + str(target.name) + '!', libtcod.white)
+
 
             # #Player messages and colors##
             if damage > 0 and self.owner.name == 'player':
@@ -383,6 +403,7 @@ class BasicMonsterAI:
     global path
     #AI for a basic monster.
     def take_turn(self):
+
         #A basic monster takes its turn. If you can see it, it can see you.
         monster = self.owner
         #Check for existing path
@@ -423,6 +444,7 @@ def monster_move_or_attack(monster):
         #close enough, attack! (if the player is still alive.)
         elif player.fighter.hp > 0:
             monster.fighter.attack(player)
+
 
 
     else:
@@ -595,7 +617,7 @@ def check_for_paralysis(fighter):
                 for obj in objects:
                     if obj.ai:
                         obj.ai.take_turn
-                        render_all()
+
                 if eff.turns_passed is not eff.duration:
                     eff.turns_passed += 1
             fighter.remove_effect(eff)
@@ -717,7 +739,7 @@ def place_objects(room):
             choice = random_choice(monster_chances)
             if choice == 'Dog':
                 #create an dog
-                fighter_component = Fighter(hp=20, defense=0, power=5, xp=35, ev=5, acc=5, death_function=monster_death)
+                fighter_component = Fighter(hp=40, defense=0, power=5, xp=35, ev=5, acc=5, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'd', 'Dog', libtcod.darker_orange, blocks=True, fighter=fighter_component,
                                  ai=ai_component, description='A large, brown muscular looking dog. His eyes glow red.')
@@ -726,7 +748,7 @@ def place_objects(room):
                 #create a Snake
                 effect_component = Effect('Poisoned', duration=5, damage_by_turn=2, base_duration=5)
                 effect_roll = 7
-                fighter_component = Fighter(hp=20, defense=2, power=5, xp=100, ev=10, acc=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
+                fighter_component = Fighter(hp=60, defense=2, power=5, xp=100, ev=10, acc=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 's', 'Snake', libtcod.darker_grey, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
@@ -734,14 +756,14 @@ def place_objects(room):
 
             elif choice == 'Imp':
                 #create an Imp
-                fighter_component = Fighter(hp=15, defense=1, power=6, xp=50, ev=10, acc=9, death_function=monster_death)
+                fighter_component = Fighter(hp=35, defense=1, power=7, xp=50, ev=10, acc=9, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'i', 'Imp', libtcod.darker_green, blocks=True, fighter=fighter_component,
                                  ai=ai_component, description='A green Imp, skilled in defensive fighting.')
 
             elif choice == 'Eagle':
                 #create an eagle
-                fighter_component = Fighter(hp=40, defense=3, power=10, xp=200, ev=20, acc=10,
+                fighter_component = Fighter(hp=100, defense=3, power=10, xp=200, ev=20, acc=10,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'e', 'Eagle', libtcod.darker_sepia, blocks=True, fighter=fighter_component,
@@ -752,7 +774,7 @@ def place_objects(room):
                 #create a glow fly
                 effect_component = Effect('Paralysed', duration=5, paralysed=True, base_duration=5)
                 effect_roll = 7
-                fighter_component = Fighter(hp=8, defense=0, power=8, xp=50, ev=20, acc=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
+                fighter_component = Fighter(hp=20, defense=0, power=8, xp=50, ev=20, acc=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'f', 'Firefly', libtcod.darker_lime, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
@@ -760,7 +782,7 @@ def place_objects(room):
 
             elif choice == 'Pygmy':
                 #create a pygmy
-                fighter_component = Fighter(hp=50, defense=6, power=8, xp=250, ev=20, acc=10,
+                fighter_component = Fighter(hp=120, defense=6, power=8, xp=250, ev=20, acc=10,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'p', 'Chieftain', libtcod.darkest_pink, blocks=True, fighter=fighter_component,
@@ -774,7 +796,7 @@ def place_objects(room):
                     y = libtcod.random_get_int(0, monster.y + 2, monster.y - 2)
                     if not is_blocked(x, y):
                         #create other pygmys
-                        fighter_component = Fighter(hp=30, defense=4, power=4, xp=200, ev=20, acc=10,
+                        fighter_component = Fighter(hp=100, defense=4, power=4, xp=200, ev=20, acc=10,
                                                     death_function=monster_death)
                         ai_component = BasicMonsterAI()
                         other_pygmy = Object(x, y, 'p', 'Pygmy', libtcod.dark_pink, blocks=True,
@@ -785,7 +807,7 @@ def place_objects(room):
 
             elif choice == 'Goat':
                 #create a goat
-                fighter_component = Fighter(hp=35, defense=4, power=5, xp=60, ev=25, acc=10,
+                fighter_component = Fighter(hp=140, defense=4, power=5, xp=60, ev=25, acc=10,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'g', 'Goat', libtcod.lighter_grey, blocks=True, fighter=fighter_component,
@@ -794,7 +816,7 @@ def place_objects(room):
 
             elif choice == 'Bull':
                 #create a bull
-                fighter_component = Fighter(hp=80, defense=1, power=8, xp=250, ev=20, acc=10,
+                fighter_component = Fighter(hp=200, defense=1, power=8, xp=250, ev=20, acc=10,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, chr(143), 'Bull', libtcod.light_flame, blocks=True, fighter=fighter_component,
@@ -803,7 +825,7 @@ def place_objects(room):
 
             elif choice == 'Crab':
                 #create a crab
-                fighter_component = Fighter(hp=20, defense=6, power=9, xp=50, ev=30, acc=10,
+                fighter_component = Fighter(hp=50, defense=6, power=9, xp=50, ev=30, acc=10,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'c', 'Crab', libtcod.dark_yellow, blocks=True, fighter=fighter_component,
@@ -812,7 +834,7 @@ def place_objects(room):
 
             elif choice == 'Centaur':
                 #create a centaur
-                fighter_component = Fighter(hp=100, defense=7, power=10, xp=300, ev=20, acc=10,
+                fighter_component = Fighter(hp=180, defense=7, power=10, xp=300, ev=20, acc=10,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'C', 'Centaur', libtcod.darker_magenta, blocks=True, fighter=fighter_component,
@@ -1362,7 +1384,7 @@ def message_wait(char, messagetext, color=libtcod.white):
             render_all()
             #use message function to present message
             message(messagetext, color)
-            render_all()  #IF THIS FUNCTION IS THE CAUSE OF A CRASH REMOVE THIS LINE AND GO FUCK YOURSELF
+            render_all()  #IF THIS FUNCTION IS THE CAUSE OF A CRASH REMOVE THIS LINE
             #set object to seen
             object.seen = True
             #wait for keypress
@@ -1772,7 +1794,7 @@ def target_monster(max_range=None):
 def new_game():
     global player, inventory, game_msgs, game_state, dungeon_level, turn_increment, heal_rate, turn_5, hunger_level
     #create object representing player
-    fighter_component = Fighter(hp=100, defense=1, power=6, xp=0, ev=6, acc=10, death_function=player_death,
+    fighter_component = Fighter(hp=100, defense=1, power=6, xp=0, ev=5, acc=8, death_function=player_death,
                                 effects=[])
     player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter_component)
     player.level = 1
@@ -1864,6 +1886,7 @@ def play_game():
             for obj in objects:
                 if obj.ai:
                     obj.ai.take_turn()
+
 
 
 def main_menu():
