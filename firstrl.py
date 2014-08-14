@@ -167,7 +167,7 @@ class Object:
         # load_game() and use() functions.
         self.path = libtcod.path_new_using_map(fov_map)
 
-        #COmpute path to player
+        #Compute path to player
         libtcod.path_compute(self.path, self.x, self.y, player.x, player.y)
 
         #vector from this object to the target, and distance
@@ -388,62 +388,69 @@ class BasicMonsterAI:
         # This has broken "move to last seen" functionality. Needs to be fixed.
 
         if monster.path == None:
-
-            # TODO: When this block is preceded by the line "if monster.path == None", the following line
-                #does not ever return True
-            if libtcod.map_is_in_fov(fov_map, monster.x, monster.y): #If the monster is in the players FOV
-
-                #move towards player if far away
-
-                # pygmys can attack one block further in every direction.
-                if monster.char == 'p' and monster.distance_to(player) <= 2:
-                    if player.fighter.hp > 0:
-                        monster.fighter.attack(player)
-
-
-                elif monster.distance_to(player) >= 2:
-                    #compute how to reach the player
-                    # TODO: Insert an if statement to check for a blocked tile, pick an adjacent one and move into it instead
-                    # or have other monsters be seen as a blocked tile? may need to write path function for this.
-
-                    #and move one tile towards them
-                    monster.move_towards(player.x, player.y)
-                    check_run_effects(monster)
-
-                #close enough, attack! (if the player is still alive.)
-                elif player.fighter.hp > 0:
-                    monster.fighter.attack(player)
-
+            monster_move_or_attack(monster)
 
         else:
-            #the player cannot see the monster
-            #if we have an old path, follow it
-            #this means monsters will always move to where they last saw you #TODO: fix this
-            if not libtcod.path_is_empty(monster.path):
-                nextx, nexty = libtcod.path_walk(monster.path, True)
-                monster.move_towards(nextx, nexty)
-            #stop boar and baby boars and pygmys from wandering
-            elif not monster.char == 'B' or monster.char == 'b' or monster.char == 'p':
-                #path is empty, wander randomly
-                rand_direction = libtcod.random_get_int(0, 1, 8)
-                if rand_direction == 1:
-                    monster.move(-1, 1)
-                elif rand_direction == 2:
-                    monster.move(0, 1)
-                elif rand_direction == 3:
-                    monster.move(1, 1)
-                elif rand_direction == 4:
-                    monster.move(-1, 0)
-                elif rand_direction == 5:
-                    monster.move(1, 0)
-                elif rand_direction == 6:
-                    monster.move(-1, -1)
-                elif rand_direction == 7:
-                    monster.move(0, -1)
-                else:
-                    monster.move(1, -1)
+            monster_move_or_attack(monster)
+
+def monster_move_or_attack(monster):
+
+    #If the monster is in the players FOV, monster can see player.
+    if libtcod.map_is_in_fov(fov_map, monster.x, monster.y): #If the monster is in the players FOV
+
+        #move towards player if far away
+
+        # pygmys can attack one block further in every direction.
+        if monster.char == 'p' and monster.distance_to(player) <= 2:
+            if player.fighter.hp > 0:
+                monster.fighter.attack(player)
+
+
+        elif monster.distance_to(player) >= 2:
+            #compute how to reach the player
+            # TODO: Insert an if statement to check for a blocked tile, pick an adjacent one and move into it instead
+            # or have other monsters be seen as a blocked tile? may need to write path function for this.
+
+            #and move one tile towards them
+            monster.move_towards(player.x, player.y)
+            check_run_effects(monster)
+
+        #close enough, attack! (if the player is still alive.)
+        elif player.fighter.hp > 0:
+            monster.fighter.attack(player)
+
+
+    else:
+        #the player cannot see the monster
+        #if we have an old path, follow it
+
+        #If path is not empty and the distance to the player is greater than 2
+        if monster.path is not None:
+            nextx, nexty = libtcod.path_walk(monster.path, True)
+            monster.move_towards(nextx, nexty)
+
+        #stop boar and baby boars and pygmys from wandering
+        elif not monster.char == 'B' or monster.char == 'b' or monster.char == 'p':
+            #path is empty, wander randomly
+            rand_direction = libtcod.random_get_int(0, 1, 8)
+            if rand_direction == 1:
+                monster.move(-1, 1)
+            elif rand_direction == 2:
+                monster.move(0, 1)
+            elif rand_direction == 3:
+                monster.move(1, 1)
+            elif rand_direction == 4:
+                monster.move(-1, 0)
+            elif rand_direction == 5:
+                monster.move(1, 0)
+            elif rand_direction == 6:
+                monster.move(-1, -1)
+            elif rand_direction == 7:
+                monster.move(0, -1)
             else:
-                return 'cancelled'
+                monster.move(1, -1)
+        else:
+            return 'cancelled'
 
 
 class ConfusedMonster:
@@ -1730,6 +1737,9 @@ def new_game():
     #generate map
     make_map()
     initialize_fov()
+    for object in objects:
+        if object.path is not None:
+            object.path = None
 
 
 
@@ -1828,11 +1838,7 @@ def main_menu():
             new_game()
             play_game()
         if choice == 1:  #load last game
-            try:
-                load_game()
-            except:
-                msgbox('\n No saved game to load. \n', 24)
-                continue
+            load_game()
             play_game()
         elif choice == 2:  #Quit
             break
@@ -1876,6 +1882,15 @@ def load_game():
     file.close()
 
     initialize_fov()
+
+    #If the object used to have a path, make it None
+    for object in objects:
+        if object.path is not None:
+            object.path = None
+
+
+
+
 
 
 def next_level():
