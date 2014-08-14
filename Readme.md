@@ -74,6 +74,7 @@ Damage player - '#'
 - Add paralyse effect: For duration of effect, while turn_increment is not == duration: Run monster.ai check_heal and check_run_effects
 - Fix Firefly paralyse effect when applied error "remove(x), no x"
 - Figure out how to make msgs background black
+- Rough balancing
 
 
 

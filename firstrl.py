@@ -748,7 +748,7 @@ def place_objects(room):
                 #create a Snake
                 effect_component = Effect('Poisoned', duration=5, damage_by_turn=2, base_duration=5)
                 effect_roll = 7
-                fighter_component = Fighter(hp=60, defense=2, power=5, xp=100, ev=10, acc=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
+                fighter_component = Fighter(hp=35, defense=2, power=5, xp=100, ev=10, acc=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 's', 'Snake', libtcod.darker_grey, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
@@ -1570,7 +1570,7 @@ def player_rest():
                     carry_on = False
                     message('That ' + obj.name + ' is too close for you to rest!', libtcod.red)
 
-        if hunger_level <= 100:
+        if hunger_level <= 50:
             carry_on = False
             message('You are too hungry to rest! Eat some food.', libtcod.red)
 
@@ -1586,6 +1586,11 @@ def player_rest():
                 if object.ai:
                     object.ai.take_turn()
 
+        if player.fighter.hp == player.fighter.max_hp:
+            carry_on=False
+            message('You are already at full health', libtcod.white)
+            break
+
         if player.fighter.hp == (player.fighter.max_hp/2)-1:
             carry_on = False
             message('You rest to regain some of your health', libtcod.darkest_green)
@@ -1599,6 +1604,8 @@ def player_rest():
         if player.fighter.hp == player.fighter.max_hp:
             carry_on = False
             message('You rest to regain all of your health', libtcod.green)
+
+
 
 
 
@@ -1715,10 +1722,11 @@ def monster_death(monster):
     for i in equipped:
         if i.owner.char == chr(24):
             #blow strength
-            dmg_diff = player.fighter.power - monster.fighter.defense
+
             message('The ' + str(monster.name) + ' explodes under the ferocious blow of your ' + str(i.owner.name) + '!', libtcod.white)
             #Use blow strength as a max number of gibs
-            for num in range(0, dmg_diff, 1):
+            rand_num_gibs = libtcod.random_get_int(0, 1, 7)
+            for num in range(0, rand_num_gibs, 1):
                 #choose random spot for gibs
                 x = libtcod.random_get_int(0, monster.x + 2, monster.x - 2)
                 y = libtcod.random_get_int(0, monster.y + 2, monster.y - 2)
@@ -1794,7 +1802,7 @@ def target_monster(max_range=None):
 def new_game():
     global player, inventory, game_msgs, game_state, dungeon_level, turn_increment, heal_rate, turn_5, hunger_level
     #create object representing player
-    fighter_component = Fighter(hp=100, defense=1, power=6, xp=0, ev=5, acc=8, death_function=player_death,
+    fighter_component = Fighter(hp=100, defense=1, power=6, xp=0, ev=5, acc=10, death_function=player_death,
                                 effects=[])
     player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter_component)
     player.level = 1
