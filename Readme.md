@@ -71,6 +71,7 @@ Damage player - '#'
 - Add potion random names by setting variables first time the create_items function is run and apply the function to the names of the potions
 - Add paralyse effect: For duration of effect, while turn_increment is not == duration: Run monster.ai check_heal and check_run_effects
 - Fix Firefly paralyse effect when applied returns this error:
+- Fix broken "move to last seen" functionality. From removed line at 362
     
     Traceback (most recent call last):
   File "****ZMD/firstrl.py", line 2027, in <module>

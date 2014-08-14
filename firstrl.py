@@ -56,7 +56,7 @@ heal_rate = 1
 
 #Food properties
 FOOD_BREAD = 380
-HUNGER_RATE = 20
+HUNGER_RATE = 4
 
 #Player parameters
 LEVEL_UP_BASE = 200
@@ -355,11 +355,15 @@ class BasicMonster:
     global path
     #AI for a basic monster.
     def take_turn(self):
-        #a basic monster takes its turn. If you can see it, it can see you.
+        #A basic monster takes its turn. If you can see it, it can see you.
         monster = self.owner
-        #check for existing path
-        # Used to be an 'if monster.path == None:' line here, broke load functionality as wasn't sure how to load old paths
-        # and it appeared to python that an old path existed, this way it loads a new path either way.
+        #Check for existing path
+
+        # TODO: Used to be an 'if monster.path == None:' line here, broke load functionality as wasn't sure
+        # how to load old paths and it appeared to python that an old path existed, this way it loads
+        # a new path either way.
+        # This has broken "move to last seen" functionality. Needs to be fixed.
+
         monster.path = libtcod.path_new_using_map(fov_map, 1.41)
 
         if libtcod.map_is_in_fov(fov_map, monster.x, monster.y):
