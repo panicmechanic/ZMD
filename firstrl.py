@@ -1,5 +1,4 @@
 import libtcodpy as libtcod
-
 import math
 import textwrap
 import shelve
@@ -9,6 +8,7 @@ from weaponchances import create_item
 # FATAL EFFECT
 FATAL_EFFECT = False
 FATAL_NAME = None
+
 
 # actual size of the window
 SCREEN_WIDTH = 130
@@ -266,20 +266,20 @@ class Fighter:
             for i in self.effects:
                 #If an effect with the same name already exists, add its duration to the existing copy.
                 if i.effect_name == Effect.effect_name:
-                    i.duration += Effect.duration
+                    i.duration += Effect.base_duration
                     i.applied_times += 1
+                    print i.duration
 
                     message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you further!',
                             libtcod.yellow)
 
+                else:
+                    self.effects.append(Effect)
+                    message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you!', libtcod.yellow)
+
         else:
-            self.effects.append(Effect)
-            message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you!', libtcod.yellow)
-            print Effect.effect_name
-            print Effect.turns_passed
-            print Effect.duration
-            for i in self.effects:
-                print i
+                    self.effects.append(Effect)
+                    message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you!', libtcod.yellow)
 
     def remove_effect(self, Effect):
         if Effect.duration == Effect.turns_passed:
@@ -527,10 +527,11 @@ class Equipment:
 
 class Effect:
     #an effect that can be applied to the character, yielding bonuses or nerfs
-    def __init__(self, effect_name, duration=0, turns_passed=0, power_effect=0, defense_effect=0, max_hp_effect=0, applied_times=1, confused=False, burning=False, damage_by_turn=None):
+    def __init__(self, effect_name, duration=0, turns_passed=0, base_duration=0, power_effect=0, defense_effect=0, max_hp_effect=0, applied_times=1, confused=False, burning=False, damage_by_turn=None, paralysed=None, fatal_alert=False):
         self.effect_name = effect_name
         self.duration = duration
         self.turns_passed = turns_passed
+        self.base_duration = base_duration
         self.power_effect = power_effect
         self.defense_effect = defense_effect
         self.max_hp_effect = max_hp_effect
@@ -538,9 +539,24 @@ class Effect:
         self.confused = confused
         self.burning = burning
         self.damage_by_turn = damage_by_turn
-
+        self.paralysed = paralysed
+        self.fatal_alert = fatal_alert
         self.is_active = False
 
+def check_for_paralysis(fighter):
+    global objects
+    #check for paralysis
+    for eff in fighter.effects:
+        if eff.paralysed is not None:
+            while eff.turns_passed is not eff.duration:
+                check_by_turn()
+                for obj in objects:
+                    if obj.ai:
+                        obj.ai.take_turn()
+                        render_all()
+                if eff.turns_passed is not eff.duration:
+                    eff.turns_passed += 1
+            fighter.remove_effect(eff)
 
 def check_run_effects(obj):
     # Check for effects, if there is 1 or more and their turns_passed value is not == duration, increase its turn_passed value by one, if it is equal to duration remove it.
@@ -556,28 +572,38 @@ def check_run_effects(obj):
             if eff.damage_by_turn is not None:
                 obj.fighter.take_damage(eff.damage_by_turn)
 
+            if obj.fighter:
+                check_for_paralysis(obj.fighter)
+
 
             #If turns_passed is not equal to the duration, add one turn
             if eff.turns_passed is not eff.duration:
                 eff.turns_passed += 1
 
-            # check for fatal turn_by_damage limit
-            turns_left = eff.duration - eff.turns_passed
-            total_dmg = turns_left * eff.damage_by_turn
-            if total_dmg >= obj.fighter.hp:
-                FATAL_EFFECT = True
-                FATAL_NAME = str(eff.effect_name)
-                message('You are fatally ' + eff.effect_name + '!')
-                #works up to here, then doesn't want to print the warning
-                libtcod.console_print_ex(panel, 1, 4, libtcod.BKGND_NONE, libtcod.LEFT, 'Fatally ' + FATAL_NAME + '!')
 
 
             #if turns_passed is equal to duration, remove the effect
             elif eff.turns_passed == eff.duration:
                 obj.fighter.remove_effect(eff)
-                #reset turns_passed to 0 as this seemed to cause a bug where poison effect in snakes fighter class
-                    #would have it's turns passed set to the duration after the first time it was applied
                 eff.turns_passed = 0
+
+            # check for fatal turn_by_damage limit if effect has damage_by_turn
+            if eff.damage_by_turn is not None:
+
+                turns_left = eff.duration - eff.turns_passed
+                total_dmg = turns_left * eff.damage_by_turn
+                if total_dmg >= obj.fighter.hp:
+                    FATAL_EFFECT = True
+                    FATAL_NAME = str(eff.effect_name)
+                    eff.fatal_alert = True
+                    message('You are fatally ' + eff.effect_name + '!')
+                    #works up to here, then doesn't want to print the warning
+                    libtcod.console_print_ex(panel, 1, 4, libtcod.BKGND_NONE, libtcod.LEFT, 'Fatally ' + FATAL_NAME + '!')
+                elif eff.fatal_alert == True:
+                    FATAL_EFFECT = False
+                    FATAL_NAME = None
+                    message('You are no longer fatally ' + eff.effect_name + '.')
+                    eff.fatal_alert = False
 
     else:
         return 'no effects'
@@ -653,7 +679,7 @@ def place_objects(room):
 
             elif choice == 'Snake':
                 #create a Snake
-                effect_component = Effect('Poisoned', duration=5, damage_by_turn=2)
+                effect_component = Effect('Poisoned', duration=5, damage_by_turn=2, base_duration=5)
                 effect_roll = 7
                 fighter_component = Fighter(hp=30, defense=3, power=5, xp=100, ev=2, acc=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
                 ai_component = BasicMonster()
@@ -679,8 +705,9 @@ def place_objects(room):
 
             elif choice == 'Firefly':
                 #create a glow fly
-                fighter_component = Fighter(hp=8, defense=0, power=8, xp=50, ev=20, acc=10,
-                                            death_function=monster_death)
+                effect_component = Effect('Paralysed', duration=5, paralysed=True, base_duration=5)
+                effect_roll = 7
+                fighter_component = Fighter(hp=8, defense=0, power=8, xp=50, ev=20, acc=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
                 ai_component = BasicMonster()
                 monster = Object(x, y, 'f', 'Firefly', libtcod.darker_lime, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
@@ -1175,7 +1202,7 @@ def render_all():
     for eff in player.fighter.effects:
         count = 4
         if eff.effect_name == 'Poisoned':
-            render_bar_simple(panel, 1, count, BAR_WIDTH, 'Poisoned X ' + str(eff.applied_times), eff.duration-eff.turns_passed, eff.duration, libtcod.darker_green,
+            render_bar_simple(panel, 1, count, BAR_WIDTH, 'Poisoned X ' + str(eff.applied_times), (eff.duration-eff.turns_passed), eff.duration, libtcod.darker_green,
                libtcod.darkest_green)
             count +=1
 
