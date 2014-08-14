@@ -67,10 +67,12 @@ Damage player - '#'
 - Finish lever object
 - Have evasion and accuracy both draw their values from a new fighter variable 'dex'.
 - Add more food types (so far; feta, bread)
-- Add hunger bar
-- Add potion random names by setting variables first time the create_items function is run and apply the function to the names of the potions
+- Remove todo list from fristrl.py
+- Add potion random names by setting variables first time the create_items function is run 
+    and apply the function to the names of the potions
+- Bones and fountains appear over objects
 - Add paralyse effect: For duration of effect, while turn_increment is not == duration: Run monster.ai check_heal and check_run_effects
-- Fix Firefly paralyse effect when applied returns this error:
+- Fix Firefly paralyse effect when applied error "remove(x), no x"
 - Fix broken "move to last seen" functionality. From removed line at 362
     
     Traceback (most recent call last):   
@@ -104,10 +106,12 @@ Damage player - '#'
 - Turn system
 - Fighter speed system
 - Add monster drops based on difficulty, to encourage risk/reward
+- Improve GUI. Maybe a border.
 - Release a playable alpha
 - Scent tracking
 - Mutations/Godly powers
 - Click-to-path for map and GUI
+- Save maps and add upward stairs.
 - New level types (forest, swamp, mountain range, meadow)
 - Quest system
 - Auto-explore
@@ -126,6 +130,7 @@ Damage player - '#'
 
 
 #Done:
+- Added hunger bar, fixed eat_food() to not exceed 800. 800 should probably be a global value.
 - Fixed check_run_effects to properly remove effects, display them correctly. Also made 
     function message player when lethal effect is no longer true.
 - Fixed check_run_effects to reset turns_passed to 0 when effect is removed.

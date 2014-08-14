@@ -244,16 +244,19 @@ class Fighter:
         return self.base_max_hp + bonus
 
     # @property
-    #def ev(self): #return actual evasion
+    #TODO: def ev(self): #return actual evasion
 
     def player_eat_food(self, Item):
         global hunger_level
 
-        if hunger_level <= 40:
+        if hunger_level >= 760:
             message('You are already full!', libtcod.white)
         else:
             message('Mmm, that was delicious!', libtcod.light_green)
-            hunger_level -= Item.food_value
+            if hunger_level + Item.food_value > 800:
+                hunger_level = 800
+            else:
+                hunger_level += Item.food_value
 
 
 
@@ -640,6 +643,9 @@ def place_objects(room):
     #maximum number of monsters per room
     max_monsters = from_dungeon_level([[2, 1], [3, 4], [5, 6]])
 
+    #TODO: Min_monsters to create minimum danger level.
+
+
     #chance of each monsters
     monster_chances = {}
     monster_chances['Dog'] = 10  #Dog always spawns, even if all other monsters have 0 chance
@@ -743,7 +749,7 @@ def place_objects(room):
 
             elif choice == 'Goat':
                 #create a goat
-                fighter_component = Fighter(hp=35, defense=3, power=5, xp=60, ev=20, acc=10,
+                fighter_component = Fighter(hp=35, defense=4, power=5, xp=60, ev=25, acc=10,
                                             death_function=monster_death)
                 ai_component = BasicMonster()
                 monster = Object(x, y, 'g', 'Goat', libtcod.lighter_grey, blocks=True, fighter=fighter_component,
@@ -761,7 +767,7 @@ def place_objects(room):
 
             elif choice == 'Crab':
                 #create a crab
-                fighter_component = Fighter(hp=30, defense=4, power=5, xp=50, ev=20, acc=10,
+                fighter_component = Fighter(hp=30, defense=6, power=5, xp=50, ev=30, acc=10,
                                             death_function=monster_death)
                 ai_component = BasicMonster()
                 monster = Object(x, y, 'c', 'Crab', libtcod.dark_yellow, blocks=True, fighter=fighter_component,
@@ -1184,7 +1190,7 @@ def render_all():
     libtcod.console_blit(con, 0, 0, MAP_WIDTH, MAP_HEIGHT, 0, 0, 0)
 
     #prepare to render the GUI panel
-    libtcod.console_set_default_background(panel, libtcod.black)
+    libtcod.console_set_default_background(panel, libtcod.darkest_grey)
     libtcod.console_clear(panel)
 
     #print the game messages, one line at a time
@@ -1219,7 +1225,7 @@ def render_all():
     libtcod.console_blit(panel, 0, 0, SCREEN_WIDTH, PANEL_HEIGHT, 0, 0, PANEL_Y)
 
     #prepare to render the second GUI panel
-    libtcod.console_set_default_background(panel2, libtcod.black)
+    libtcod.console_set_default_background(panel2, libtcod.darkest_grey)
     libtcod.console_clear(panel2)
 
     # display a title
@@ -1966,6 +1972,7 @@ def hunger():
         return 'Very hungry'
     elif hunger_level >= 0 or hunger_level < 0:
         return 'Starving!'
+        print hunger_level
 
 
 def get_equipped_in_slot(slot):  #returns the equipment in a slot or None if it's empty

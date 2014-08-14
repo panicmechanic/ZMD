@@ -42,7 +42,7 @@ def random_choice(chances_dict):
 
 def add_food_and_scrolls(x, y):
     item_chances = {}
-    item_chances['nothing'] = 50
+    item_chances['nothing'] = 100
     item_chances['heal'] = 15
     item_chances['bread'] = from_dungeon_level([[10, 1], [15, 5]])
     item_chances['feta cheese'] = from_dungeon_level([[5, 1], [8, 5]])
