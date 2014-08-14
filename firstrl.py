@@ -56,7 +56,7 @@ heal_rate = 1
 
 #Food properties
 FOOD_BREAD = 380
-HUNGER_RATE = 2
+HUNGER_RATE = 20
 
 #Player parameters
 LEVEL_UP_BASE = 200
@@ -642,7 +642,7 @@ def place_objects(room):
     monster_chances['Dog'] = 10  #Dog always spawns, even if all other monsters have 0 chance
     monster_chances['Snake'] = from_dungeon_level([[3, 1], [5, 3], [50, 7]])
     monster_chances['Imp'] = from_dungeon_level([[10, 1], [30, 5], [50, 7]])
-    #monster_chances['Firefly'] = from_dungeon_level([[3, 1], [30, 3], [60, 7]]) TODO: Fix paralyse bug
+    #monster_chances['Firefly'] = from_dungeon_level([[3, 1], [30, 3], [60, 7]]) #TODO: Fix paralyse bug
     monster_chances['Crab'] = from_dungeon_level([[1, 1], [30, 3], [60, 7]])
     monster_chances['Goat'] = from_dungeon_level([[15, 2], [30, 8], [60, 10]])
     monster_chances['Eagle'] = from_dungeon_level([[15, 5], [30, 8], [60, 10]])
@@ -1509,7 +1509,10 @@ def player_rest():
         if carry_on == True:
             check_by_turn()
             #TODO: this will not work unless it runs through every fighter in objects.
-            #check_run_effects(player)
+            check_run_effects(player)
+            for object in objects:
+                if object.ai:
+                    object.ai.take_turn()
 
         if player.fighter.hp == (player.fighter.max_hp/2)-1:
             carry_on = False
@@ -1948,17 +1951,17 @@ def hunger():
     #return string of hunger level (Full, Content, Peckish, Hungry, Starving)
     #TODO: make starving, v. hungry different colors
     global hunger_level
-    if hunger_level <= 800:
+    if hunger_level >= 740:
         return 'Full'
-    elif hunger_level <= 600:
+    elif hunger_level >= 600:
         return 'Content'
-    elif hunger_level <= 400:
+    elif hunger_level >= 400:
         return 'Peckish'
-    elif hunger_level <= 250:
+    elif hunger_level >= 250:
         return 'Hungry'
-    elif hunger_level <= 100:
+    elif hunger_level >= 1:
         return 'Very hungry'
-    elif hunger_level >= 0:
+    elif hunger_level >= 0 or hunger_level < 0:
         return 'Starving!'
 
 
