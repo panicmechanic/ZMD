@@ -1492,9 +1492,9 @@ def handle_keys():
 
             # debug
             if key_char == '@':
-                player.fighter.max_hp = 10000
-                player.fighter.defense = 10000
-                player.fighter.power = 10000
+                player.fighter.max_hp = 1000
+                player.fighter.defense = 1000
+                player.fighter.power = 1000
 
             #debug
             if key_char == '#':
@@ -1685,16 +1685,20 @@ def monster_death(monster):
 
     #Explode it if was killed by war hammer
     explode_chance = libtcod.random_get_int(0, 0, 10)
-    if explode_chance >=3:
+    if explode_chance >=0:
         equipped = get_all_equipped(player)
         for i in equipped:
             if i.owner.char == chr(24):
+                #blow strength
+                dmg_diff = player.fighter.power - monster.fighter.defense
                 message('The ' + str(monster.name) + ' explodes under the ferocious blow of your ' + str(i.owner.name) + '!', libtcod.white)
-                for num in range(0, 10, 1):
+                #Use blow strength as a max number of gibs
+                for num in range(0, dmg_diff, 1):
                     #choose random spot for gibs
                     x = libtcod.random_get_int(0, monster.x + 2, monster.x - 2)
                     y = libtcod.random_get_int(0, monster.y + 2, monster.y - 2)
                     if not is_blocked(x, y):
+                        #roll for type of gib
                         roll = libtcod.random_get_int(0, 0, 2)
                         if roll == 0:
                             gib = Object(x, y, '%', 'guts', libtcod.darker_red, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
@@ -1705,7 +1709,7 @@ def monster_death(monster):
                         if roll == 2:
                             gib = Object(x, y, '$', 'guts', libtcod.darker_purple, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
 
-
+                        #append gib and send it to back
                         objects.append(gib)
                         gib.send_to_back()
 
