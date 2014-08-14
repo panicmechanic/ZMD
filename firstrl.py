@@ -76,8 +76,9 @@ color_light_ground = libtcod.Color(150, 150, 150)
 
 class Tile:
     # a tile of the map, and its properties
-    def __init__(self, blocked, block_sight=None):
+    def __init__(self, blocked, block_sight=None, diff_color=None):
         self.blocked = blocked
+        self.diff_color = diff_color
 
         #all tiles start unexplored
         self.explored = False
@@ -85,6 +86,7 @@ class Tile:
         #by default if a tile is blocked, it also blocks sight
         if block_sight is None: block_sight = blocked
         self.block_sight = block_sight
+
 
 
 class Rect:
@@ -1209,6 +1211,8 @@ def render_all():
                     #it's visible
                     if wall:
                         libtcod.console_set_char_background(con, x, y, color_light_wall, libtcod.BKGND_SET)
+                    elif map[x][y].diff_color is not None:
+                        libtcod.console_set_char_background(con, x, y, map[x][y].diff_color, libtcod.BKGND_SET)
                     else:
                         libtcod.console_set_char_background(con, x, y, color_light_ground, libtcod.BKGND_SET)
                     #since it's visible, explore it
@@ -1684,34 +1688,41 @@ def monster_death(monster):
     #transform it into a nasty corpse! it doesn't block, can't be attacked and doesn't move.
 
     #Explode it if was killed by war hammer
-    explode_chance = libtcod.random_get_int(0, 0, 10)
-    if explode_chance >=0:
-        equipped = get_all_equipped(player)
-        for i in equipped:
-            if i.owner.char == chr(24):
-                #blow strength
-                dmg_diff = player.fighter.power - monster.fighter.defense
-                message('The ' + str(monster.name) + ' explodes under the ferocious blow of your ' + str(i.owner.name) + '!', libtcod.white)
-                #Use blow strength as a max number of gibs
-                for num in range(0, dmg_diff, 1):
-                    #choose random spot for gibs
-                    x = libtcod.random_get_int(0, monster.x + 2, monster.x - 2)
-                    y = libtcod.random_get_int(0, monster.y + 2, monster.y - 2)
-                    if not is_blocked(x, y):
-                        #roll for type of gib
-                        roll = libtcod.random_get_int(0, 0, 2)
-                        if roll == 0:
-                            gib = Object(x, y, '%', 'guts', libtcod.darker_red, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
 
-                        if roll == 1:
-                            gib = Object(x, y, "^", 'sinew', libtcod.dark_red, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
+    equipped = get_all_equipped(player)
+    for i in equipped:
+        if i.owner.char == chr(24):
+            #blow strength
+            dmg_diff = player.fighter.power - monster.fighter.defense
+            message('The ' + str(monster.name) + ' explodes under the ferocious blow of your ' + str(i.owner.name) + '!', libtcod.white)
+            #Use blow strength as a max number of gibs
+            for num in range(0, dmg_diff, 1):
+                #choose random spot for gibs
+                x = libtcod.random_get_int(0, monster.x + 2, monster.x - 2)
+                y = libtcod.random_get_int(0, monster.y + 2, monster.y - 2)
+                if not is_blocked(x, y):
+                    #roll for type of gib
+                    roll = libtcod.random_get_int(0, 0, 3)
+                    if roll == 0:
+                        gib = Object(x, y, '%', 'guts', libtcod.darker_red, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
+                        libtcod.console_set_char_background(con, x, y, libtcod.dark_red, libtcod.BKGND_SET)
+                        map[x][y].diff_color = libtcod.dark_red
+                    if roll == 1:
+                        gib = Object(x, y, "^", 'sinew', libtcod.dark_red, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
+                        libtcod.console_set_char_background(con, x, y, libtcod.darker_red, libtcod.BKGND_SET)
+                        map[x][y].diff_color = libtcod.darker_red
+                    if roll == 2:
+                        gib = Object(x, y, '$', 'guts', libtcod.darker_purple, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
+                        libtcod.console_set_char_background(con, x, y, libtcod.darkest_red, libtcod.BKGND_SET)
+                        map[x][y].diff_color = libtcod.darkest_red
+                    if roll == 3:
+                        gib = Object(x, y, '/', 'broken bone', libtcod.white, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
+                        libtcod.console_set_char_background(con, x, y, libtcod.dark_red, libtcod.BKGND_SET)
+                        map[x][y].diff_color = libtcod.dark_red
 
-                        if roll == 2:
-                            gib = Object(x, y, '$', 'guts', libtcod.darker_purple, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
-
-                        #append gib and send it to back
-                        objects.append(gib)
-                        gib.send_to_back()
+                    #append gib and send it to back
+                    objects.append(gib)
+                    gib.send_to_back()
 
 
 
