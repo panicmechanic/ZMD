@@ -377,10 +377,10 @@ class Fighter:
                 self.roll_for_effect(target)
 
         elif self.owner.name == 'player' and ev_roll > acc_roll:
-            message('You missed the ' + target.name + '!', libtcod.darker_red)
+            message('You missed the ' + target.name + '!', libtcod.white)
 
         elif self.owner.name != 'player' and ev_roll > acc_roll:
-            message('The ' + self.owner.name.capitalize() + ' missed you!', libtcod.dark_green)
+            message('The ' + self.owner.name.capitalize() + ' missed you!', libtcod.white)
 
 
     # check for auto cast_effect

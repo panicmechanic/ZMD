@@ -75,6 +75,8 @@ Damage player - '#'
 - Fix Firefly paralyse effect when applied error "remove(x), no x"
 - Figure out how to make msgs background black
 - Rough balancing
+- Mutations effects (a lightning mutation to ocassionally zap adjacent enemies, 
+    turning BKGND to blue for one frame.
 
 
 
@@ -108,6 +110,8 @@ Damage player - '#'
 - Stealth system
 - Puzzles(?)
 - Armor/skin/muscle/attack type simulation
+- Not happy with add/ev charatcer level up, too much choice. Maybe just give player a random stat
+    and boost acc and ev by 2.
 
 
 
