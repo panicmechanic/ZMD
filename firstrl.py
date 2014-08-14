@@ -55,7 +55,6 @@ FIREBALL_DAMAGE = 25
 heal_rate = 1
 
 #Food properties
-FOOD_BREAD = 380
 HUNGER_RATE = 4
 
 #Player parameters
@@ -365,7 +364,7 @@ class BasicMonster:
         # This has broken "move to last seen" functionality. Needs to be fixed.
 
         monster.path = libtcod.path_new_using_map(fov_map, 1.41)
-
+        
         if libtcod.map_is_in_fov(fov_map, monster.x, monster.y):
 
             #move towards player if far away
@@ -395,7 +394,7 @@ class BasicMonster:
         else:
             #the player cannot see the monster
             #if we have an old path, follow it
-            #this means monsters will always move to where they last saw you
+            #this means monsters will always move to where they last saw you #TODO: fix this
             if not libtcod.path_is_empty(monster.path):
                 nextx, nexty = libtcod.path_walk(monster.path, True)
                 monster.move_towards(nextx, nexty)

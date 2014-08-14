@@ -73,17 +73,28 @@ Damage player - '#'
 - Fix Firefly paralyse effect when applied returns this error:
 - Fix broken "move to last seen" functionality. From removed line at 362
     
-    Traceback (most recent call last):
+    Traceback (most recent call last):   
+     
   File "****ZMD/firstrl.py", line 2027, in <module>
+  
     main_menu()
+    
   File "****ZMD/firstrl.py", line 1793, in main_menu
+  
     play_game()
+    
   File "****ZMD/firstrl.py", line 1764, in play_game
+  
     check_run_effects(player)
+    
   File "****ZMD/firstrl.py", line 587, in check_run_effects
+  
     obj.fighter.remove_effect(eff)
+    
   File "****ZMD/firstrl.py", line 286, in remove_effect
+  
     self.effects.remove(Effect)
+    
   ValueError: list.remove(x): x not in list
 
 
@@ -107,7 +118,7 @@ Damage player - '#'
 - Add ranged combat
 - Add more content (weapons/items/effects/monsters)
 - Add random generators for items and weapons
-- Improve monster pathfinding, will probably require path function.
+- Improve monster pathfinding, will probably require path function. Also need to fix path to last seen.
 - Create a jelly_monster that splits when hit.
 - Stealth system
 - Puzzles(?)
