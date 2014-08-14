@@ -126,13 +126,18 @@ def random_item():  #all item chance totals for a subtype will be self contained
         if rand_weapon_type == 2:  # War Hammers
 
             item_chances['nothing'] = 10
-            item_chances['stone war hammer'] = from_dungeon_level([[5, 1], [60, 2]])
+            item_chances['stone war hammer'] = from_dungeon_level([[50, 1], [60, 2]])
             item_chances['bronze war hammer'] = from_dungeon_level([[5, 3], [10, 4]])
             item_chances['pig iron war hammer'] = from_dungeon_level([[1, 3], [3, 5]])
             item_chances['steel war hammer'] = from_dungeon_level([[1, 3], [10, 5]])
             item_chances['obsidian war hammer'] = from_dungeon_level([[5, 5], [10, 8]])
             item_chances['unobtanium war hammer'] = from_dungeon_level([[1, 10], [4, 12]])
             item_chances['godsbane war hammer'] = from_dungeon_level([[1, 10], [2, 14]])
+
+        #if rand_weapon_type == 3: #Maces
+
+            #item_chances['nothing'] = 10
+            #item_chances['wooden mace'] = from_dungeon_level([[5, 1], [50, 2]])
 
     if rand_type == 1:  # Spawn a piece of armor
         #ARMOR CHANCES - Will have to be called each time for i in range
@@ -241,22 +246,22 @@ def create_item(x, y):
                       always_visible=True)
 
     elif choice == 'bronze axe':
-        equipment_component = Equipment(slot='left hand', power_bonus=4)
+        equipment_component = Equipment(slot='left hand', power_bonus=6)
         item = Object(x, y, chr(244), 'Bronze axe', libtcod.orange, equipment=equipment_component, item=None,
                       always_visible=True)
 
     elif choice == 'rusty steel axe':
-        equipment_component = Equipment(slot='left hand', power_bonus=5)
+        equipment_component = Equipment(slot='left hand', power_bonus=8)
         item = Object(x, y, chr(244), 'Rusty steel axe', libtcod.darkest_orange, equipment=equipment_component,
                       item=None, always_visible=True)
 
     elif choice == 'steel axe':
-        equipment_component = Equipment(slot='left hand', power_bonus=6)
+        equipment_component = Equipment(slot='left hand', power_bonus=10)
         item = Object(x, y, chr(244), 'Steel axe', libtcod.silver, equipment=equipment_component, item=None,
                       always_visible=True)
 
     elif choice == 'diamond axe':
-        equipment_component = Equipment(slot='left hand', power_bonus=10)
+        equipment_component = Equipment(slot='left hand', power_bonus=15)
         item = Object(x, y, chr(244), 'Diamond axe', libtcod.light_blue, equipment=equipment_component, item=None,
                       always_visible=True)
 
@@ -273,7 +278,7 @@ def create_item(x, y):
     ##WAR HAMMERS##
 
     elif choice == 'stone war hammer':
-        equipment_component = Equipment(slot='left hand', power_bonus=5)
+        equipment_component = Equipment(slot='left hand', power_bonus=3)
         item = Object(x, y, chr(24), 'Stone war hammer', libtcod.darker_grey, equipment=equipment_component, item=None,
                       always_visible=True)
 

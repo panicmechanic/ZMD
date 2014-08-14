@@ -165,10 +165,12 @@ class Object:
 
         #This creates the path needed, in seven trials this is done in play_game loop,
         # load_game() and use() functions.
-        self.path = libtcod.path_new_using_map(fov_map)
+
+        if self.path is None:
+            self.path = libtcod.path_new_using_map(fov_map)
 
         #Compute path to player
-        libtcod.path_compute(self.path, self.x, self.y, player.x, player.y)
+        libtcod.path_compute(self.path, self.x, self.y, target_x, target_y)
 
         #vector from this object to the target, and distance
         if not libtcod.path_is_empty(self.path):
@@ -182,6 +184,7 @@ class Object:
             dy = path_y - self.y
 
         else:
+
             dx = target_x - self.x
             dy = target_y - self.y
             distance = math.sqrt(dx ** 2 + dy ** 2)
@@ -352,7 +355,7 @@ class Fighter:
                 self.roll_for_effect(target)
 
         elif self.owner.name == 'player' and ev_roll > acc_roll:
-            message('You missed the ' + target.name + '!', libtcod.red)
+            message('You missed the ' + target.name + '!', libtcod.darker_red)
 
         elif self.owner.name != 'player' and ev_roll > acc_roll:
             message('The ' + self.owner.name.capitalize() + ' missed you!', libtcod.dark_green)
@@ -425,9 +428,12 @@ def monster_move_or_attack(monster):
         #if we have an old path, follow it
 
         #If path is not empty and the distance to the player is greater than 2
-        if monster.path is not None:
+        if monster.path is not None and not libtcod.path_is_empty(monster.path):
+
             nextx, nexty = libtcod.path_walk(monster.path, True)
-            monster.move_towards(nextx, nexty)
+            dx = nextx - monster.x
+            dy = nexty - monster.y
+            monster.move(dx, dy)
 
         #stop boar and baby boars and pygmys from wandering
         elif not monster.char == 'B' or monster.char == 'b' or monster.char == 'p':
@@ -709,7 +715,7 @@ def place_objects(room):
             choice = random_choice(monster_chances)
             if choice == 'Dog':
                 #create an dog
-                fighter_component = Fighter(hp=20, defense=0, power=4, xp=35, ev=5, acc=5, death_function=monster_death)
+                fighter_component = Fighter(hp=20, defense=0, power=5, xp=35, ev=5, acc=5, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'd', 'Dog', libtcod.darker_orange, blocks=True, fighter=fighter_component,
                                  ai=ai_component, description='A large, brown muscular looking dog. His eyes glow red.')
@@ -718,7 +724,7 @@ def place_objects(room):
                 #create a Snake
                 effect_component = Effect('Poisoned', duration=5, damage_by_turn=2, base_duration=5)
                 effect_roll = 7
-                fighter_component = Fighter(hp=30, defense=3, power=5, xp=100, ev=2, acc=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
+                fighter_component = Fighter(hp=20, defense=2, power=5, xp=100, ev=10, acc=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 's', 'Snake', libtcod.darker_grey, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
@@ -726,7 +732,7 @@ def place_objects(room):
 
             elif choice == 'Imp':
                 #create an Imp
-                fighter_component = Fighter(hp=15, defense=1, power=4, xp=50, ev=9, acc=5, death_function=monster_death)
+                fighter_component = Fighter(hp=15, defense=1, power=6, xp=50, ev=10, acc=9, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'i', 'Imp', libtcod.darker_green, blocks=True, fighter=fighter_component,
                                  ai=ai_component, description='A green Imp, skilled in defensive fighting.')
@@ -758,7 +764,7 @@ def place_objects(room):
                 monster = Object(x, y, 'p', 'Chieftain', libtcod.darkest_pink, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
                                  description='A Pygmy chieftan, a particularly strong Pygmy who guides the others in matters of warfare. He looks much stronger than the others.')
-                #Generate random number of baby boars
+                #Generate random number of pygmys
                 num_pygmys = libtcod.random_get_int(0, 1, 6)
                 for i in range(num_pygmys):
                     #choose random spot for baby boars
@@ -795,7 +801,7 @@ def place_objects(room):
 
             elif choice == 'Crab':
                 #create a crab
-                fighter_component = Fighter(hp=30, defense=6, power=5, xp=50, ev=30, acc=10,
+                fighter_component = Fighter(hp=20, defense=6, power=9, xp=50, ev=30, acc=10,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'c', 'Crab', libtcod.dark_yellow, blocks=True, fighter=fighter_component,
@@ -1225,8 +1231,11 @@ def render_all():
     y = 1
     for (line, color) in game_msgs:
         libtcod.console_set_default_foreground(panel, color)
-        libtcod.console_print_ex(panel, MSG_X, y, libtcod.BKGND_NONE, libtcod.LEFT, line)
+        libtcod.console_set_default_background(panel, libtcod.black)#TODO: Figure out how to make msgs background black
+        libtcod.console_print_ex(panel, MSG_X, y, libtcod.BKGND_SCREEN, libtcod.LEFT, line)
+
         y += 1
+
 
     #show the player's stats
     level_up_xp = LEVEL_UP_BASE + player.level * LEVEL_UP_FACTOR
@@ -1506,7 +1515,7 @@ def handle_keys():
 
                 if chosen_object is not None:
                     render_all()
-                    msgbox(str(chosen_object.name) + ':' + '\n\n' + str(chosen_object.description) + '\n',
+                    msgbox(str(chosen_object.name.capitalize()) + ':' + '\n\n' + str(chosen_object.description) + '\n',
                            CHARACTER_SCREEN_WIDTH)
 
             if key_char == '>':
@@ -1673,6 +1682,35 @@ def player_death(player):
 
 def monster_death(monster):
     #transform it into a nasty corpse! it doesn't block, can't be attacked and doesn't move.
+
+    #Explode it if was killed by war hammer
+    explode_chance = libtcod.random_get_int(0, 0, 10)
+    if explode_chance >=3:
+        equipped = get_all_equipped(player)
+        for i in equipped:
+            if i.owner.char == chr(24):
+                message('The ' + str(monster.name) + ' explodes under the ferocious blow of your ' + str(i.owner.name) + '!', libtcod.white)
+                for num in range(0, 10, 1):
+                    #choose random spot for gibs
+                    x = libtcod.random_get_int(0, monster.x + 2, monster.x - 2)
+                    y = libtcod.random_get_int(0, monster.y + 2, monster.y - 2)
+                    if not is_blocked(x, y):
+                        roll = libtcod.random_get_int(0, 0, 2)
+                        if roll == 0:
+                            gib = Object(x, y, '%', 'guts', libtcod.darker_red, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
+
+                        if roll == 1:
+                            gib = Object(x, y, "^", 'sinew', libtcod.dark_red, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
+
+                        if roll == 2:
+                            gib = Object(x, y, '$', 'guts', libtcod.darker_purple, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
+
+
+                        objects.append(gib)
+                        gib.send_to_back()
+
+
+
     message('The ' + monster.name.capitalize() + ' dies! You gain ' + str(monster.fighter.xp) + ' experience points.',
             libtcod.orange)
     monster.char = '%'
@@ -1719,7 +1757,7 @@ def target_monster(max_range=None):
 def new_game():
     global player, inventory, game_msgs, game_state, dungeon_level, turn_increment, heal_rate, turn_5, hunger_level
     #create object representing player
-    fighter_component = Fighter(hp=100, defense=1, power=10, xp=0, ev=10, acc=10, death_function=player_death,
+    fighter_component = Fighter(hp=100, defense=1, power=6, xp=0, ev=6, acc=10, death_function=player_death,
                                 effects=[])
     player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter_component)
     player.level = 1
@@ -1917,11 +1955,11 @@ def check_level_up():  #TODO: Add cool mutations to fighter class like horns
         while choice == None:  #keep asking until a choice is made
             render_all()
             choice = menu('Level up! Choose a stat to raise:\n',
-                          ['Constitution (+20 HP, from ' + str(player.fighter.max_hp) + ')',
-                           'Strength (+1 Attack, from ' + str(player.fighter.power) + ')',
-                           'Defense (+1 Defense, from ' + str(player.fighter.defense) + ')',
-                           'Evasion (+2 Evasion, from ' + str(player.fighter.ev) + ')',
-                           'Accuracy (+2 Accuracy, from ' + str(player.fighter.acc) + ')'], LEVEL_SCREEN_WIDTH)
+                          ['Constitution (+20 HP)',
+                           'Strength (+1 Attack)',
+                           'Defense (+1 Defense)',
+                           'Accuracy (+2 Accuracy, +1 Evasion)',
+                           'Evasion (+2 Evasion, +1 Accuracy)'], LEVEL_SCREEN_WIDTH)
             # May be better to leave evasion and accuracy out of the players hands, to keep it simple
             if choice == 0:
                 player.fighter.max_hp += 20
@@ -1931,9 +1969,11 @@ def check_level_up():  #TODO: Add cool mutations to fighter class like horns
             elif choice == 2:
                 player.fighter.defense += 1
             elif choice == 3:
-                player.fighter.ev += 2
-            elif choice == 4:
                 player.fighter.acc += 2
+                player.fighter.ev += 1
+            elif choice == 4:
+                player.fighter.ev += 2
+                player.fighter.acc += 1
 
 
 def random_choice_index(chances):  #choose one option from list of chances, returning its index

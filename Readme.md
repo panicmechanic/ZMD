@@ -73,31 +73,7 @@ Damage player - '#'
 - Bones and fountains appear over objects
 - Add paralyse effect: For duration of effect, while turn_increment is not == duration: Run monster.ai check_heal and check_run_effects
 - Fix Firefly paralyse effect when applied error "remove(x), no x"
-- Fix broken "move to last seen" functionality. From removed line at 362
-    
-    Traceback (most recent call last):   
-     
-  File "****ZMD/firstrl.py", line 2027, in <module>
-  
-    main_menu()
-    
-  File "****ZMD/firstrl.py", line 1793, in main_menu
-  
-    play_game()
-    
-  File "****ZMD/firstrl.py", line 1764, in play_game
-  
-    check_run_effects(player)
-    
-  File "****ZMD/firstrl.py", line 587, in check_run_effects
-  
-    obj.fighter.remove_effect(eff)
-    
-  File "****ZMD/firstrl.py", line 286, in remove_effect
-  
-    self.effects.remove(Effect)
-    
-  ValueError: list.remove(x): x not in list
+- Figure out how to make msgs background black
 
 
 
@@ -106,8 +82,11 @@ Damage player - '#'
 - Turn system
 - Fighter speed system
 - Add objects x 3/5/1 in inventory and floor
+- Add more attack type effects like explode.
 - Add monster drops based on difficulty, to encourage risk/reward
 - Improve GUI. Maybe a border.
+- Add click messages to see page of messages, rather than delete them, 
+    append them to a new list, to be displayed on click + current game_msgs
 - Release a playable alpha
 - Scent tracking
 - Mutations/Godly powers
@@ -131,6 +110,8 @@ Damage player - '#'
 
 
 #Done:
+- Added a monster_death explode function for aesthetics. Currently fires when player wields warhammers.
+- Fixed monster pathfinding to last seen location, fixed load functionality, created monster_move_or_attack
 - Added hunger bar, fixed eat_food() to not exceed 800. 800 should probably be a global value.
 - Fixed check_run_effects to properly remove effects, display them correctly. Also made 
     function message player when lethal effect is no longer true.
