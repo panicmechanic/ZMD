@@ -33,6 +33,7 @@ MSG_HEIGHT = PANEL_HEIGHT - 1
 INVENTORY_WIDTH = 50
 LEVEL_SCREEN_WIDTH = 40
 CHARACTER_SCREEN_WIDTH = 25
+EFFECTS_GUI = 4
 
 # PANEL 2
 PANEL2_HEIGHT = 53
@@ -238,7 +239,7 @@ class Object:
 
 class Fighter:
     #combat-related properties and methods (monster, player, npc).
-    def __init__(self, hp, defense, power, xp, ev, acc, death_function=None, effects=[], cast_effect=None, cast_roll=0):
+    def __init__(self, hp, defense, power, xp, ev, acc, death_function=None, effects=[], cast_effect=None, cast_roll=0, paralysis=False):
         self.base_max_hp = hp
         self.hp = hp
         self.base_defense = defense
@@ -250,6 +251,7 @@ class Fighter:
         self.effects = effects
         self.cast_effect = cast_effect
         self.cast_roll = cast_roll
+        self.paralysis = paralysis
 
 
 
@@ -327,17 +329,21 @@ class Fighter:
             if self.owner != player:  #yield experience to the player
                 player.fighter.xp += self.xp
 
+
+
+
     def attack(self, target):
 
         #a simple formula for attack damage
 
         ev_roll = libtcod.random_get_int(0, 0, target.fighter.ev)
-        acc_min = self.acc / 2
+        acc_min = self.acc / 4
         acc_roll = libtcod.random_get_int(0, acc_min, self.acc)
         #Figure out the total difference between evasion and accuracy
-        dam_max = acc_roll
-        dam_min = 5 - acc_min
-        dam_roll = libtcod.random_get_int(0, dam_min, dam_max)
+        quality_string = None
+
+        #roll for extra damage
+        dam_roll = libtcod.random_get_int(0, 0, acc_roll)
         #damage is power+ acc_roll - target.defense
         damage = (self.power + dam_roll) - target.fighter.defense
 
@@ -345,11 +351,33 @@ class Fighter:
 
         if ev_roll <= acc_roll:
 
+            #TODO: This may not work perfectly, print all values and check, monsters seem to roll better attacks.
+            #string gen for message
+
+            #Doesn't seem to average out values properly
+            value = self.acc / 10
+
+            if acc_roll <= value or acc_roll <= 0:
+                quality_string = 'an appalling'
+            elif acc_roll <= value*2:
+                quality_string = 'a poor'
+            elif acc_roll <= value*4:
+                quality_string = 'an average'
+            elif acc_roll <= value*6:
+                quality_string = 'a good'
+            elif acc_roll <= value*8:
+                quality_string = 'an excellent'
+            elif acc_roll <= value*9:
+                quality_string = 'an almost perfect'
+            elif acc_roll >= value*10:
+                quality_string = 'a perfect'
+
             #check for crit if player is the attacker
             if crit_roll <= acc_roll and self.owner.name == 'player':
                 damage += damage*3
 
                 #color the floor with blood
+                #TODO: Maybe this would lok better with 1-3 painted tiles rather than just one in a + 1 range
                 libtcod.console_set_char_background(con, target.x, target.y, libtcod.darker_red, libtcod.BKGND_SET)
                 map[target.x][target.y].diff_color = libtcod.darker_red
                 message('You deal a devastating critical blow to the ' + str(target.name) + '!', libtcod.white)
@@ -358,22 +386,22 @@ class Fighter:
             # #Player messages and colors##
             if damage > 0 and self.owner.name == 'player':
                 #make the target take some damage and print the value
-                message('You hit the ' + target.name + ' for ' + str(damage) + ' hit points!', libtcod.green)
+                message('You deal ' + quality_string + ' attack to the ' + target.name + ' for ' + str(damage) + ' hit points!', libtcod.green)
                 target.fighter.take_damage(damage)
 
             elif damage <= 0 and self.owner.name == 'player':
                 #else print a message about how puny you are
-                message('You hit the ' + target.name + ' but it has no effect!', libtcod.grey)
+                message('You deal ' + quality_string + ' attack to the ' + target.name + ' but it has no effect!', libtcod.grey)
 
             ##Monster messages and colors##
             elif damage > 0 and self.owner.name != 'player':
                 #make the target take some damage and print the value
-                message(self.owner.name.capitalize() + ' hits you for ' + str(damage) + ' hit points!', libtcod.red)
+                message(self.owner.name.capitalize() + ' deals ' + quality_string + ' attack to you for ' + str(damage) + ' hit points!', libtcod.red)
                 target.fighter.take_damage(damage)
                 self.roll_for_effect(target)
 
             elif damage <= 0 and self.owner.name != 'player':
-                message(self.owner.name.capitalize() + ' hits you but it has no effect!', libtcod.grey)
+                message(self.owner.name.capitalize() + ' deals ' + quality_string + ' attack to you but it has no effect!', libtcod.grey)
                 self.roll_for_effect(target)
 
         elif self.owner.name == 'player' and ev_roll > acc_roll:
@@ -382,12 +410,13 @@ class Fighter:
         elif self.owner.name != 'player' and ev_roll > acc_roll:
             message('The ' + self.owner.name.capitalize() + ' missed you!', libtcod.white)
 
+        quality_string = None
 
     # check for auto cast_effect
     def roll_for_effect(self, target):
         #if the fighter has an effect to be cast, and the roll is > cast_roll - add effect to target.
-        roll = libtcod.random_get_int(0, 0, 10)
-        if self.cast_effect and roll >= self.cast_roll:
+        roll = libtcod.random_get_int(0, 0, 100)
+        if self.cast_effect and roll <= self.cast_roll:
             target.fighter.add_effect(self.cast_effect, self.owner.name)
 
 
@@ -397,6 +426,9 @@ class Fighter:
         self.hp += amount
         if self.hp > self.max_hp:
             self.hp = self.max_hp
+
+
+
 
 
 class BasicMonsterAI:
@@ -488,7 +520,7 @@ class ConfusedMonster:
     def __init__(self, old_ai, num_turns=CONFUSE_NUM_TURNS):
         self.old_ai = old_ai
         self.num_turns = num_turns
-        libtcod.mouse
+
 
     def take_turn(self):
         if self.num_turns > 0:  #still confused...
@@ -591,7 +623,7 @@ class Equipment:
 
 class Effect:
     #an effect that can be applied to the character, yielding bonuses or nerfs
-    def __init__(self, effect_name, duration=0, turns_passed=0, base_duration=0, power_effect=0, defense_effect=0, max_hp_effect=0, applied_times=1, confused=False, burning=False, damage_by_turn=None, paralysed=None, fatal_alert=False):
+    def __init__(self, effect_name, duration=0, turns_passed=0, base_duration=0, power_effect=0, defense_effect=0, max_hp_effect=0, applied_times=1, confused=False, burning=False, damage_by_turn=None, paralyzed=None, fatal_alert=False):
         self.effect_name = effect_name
         self.duration = duration
         self.turns_passed = turns_passed
@@ -603,7 +635,7 @@ class Effect:
         self.confused = confused
         self.burning = burning
         self.damage_by_turn = damage_by_turn
-        self.paralysed = paralysed
+        self.paralyzed = paralyzed
         self.fatal_alert = fatal_alert
         self.is_active = False
 
@@ -620,7 +652,7 @@ def check_for_paralysis(fighter):
 
                 if eff.turns_passed is not eff.duration:
                     eff.turns_passed += 1
-            fighter.remove_effect(eff)
+
 
 def check_run_effects(obj):
     # Check for effects, if there is 1 or more and their turns_passed value is not == duration, increase its turn_passed value by one, if it is equal to duration remove it.
@@ -636,8 +668,10 @@ def check_run_effects(obj):
             if eff.damage_by_turn is not None:
                 obj.fighter.take_damage(eff.damage_by_turn)
 
-            if obj.fighter:
-                check_for_paralysis(obj.fighter)
+            if eff.paralyzed != None:
+                obj.fighter.paralysis = True
+
+
 
 
             #If turns_passed is not equal to the duration, add one turn
@@ -648,8 +682,13 @@ def check_run_effects(obj):
 
             #if turns_passed is equal to duration, remove the effect
             elif eff.turns_passed == eff.duration:
+                #if the effect caused paralysis, set the fighters variable to False to allow movement again
+                if eff.paralyzed != None:
+                    obj.fighter.paralysis = False
+                    message('You can move again!')
                 obj.fighter.remove_effect(eff)
-                eff.turns_passed = 0
+                eff.turns_passed=0
+
 
             # check for fatal turn_by_damage limit if effect has damage_by_turn
             if eff.damage_by_turn is not None:
@@ -706,10 +745,10 @@ def place_objects(room):
 
     #chance of each monsters
     monster_chances = {}
-    monster_chances['Dog'] = 10  #Dog always spawns, even if all other monsters have 0 chance
+    monster_chances['Dog'] = 20  #Dog always spawns, even if all other monsters have 0 chance
     monster_chances['Snake'] = from_dungeon_level([[3, 1], [5, 3], [50, 7]])
-    monster_chances['Imp'] = from_dungeon_level([[10, 1], [30, 5], [50, 7]])
-    #monster_chances['Firefly'] = from_dungeon_level([[3, 1], [30, 3], [60, 7]]) #TODO: Fix paralyse bug
+    monster_chances['Imp'] = from_dungeon_level([[1, 1], [30, 5], [50, 7]])
+    monster_chances['Firefly'] = from_dungeon_level([[1, 1], [30, 3], [60, 7]]) #TODO: Fix paralyse bug
     monster_chances['Crab'] = from_dungeon_level([[1, 1], [30, 3], [60, 7]])
     monster_chances['Goat'] = from_dungeon_level([[15, 2], [30, 8], [60, 10]])
     monster_chances['Eagle'] = from_dungeon_level([[15, 5], [30, 8], [60, 10]])
@@ -739,7 +778,7 @@ def place_objects(room):
             choice = random_choice(monster_chances)
             if choice == 'Dog':
                 #create an dog
-                fighter_component = Fighter(hp=40, defense=0, power=5, xp=35, ev=5, acc=5, death_function=monster_death)
+                fighter_component = Fighter(hp=40, defense=1, power=5, xp=35, ev=5, acc=5, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'd', 'Dog', libtcod.darker_orange, blocks=True, fighter=fighter_component,
                                  ai=ai_component, description='A large, brown muscular looking dog. His eyes glow red.')
@@ -747,7 +786,7 @@ def place_objects(room):
             elif choice == 'Snake':
                 #create a Snake
                 effect_component = Effect('Poisoned', duration=5, damage_by_turn=2, base_duration=5)
-                effect_roll = 7
+                effect_roll = 20
                 fighter_component = Fighter(hp=35, defense=2, power=5, xp=100, ev=10, acc=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 's', 'Snake', libtcod.darker_grey, blocks=True, fighter=fighter_component,
@@ -756,7 +795,7 @@ def place_objects(room):
 
             elif choice == 'Imp':
                 #create an Imp
-                fighter_component = Fighter(hp=35, defense=1, power=7, xp=50, ev=10, acc=9, death_function=monster_death)
+                fighter_component = Fighter(hp=20, defense=10, power=6, xp=50, ev=8, acc=9, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'i', 'Imp', libtcod.darker_green, blocks=True, fighter=fighter_component,
                                  ai=ai_component, description='A green Imp, skilled in defensive fighting.')
@@ -772,9 +811,9 @@ def place_objects(room):
 
             elif choice == 'Firefly':
                 #create a glow fly
-                effect_component = Effect('Paralysed', duration=5, paralysed=True, base_duration=5)
-                effect_roll = 7
-                fighter_component = Fighter(hp=20, defense=0, power=8, xp=50, ev=20, acc=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
+                effect_component = Effect('Paralyzed', duration=5, paralyzed=True, base_duration=5)
+                effect_roll = 10
+                fighter_component = Fighter(hp=20, defense=0, power=8, xp=50, ev=15, acc=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'f', 'Firefly', libtcod.darker_lime, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
@@ -1266,17 +1305,26 @@ def render_all():
     #show the player's stats
     level_up_xp = LEVEL_UP_BASE + player.level * LEVEL_UP_FACTOR
     render_bar(panel, 1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.red, libtcod.darker_red)
-    render_bar(panel, 1, 2, BAR_WIDTH, 'XP', player.fighter.xp, level_up_xp, libtcod.light_purple,
-               libtcod.darker_purple)
+    render_bar(panel, 1, 2, BAR_WIDTH, 'XP', player.fighter.xp, level_up_xp, libtcod.blue,
+               libtcod.light_blue)
     render_bar_simple(panel, 1, 3, BAR_WIDTH, str(hunger()), hunger_level, 800, libtcod.orange,
                libtcod.darker_orange)
-    #Check for effects
+
+    #Check for total number of effects for gui
+    total_effects = 0
     for eff in player.fighter.effects:
-        count = 4
+        total_effects += 1
+
+    for eff in player.fighter.effects:
+
         if eff.effect_name == 'Poisoned':
-            render_bar_simple(panel, 1, count, BAR_WIDTH, 'Poisoned X ' + str(eff.applied_times), (eff.duration-eff.turns_passed), eff.duration, libtcod.darker_green,
-               libtcod.darkest_green)
-            count +=1
+            render_bar_simple(panel, 1, 3+total_effects, BAR_WIDTH, 'Poisoned X ' + str(eff.applied_times), (eff.duration-eff.turns_passed), eff.duration, libtcod.darker_green, libtcod.darkest_green)
+
+        if eff.effect_name == 'Paralyzed':
+            render_bar_simple(panel, 1, 3+total_effects, BAR_WIDTH, 'Paralyzed X ' + str(eff.applied_times), (eff.duration-eff.turns_passed), eff.duration, libtcod.purple,
+               libtcod.darker_purple)
+
+
 
 
 
@@ -1421,27 +1469,35 @@ def player_move_or_attack(dx, dy):
 
     outcome = None
 
-    x = player.x + dx
-    y = player.y + dy
+    #If player is paralyzed, return string
+    if player.fighter.paralysis == True:
+        outcome = 'paralyzed'
+        message('You are paralyzed and cannot move!', libtcod.white)
 
-    target = None
-    for obj in objects:
-        if obj.fighter and obj.x == x and obj.y == y:
-            target = obj
-            break
+    #Else, move or attack
+    elif player.fighter.paralysis == False:
+        x = player.x + dx
+        y = player.y + dy
 
-    if target != None:
-        player.fighter.attack(target)
-        outcome = 'moved'
+        target = None
+        for obj in objects:
+            if obj.fighter and obj.x == x and obj.y == y:
+                target = obj
+                break
 
-    elif is_blocked(x, y):
-        message('You stumble into the wall..', libtcod.white)
-        outcome = 'stumble'
+        if target != None:
+            player.fighter.attack(target)
+            outcome = 'moved'
+            fov_recompute=True
 
-    elif is_blocked(x, y) == False:
-        player.move(dx, dy)
-        fov_recompute = True
-        outcome = 'moved'
+        elif is_blocked(x, y):
+            message('You stumble into the wall..', libtcod.white)
+            outcome = 'stumble'
+
+        elif is_blocked(x, y) == False:
+            player.move(dx, dy)
+            fov_recompute = True
+            outcome = 'moved'
 
     return outcome
 
@@ -1508,7 +1564,7 @@ def handle_keys():
 
             #debug
             if key_char == '[':
-                cast_heal()
+                player.fighter.hp = player.fighter.max_hp
 
             #debug
             if key_char == ']':
@@ -1699,6 +1755,10 @@ def cast_fireball():  #FIGURE OUT HOW TO PAUSE AFTER THIS MESSAGE BEFORE DEALING
         if obj.distance(x, y) <= FIREBALL_RADIUS and obj.fighter and obj != player:
             message('The ' + obj.name + ' is completely immolated and loses ' + str(FIREBALL_DAMAGE) + ' hit points.',
                     libtcod.orange)
+            libtcod.console_set_char_background(con, obj.x, obj.y, libtcod.orange, libtcod.BKGND_SET)
+
+
+
             obj.fighter.take_damage(FIREBALL_DAMAGE)
 
 
@@ -1728,8 +1788,8 @@ def monster_death(monster):
             rand_num_gibs = libtcod.random_get_int(0, 1, 7)
             for num in range(0, rand_num_gibs, 1):
                 #choose random spot for gibs
-                x = libtcod.random_get_int(0, monster.x + 2, monster.x - 2)
-                y = libtcod.random_get_int(0, monster.y + 2, monster.y - 2)
+                x = libtcod.random_get_int(0, monster.x + 1, monster.x - 1)
+                y = libtcod.random_get_int(0, monster.y + 1, monster.y - 1)
                 if not is_blocked(x, y):
                     #roll for type of gib
                     roll = libtcod.random_get_int(0, 0, 3)
@@ -1802,7 +1862,7 @@ def target_monster(max_range=None):
 def new_game():
     global player, inventory, game_msgs, game_state, dungeon_level, turn_increment, heal_rate, turn_5, hunger_level
     #create object representing player
-    fighter_component = Fighter(hp=100, defense=1, power=6, xp=0, ev=5, acc=10, death_function=player_death,
+    fighter_component = Fighter(hp=1000, defense=3, power=6, xp=0, ev=5, acc=10, death_function=player_death,
                                 effects=[])
     player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter_component)
     player.level = 1
@@ -1810,7 +1870,7 @@ def new_game():
     game_msgs = []
     inventory = []
     player_effects = []
-    dungeon_level = 1
+    dungeon_level = 15
     #counts turns up to 5 then resets
     turn_increment = 0
     #The number of sets of 5 turns that have occured, and been reset
@@ -1827,6 +1887,7 @@ def new_game():
 
 
     # Add an effect like this:
+    #player.fighter.add_effect(Effect('Paralyzed', duration=5, paralyzed=True, base_duration=5), 'Game developer')
     #player.fighter.add_effect(Effect('cruelly hurt', duration=5, damage_by_turn=10), 'Game developer')
     game_state = 'playing'
 
@@ -1873,7 +1934,9 @@ def play_game():
 
         check_level_up()
 
-        #check for message wait conditions
+
+        #check for message wait conditions, definitely shouldn't be in main loop. Should be nested in boar object
+            #then if is in FOV, print it's message
         message_wait('B', 'You see an enormous hairy boar and what appear to be her offspring, she looks angry! Press SPACE to continue..',
                      libtcod.red)
 
@@ -1883,9 +1946,17 @@ def play_game():
 
         #handles keys and exit game if needed
         player_action = handle_keys()
+
         if player_action == 'exit':
             save_game()
             break
+
+        if player_action == 'paralyzed' and game_state == 'playing':
+            check_by_turn()
+            check_run_effects(player)
+            for obj in objects:
+                if obj.ai:
+                    obj.ai.take_turn()
 
 
         if player_action == 'moved' and game_state == 'playing':

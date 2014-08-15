@@ -56,6 +56,18 @@ Heal player - '['
 
 Damage player - '#'
 
+#Features:
+( - = Done, *- = TODO)
+- Hunger and food system
+- Scrolls, potions
+- Effects (poison, confuse, paralyze etc)
+- Evasion/accuracy/critical strike system
+- Autorest
+*- Mouse to path
+*- Autoexplore
+*- Turn system
+*- 
+
 
 #Minor TODO/bugs:
 
@@ -71,12 +83,15 @@ Damage player - '#'
 - Add potion random names by setting variables first time the create_items function is run 
     and apply the function to the names of the potions
 - Bones and fountains appear over objects
-- Add paralyse effect: For duration of effect, while turn_increment is not == duration: Run monster.ai check_heal and check_run_effects
-- Fix Firefly paralyse effect when applied error "remove(x), no x"
 - Figure out how to make msgs background black
 - Rough balancing
 - Mutations effects (a lightning mutation to ocassionally zap adjacent enemies, 
     turning BKGND to blue for one frame.
+- Use color more sparingly, change any important messages to white
+- Change cast_fireball to apply a burning effect to all inside range for 5 turns. 
+- Add gui bar for eff in monster.effects to display effects like burning, poisoned, confused, paralysed.
+- Add effect set char color function for burning etc.
+
 
 
 
@@ -116,6 +131,7 @@ Damage player - '#'
 
 
 #Done:
+- Added paralyze effect and gave it to fireflys.
 - Added critical hits for player, currently hidden from monsters.
 - Made damage in attack vary blow by blow by including "acc_roll-ev_roll + power-defense"
     also added a stain floor with blood, but needs to be rarer/removed entirely.

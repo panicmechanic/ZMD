@@ -46,9 +46,9 @@ def add_food_and_scrolls(x, y):
     item_chances['heal'] = 15
     item_chances['bread'] = from_dungeon_level([[10, 1], [15, 5]])
     item_chances['feta cheese'] = from_dungeon_level([[5, 1], [8, 5]])
-    item_chances['lightning'] = from_dungeon_level([[25, 4]])
-    item_chances['fireball'] = from_dungeon_level([[25, 6]])
-    item_chances['confuse'] = from_dungeon_level([[10, 2]])
+    item_chances['lightning'] = from_dungeon_level([[1, 2], [15, 6]])
+    item_chances['fireball'] = from_dungeon_level([[1, 3], [15, 6]])
+    item_chances['confuse'] = from_dungeon_level([[1, 2], [15, 5]])
 
     choice = random_choice(item_chances)
 
