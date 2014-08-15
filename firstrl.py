@@ -295,7 +295,7 @@ class Fighter:
         if self.effects != []:
             for i in self.effects:
                 #If an effect with the same name already exists, add its duration to the existing copy.
-                if i.effect_name == Effect.effect_name:
+                if i.effect_name is not None and i.effect_name == Effect.effect_name :
                     i.duration += Effect.base_duration
                     i.applied_times += 1
                     print i.duration
@@ -308,8 +308,8 @@ class Fighter:
                     message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you!', libtcod.yellow)
 
         else:
-                    self.effects.append(Effect)
-                    message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you!', libtcod.yellow)
+            self.effects.append(Effect)
+            message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you!', libtcod.yellow)
 
     def remove_effect(self, Effect):
         if Effect.duration == Effect.turns_passed:
@@ -623,7 +623,7 @@ class Equipment:
 
 class Effect:
     #an effect that can be applied to the character, yielding bonuses or nerfs
-    def __init__(self, effect_name, duration=0, turns_passed=0, base_duration=0, power_effect=0, defense_effect=0, max_hp_effect=0, applied_times=1, confused=False, burning=False, damage_by_turn=None, paralyzed=None, fatal_alert=False):
+    def __init__(self, effect_name=None, duration=0, turns_passed=0, base_duration=0, power_effect=0, defense_effect=0, max_hp_effect=0, applied_times=1, confused=False, burning=False, damage_by_turn=None, paralyzed=None, fatal_alert=False, mutation=False, m_name=None, m_loop=0, m_loop_turn=0, m_elec=False, m_elec_count=0, m_elec_trigger=5, m_elec_damage=0):
         self.effect_name = effect_name
         self.duration = duration
         self.turns_passed = turns_passed
@@ -638,6 +638,14 @@ class Effect:
         self.paralyzed = paralyzed
         self.fatal_alert = fatal_alert
         self.is_active = False
+        self.mutation = mutation
+        self.m_name = m_name
+        self.m_loop = m_loop
+        self.m_loop_turn = m_loop_turn
+        self.m_elec = m_elec
+        self.m_elec_count = m_elec_count
+        self.m_elec_trigger = m_elec_trigger
+        self.m_elec_damage = m_elec_damage
 
 def check_for_paralysis(fighter):
     global objects
@@ -658,55 +666,92 @@ def check_run_effects(obj):
     # Check for effects, if there is 1 or more and their turns_passed value is not == duration, increase its turn_passed value by one, if it is equal to duration remove it.
     if obj.fighter.effects is not None:
         for eff in obj.fighter.effects:
+            #Deal with non mutation effects
+            if eff.mutation == False:
 
-            # If it is the first time
-            if eff.turns_passed == 0:
-                is_active = True
-
-
-            #Run for damage_by_turn value in effects class, if there is a value, damage the obj by that value:
-            if eff.damage_by_turn is not None:
-                obj.fighter.take_damage(eff.damage_by_turn)
-
-            if eff.paralyzed != None:
-                obj.fighter.paralysis = True
+                # If it is the first time
+                if eff.turns_passed == 0:
+                    is_active = True
 
 
+                #Run for damage_by_turn value in effects class, if there is a value, damage the obj by that value:
+                if eff.damage_by_turn is not None:
+                    obj.fighter.take_damage(eff.damage_by_turn)
 
-
-            #If turns_passed is not equal to the duration, add one turn
-            if eff.turns_passed is not eff.duration:
-                eff.turns_passed += 1
-
-
-
-            #if turns_passed is equal to duration, remove the effect
-            elif eff.turns_passed == eff.duration:
-                #if the effect caused paralysis, set the fighters variable to False to allow movement again
                 if eff.paralyzed != None:
-                    obj.fighter.paralysis = False
-                    message('You can move again!')
-                obj.fighter.remove_effect(eff)
-                eff.turns_passed=0
+                    obj.fighter.paralysis = True
 
 
-            # check for fatal turn_by_damage limit if effect has damage_by_turn
-            if eff.damage_by_turn is not None:
 
-                turns_left = eff.duration - eff.turns_passed
-                total_dmg = turns_left * eff.damage_by_turn
-                if total_dmg >= obj.fighter.hp:
-                    FATAL_EFFECT = True
-                    FATAL_NAME = str(eff.effect_name)
-                    eff.fatal_alert = True
-                    message('You are fatally ' + eff.effect_name + '!')
-                    #works up to here, then doesn't want to print the warning
-                    libtcod.console_print_ex(panel, 1, 4, libtcod.BKGND_NONE, libtcod.LEFT, 'Fatally ' + FATAL_NAME + '!')
-                elif eff.fatal_alert == True:
-                    FATAL_EFFECT = False
-                    FATAL_NAME = None
-                    message('You are no longer fatally ' + eff.effect_name + '.')
-                    eff.fatal_alert = False
+
+                #If turns_passed is not equal to the duration, add one turn
+                if eff.turns_passed is not eff.duration:
+                    eff.turns_passed += 1
+
+
+
+                #if turns_passed is equal to duration, remove the effect
+                elif eff.turns_passed == eff.duration:
+                    #if the effect caused paralysis, set the fighters variable to False to allow movement again
+                    if eff.paralyzed != None:
+                        obj.fighter.paralysis = False
+                        message('You can move again!')
+                    obj.fighter.remove_effect(eff)
+                    eff.turns_passed=0
+
+
+                # check for fatal turn_by_damage limit if effect has damage_by_turn
+                if eff.damage_by_turn is not None:
+
+                    turns_left = eff.duration - eff.turns_passed
+                    total_dmg = turns_left * eff.damage_by_turn
+                    if total_dmg >= obj.fighter.hp:
+                        FATAL_EFFECT = True
+                        FATAL_NAME = str(eff.effect_name)
+                        eff.fatal_alert = True
+                        message('You are fatally ' + eff.effect_name + '!')
+                        #works up to here, then doesn't want to print the warning
+                        libtcod.console_print_ex(panel, 1, 4, libtcod.BKGND_NONE, libtcod.LEFT, 'Fatally ' + FATAL_NAME + '!')
+                    elif eff.fatal_alert == True:
+                        FATAL_EFFECT = False
+                        FATAL_NAME = None
+                        message('You are no longer fatally ' + eff.effect_name + '.')
+                        eff.fatal_alert = False
+            #If it is a mutation
+            elif eff.mutation == True:
+                if eff.m_elec == True:
+
+                    eff.m_elec_count +=1
+                    #if it has accumulated enough turns
+                    if eff.m_elec_count >= eff.m_elec_trigger:
+                        for obj in objects:
+                            fire_times = eff.applied_times
+                            fired_times = 0
+
+                            #Find and object that isn't the player within 2 tiles and fire if fired_times < fire_times
+                            if obj.fighter and player.distance_to(obj) <= 2 and obj != player and obj.fighter.hp > 5 and fired_times < fire_times:
+
+                                message('You feel a tingle.. Press space to continue', libtcod.white)
+                                render_all()
+                                wait_for_spacekey()
+                                libtcod.console_set_char_background(con, obj.x, obj.y, libtcod.blue, libtcod.BKGND_SCREEN)
+                                map[obj.x][obj.y].diff_color = libtcod.darkest_grey
+                                message('A bolt of lightning hits the ' + str(obj.name) + ' for ' + str(eff.m_elec_damage) + ' hit points!', libtcod.white)
+                                fov_recompute=True
+                                obj.fighter.take_damage(eff.m_elec_damage)
+                                eff.m_elec_count = 0
+                                fired_times += 1
+
+                            #Function has completed, reset fired_times
+                            if fired_times == fire_times:
+                                fired_times = 0
+
+
+
+
+
+
+
 
     else:
         return 'no effects'
@@ -1312,17 +1357,24 @@ def render_all():
 
     #Check for total number of effects for gui
     total_effects = 0
-    for eff in player.fighter.effects:
-        total_effects += 1
+
+    total_effects += 1
 
     for eff in player.fighter.effects:
 
         if eff.effect_name == 'Poisoned':
             render_bar_simple(panel, 1, 3+total_effects, BAR_WIDTH, 'Poisoned X ' + str(eff.applied_times), (eff.duration-eff.turns_passed), eff.duration, libtcod.darker_green, libtcod.darkest_green)
+            total_effects += 1
 
         if eff.effect_name == 'Paralyzed':
             render_bar_simple(panel, 1, 3+total_effects, BAR_WIDTH, 'Paralyzed X ' + str(eff.applied_times), (eff.duration-eff.turns_passed), eff.duration, libtcod.purple,
                libtcod.darker_purple)
+            total_effects += 1
+
+        if eff.effect_name == 'Electric Power':
+            render_bar_simple(panel, 1, 3+total_effects, BAR_WIDTH, 'Electrified Level ' + str(eff.applied_times), (eff.m_elec_trigger-eff.m_elec_count), eff.m_elec_trigger, libtcod.light_blue,
+               libtcod.blue)
+            total_effects += 1
 
 
 
@@ -1383,7 +1435,7 @@ def wait_for_spacekey():  #Make cast heal message appear without having to press
 def message_yn(messagequestion, messagey, color1=libtcod.white, color2=libtcod.white):
 
     message(messagequestion, color1)
-
+    libtcod.console_flush()
     key = libtcod.console_wait_for_keypress(True)
 
     choice = None
@@ -1887,6 +1939,7 @@ def new_game():
 
 
     # Add an effect like this:
+    player.fighter.add_effect(Effect(effect_name='Electric power', mutation=True, m_name='Electric power', m_elec=True, m_elec_trigger=10, m_elec_damage=250), 'Game developer')
     #player.fighter.add_effect(Effect('Paralyzed', duration=5, paralyzed=True, base_duration=5), 'Game developer')
     #player.fighter.add_effect(Effect('cruelly hurt', duration=5, damage_by_turn=10), 'Game developer')
     game_state = 'playing'

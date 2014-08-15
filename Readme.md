@@ -91,6 +91,12 @@ Damage player - '#'
 - Change cast_fireball to apply a burning effect to all inside range for 5 turns. 
 - Add gui bar for eff in monster.effects to display effects like burning, poisoned, confused, paralysed.
 - Add effect set char color function for burning etc.
+- Paralyze still lets you hit first few turns 
+- Fatal poison warning is whiffy
+- Xp bar isn't rendering properly
+- Paralyze is tripled when lightning goes off and you are paralyzed
+- 
+ 
 
 
 
