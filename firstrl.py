@@ -623,7 +623,7 @@ class Equipment:
 
 class Effect:
     #an effect that can be applied to the character, yielding bonuses or nerfs
-    def __init__(self, effect_name=None, duration=0, turns_passed=0, base_duration=0, power_effect=0, defense_effect=0, max_hp_effect=0, applied_times=1, confused=False, burning=False, damage_by_turn=None, paralyzed=None, fatal_alert=False, mutation=False, m_name=None, m_loop=0, m_loop_turn=0, m_elec=False, m_elec_count=0, m_elec_trigger=5, m_elec_damage=0):
+    def __init__(self, effect_name=None, duration=0, turns_passed=0, base_duration=0, power_effect=0, defense_effect=0, max_hp_effect=0, applied_times=1, confused=False, burning=False, damage_by_turn=None, paralyzed=None, fatal_alert=False, mutation=False, m_loop=0, m_loop_turn=0, m_elec=False, m_elec_count=0, m_elec_trigger=5, m_elec_damage=0):
         self.effect_name = effect_name
         self.duration = duration
         self.turns_passed = turns_passed
@@ -639,7 +639,7 @@ class Effect:
         self.fatal_alert = fatal_alert
         self.is_active = False
         self.mutation = mutation
-        self.m_name = m_name
+
         self.m_loop = m_loop
         self.m_loop_turn = m_loop_turn
         self.m_elec = m_elec
@@ -663,6 +663,7 @@ def check_for_paralysis(fighter):
 
 
 def check_run_effects(obj):
+    global fov_recompute
     # Check for effects, if there is 1 or more and their turns_passed value is not == duration, increase its turn_passed value by one, if it is equal to duration remove it.
     if obj.fighter.effects is not None:
         for eff in obj.fighter.effects:
@@ -706,6 +707,7 @@ def check_run_effects(obj):
                     turns_left = eff.duration - eff.turns_passed
                     total_dmg = turns_left * eff.damage_by_turn
                     if total_dmg >= obj.fighter.hp:
+                        #Todo make this a class variable in fighter.
                         FATAL_EFFECT = True
                         FATAL_NAME = str(eff.effect_name)
                         eff.fatal_alert = True
@@ -721,23 +723,26 @@ def check_run_effects(obj):
             elif eff.mutation == True:
                 if eff.m_elec == True:
 
-                    eff.m_elec_count +=1
+                    if eff.m_elec_count < eff.m_elec_trigger:
+                        eff.m_elec_count +=1
                     #if it has accumulated enough turns
-                    if eff.m_elec_count >= eff.m_elec_trigger:
+                    if eff.m_elec_count == eff.m_elec_trigger:
                         for obj in objects:
                             fire_times = eff.applied_times
                             fired_times = 0
 
-                            #Find and object that isn't the player within 2 tiles and fire if fired_times < fire_times
-                            if obj.fighter and player.distance_to(obj) <= 2 and obj != player and obj.fighter.hp > 5 and fired_times < fire_times:
+                            #Find an object that isn't the player within 1 tile and fire if fired_times < fire_times
+                            #This is buggy, leaves copies of monster chars on tiles after it fires.
+                            if obj.fighter and player.distance_to(obj) <= 1 and obj != player and obj.fighter.hp > 5 and fired_times < fire_times:
 
                                 message('You feel a tingle.. Press space to continue', libtcod.white)
                                 render_all()
+
                                 wait_for_spacekey()
                                 libtcod.console_set_char_background(con, obj.x, obj.y, libtcod.blue, libtcod.BKGND_SCREEN)
                                 map[obj.x][obj.y].diff_color = libtcod.darkest_grey
                                 message('A bolt of lightning hits the ' + str(obj.name) + ' for ' + str(eff.m_elec_damage) + ' hit points!', libtcod.white)
-                                fov_recompute=True
+
                                 obj.fighter.take_damage(eff.m_elec_damage)
                                 eff.m_elec_count = 0
                                 fired_times += 1
@@ -1326,6 +1331,7 @@ def render_all():
 
     #draw all objects in list, except the player, want it to always appear on top, so we draw it later
     for object in objects:
+
         if object != player:
             object.draw()
     player.draw()
@@ -1350,34 +1356,34 @@ def render_all():
     #show the player's stats
     level_up_xp = LEVEL_UP_BASE + player.level * LEVEL_UP_FACTOR
     render_bar(panel, 1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.red, libtcod.darker_red)
-    render_bar(panel, 1, 2, BAR_WIDTH, 'XP', player.fighter.xp, level_up_xp, libtcod.blue,
-               libtcod.light_blue)
+    render_bar(panel, 1, 2, BAR_WIDTH, 'XP', player.fighter.xp, level_up_xp, libtcod.lightest_blue,
+               libtcod.blue)
     render_bar_simple(panel, 1, 3, BAR_WIDTH, str(hunger()), hunger_level, 800, libtcod.orange,
                libtcod.darker_orange)
 
     #Check for total number of effects for gui
-    total_effects = 0
+    total_effects = 1
 
-    total_effects += 1
 
     for eff in player.fighter.effects:
 
         if eff.effect_name == 'Poisoned':
             render_bar_simple(panel, 1, 3+total_effects, BAR_WIDTH, 'Poisoned X ' + str(eff.applied_times), (eff.duration-eff.turns_passed), eff.duration, libtcod.darker_green, libtcod.darkest_green)
             total_effects += 1
+            print total_effects
+            for i in player.fighter.effects:
+                print i.effect_name
+
 
         if eff.effect_name == 'Paralyzed':
             render_bar_simple(panel, 1, 3+total_effects, BAR_WIDTH, 'Paralyzed X ' + str(eff.applied_times), (eff.duration-eff.turns_passed), eff.duration, libtcod.purple,
                libtcod.darker_purple)
             total_effects += 1
 
-        if eff.effect_name == 'Electric Power':
-            render_bar_simple(panel, 1, 3+total_effects, BAR_WIDTH, 'Electrified Level ' + str(eff.applied_times), (eff.m_elec_trigger-eff.m_elec_count), eff.m_elec_trigger, libtcod.light_blue,
+        if eff.effect_name == 'electric power':
+            render_bar_simple(panel, 1, 3+total_effects, BAR_WIDTH, 'Electrified Level ' + str(eff.applied_times), eff.m_elec_count, eff.m_elec_trigger, libtcod.light_blue,
                libtcod.blue)
             total_effects += 1
-
-
-
 
 
     #display names of objects under the mouse
@@ -1939,7 +1945,7 @@ def new_game():
 
 
     # Add an effect like this:
-    player.fighter.add_effect(Effect(effect_name='Electric power', mutation=True, m_name='Electric power', m_elec=True, m_elec_trigger=10, m_elec_damage=250), 'Game developer')
+    player.fighter.add_effect(Effect(effect_name='electric power', mutation=True, m_elec=True, m_elec_trigger=100, m_elec_damage=100), 'Game developer')
     #player.fighter.add_effect(Effect('Paralyzed', duration=5, paralyzed=True, base_duration=5), 'Game developer')
     #player.fighter.add_effect(Effect('cruelly hurt', duration=5, damage_by_turn=10), 'Game developer')
     game_state = 'playing'

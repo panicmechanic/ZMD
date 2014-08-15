@@ -95,7 +95,7 @@ Damage player - '#'
 - Fatal poison warning is whiffy
 - Xp bar isn't rendering properly
 - Paralyze is tripled when lightning goes off and you are paralyzed
-- 
+- Lightning mutation leaves copies of monsters char on floor after they move when it fires.
  
 
 
