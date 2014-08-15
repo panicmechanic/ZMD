@@ -70,7 +70,7 @@ Damage player - '#'
 
 *- Turn system
 
-*- 
+*- Scent tracking
 
 
 #Minor TODO/bugs:
