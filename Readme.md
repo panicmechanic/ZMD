@@ -63,9 +63,13 @@ Damage player - '#'
 - Effects (poison, confuse, paralyze etc)
 - Evasion/accuracy/critical strike system
 - Autorest
+
 *- Mouse to path
+
 *- Autoexplore
+
 *- Turn system
+
 *- 
 
 
@@ -95,7 +99,7 @@ Damage player - '#'
 - Fatal poison warning is whiffy
 - Xp bar isn't rendering properly
 - Paralyze is tripled when lightning goes off and you are paralyzed
-- lgihtning mutation blue colour doesn't stay when you move but does when you pass with '5'
+- lgihtning mutation blue colour doesn't stay when you move but does when you pass with '5  '
  
 
 
