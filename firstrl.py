@@ -43,7 +43,7 @@ RECT_HEIGHT = 16 - PANEL2_HEIGHT  # 16 being the max height of the enemy fov pan
 #FOV
 FOV_ALGO = 0  #Default FOV algorithm
 FOV_LIGHT_WALLS = True  #Light walls or not
-TORCH_RADIUS = 10
+TORCH_RADIUS = 25
 
 #Item parameters
 HEAL_AMOUNT = 40
@@ -719,6 +719,7 @@ def check_run_effects(obj):
                         FATAL_NAME = None
                         message('You are no longer fatally ' + eff.effect_name + '.')
                         eff.fatal_alert = False
+
             #If it is a mutation
             elif eff.mutation == True:
                 if eff.m_elec == True:
@@ -736,7 +737,9 @@ def check_run_effects(obj):
                             if obj.fighter and player.distance_to(obj) <= 1 and obj != player and obj.fighter.hp > 5 and fired_times < fire_times:
 
                                 message('You feel a tingle.. Press space to continue', libtcod.white)
-                                render_all()
+                                #print the game messages, one line at a time
+
+                                update_msgs()
 
                                 wait_for_spacekey()
                                 libtcod.console_set_char_background(con, obj.x, obj.y, libtcod.blue, libtcod.BKGND_SCREEN)
@@ -767,6 +770,18 @@ def number_of_turns():
     turns = turn_increment + (turn_5 * 5)
     return turns
 
+def update_msgs():
+    y = 1
+    for (line, color) in game_msgs:
+        libtcod.console_set_default_foreground(panel, color)
+        libtcod.console_set_default_background(panel, libtcod.black)#TODO: Figure out how to make msgs background black
+        libtcod.console_print_ex(panel, MSG_X, y, libtcod.BKGND_SCREEN, libtcod.LEFT, line)
+
+        y += 1
+
+
+
+    libtcod.console_blit(panel, 0, 0, SCREEN_WIDTH, PANEL_HEIGHT, 0, 0, PANEL_Y)
 
 def count_turns(turn_duration):  #Returns a true value when no_of_turns has passed
     global turn_increment, turn_5
@@ -908,7 +923,7 @@ def place_objects(room):
                 fighter_component = Fighter(hp=200, defense=1, power=8, xp=250, ev=20, acc=10,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
-                monster = Object(x, y, chr(143), 'Bull', libtcod.light_flame, blocks=True, fighter=fighter_component,
+                monster = Object(x, y, chr(142), 'Bull', libtcod.light_flame, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
                                  description='An enormous bull with two shining horns, they appear as if they have been polished. Perhaps by the bulls long rough tongue. He is extremely muscular and fast.')
 
@@ -1356,8 +1371,8 @@ def render_all():
     #show the player's stats
     level_up_xp = LEVEL_UP_BASE + player.level * LEVEL_UP_FACTOR
     render_bar(panel, 1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.red, libtcod.darker_red)
-    render_bar(panel, 1, 2, BAR_WIDTH, 'XP', player.fighter.xp, level_up_xp, libtcod.lightest_blue,
-               libtcod.blue)
+    render_bar(panel, 1, 2, BAR_WIDTH, 'XP', player.fighter.xp, level_up_xp, libtcod.lightest_purple,
+               libtcod.darkest_blue)
     render_bar_simple(panel, 1, 3, BAR_WIDTH, str(hunger()), hunger_level, 800, libtcod.orange,
                libtcod.darker_orange)
 
@@ -1839,38 +1854,43 @@ def monster_death(monster):
     equipped = get_all_equipped(player)
     for i in equipped:
         if i.owner.char == chr(24):
-            #blow strength
+            for eff in player.fighter.effects:
 
-            message('The ' + str(monster.name) + ' explodes under the ferocious blow of your ' + str(i.owner.name) + '!', libtcod.white)
-            #Use blow strength as a max number of gibs
-            rand_num_gibs = libtcod.random_get_int(0, 1, 7)
-            for num in range(0, rand_num_gibs, 1):
-                #choose random spot for gibs
-                x = libtcod.random_get_int(0, monster.x + 1, monster.x - 1)
-                y = libtcod.random_get_int(0, monster.y + 1, monster.y - 1)
-                if not is_blocked(x, y):
-                    #roll for type of gib
-                    roll = libtcod.random_get_int(0, 0, 3)
-                    if roll == 0:
-                        gib = Object(x, y, '%', 'guts', libtcod.darker_red, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
-                        libtcod.console_set_char_background(con, x, y, libtcod.dark_red, libtcod.BKGND_SET)
-                        map[x][y].diff_color = libtcod.dark_red
-                    if roll == 1:
-                        gib = Object(x, y, "^", 'sinew', libtcod.dark_red, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
-                        libtcod.console_set_char_background(con, x, y, libtcod.darker_red, libtcod.BKGND_SET)
-                        map[x][y].diff_color = libtcod.darker_red
-                    if roll == 2:
-                        gib = Object(x, y, '$', 'guts', libtcod.darker_purple, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
-                        libtcod.console_set_char_background(con, x, y, libtcod.darkest_red, libtcod.BKGND_SET)
-                        map[x][y].diff_color = libtcod.darkest_red
-                    if roll == 3:
-                        gib = Object(x, y, '/', 'broken bone', libtcod.white, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
-                        libtcod.console_set_char_background(con, x, y, libtcod.dark_red, libtcod.BKGND_SET)
-                        map[x][y].diff_color = libtcod.dark_red
+                #If
+                if eff.m_elec_count < eff.m_elec_trigger and eff.m_elec == True:
 
-                    #append gib and send it to back
-                    objects.append(gib)
-                    gib.send_to_back()
+                    #blow strength
+
+                    message('The ' + str(monster.name) + ' explodes under the ferocious blow of your ' + str(i.owner.name) + '!', libtcod.white)
+                    #Use blow strength as a max number of gibs
+                    rand_num_gibs = libtcod.random_get_int(0, 1, 7)
+                    for num in range(0, rand_num_gibs, 1):
+                        #choose random spot for gibs
+                        x = libtcod.random_get_int(0, monster.x + 1, monster.x - 1)
+                        y = libtcod.random_get_int(0, monster.y + 1, monster.y - 1)
+                        if not is_blocked(x, y):
+                            #roll for type of gib
+                            roll = libtcod.random_get_int(0, 0, 3)
+                            if roll == 0:
+                                gib = Object(x, y, '%', 'guts', libtcod.darker_red, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
+                                libtcod.console_set_char_background(con, x, y, libtcod.dark_red, libtcod.BKGND_SET)
+                                map[x][y].diff_color = libtcod.dark_red
+                            if roll == 1:
+                                gib = Object(x, y, "^", 'sinew', libtcod.dark_red, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
+                                libtcod.console_set_char_background(con, x, y, libtcod.darker_red, libtcod.BKGND_SET)
+                                map[x][y].diff_color = libtcod.darker_red
+                            if roll == 2:
+                                gib = Object(x, y, '$', 'guts', libtcod.darker_purple, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
+                                libtcod.console_set_char_background(con, x, y, libtcod.darkest_red, libtcod.BKGND_SET)
+                                map[x][y].diff_color = libtcod.darkest_red
+                            if roll == 3:
+                                gib = Object(x, y, '/', 'broken bone', libtcod.white, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
+                                libtcod.console_set_char_background(con, x, y, libtcod.dark_red, libtcod.BKGND_SET)
+                                map[x][y].diff_color = libtcod.dark_red
+
+                            #append gib and send it to back
+                            objects.append(gib)
+                            gib.send_to_back()
 
 
 
@@ -1928,7 +1948,7 @@ def new_game():
     game_msgs = []
     inventory = []
     player_effects = []
-    dungeon_level = 15
+    dungeon_level = 1
     #counts turns up to 5 then resets
     turn_increment = 0
     #The number of sets of 5 turns that have occured, and been reset
@@ -1945,7 +1965,7 @@ def new_game():
 
 
     # Add an effect like this:
-    player.fighter.add_effect(Effect(effect_name='electric power', mutation=True, m_elec=True, m_elec_trigger=100, m_elec_damage=100), 'Game developer')
+    player.fighter.add_effect(Effect(effect_name='electric power', mutation=True, m_elec=True, m_elec_trigger=10, m_elec_damage=100), 'Game developer')
     #player.fighter.add_effect(Effect('Paralyzed', duration=5, paralyzed=True, base_duration=5), 'Game developer')
     #player.fighter.add_effect(Effect('cruelly hurt', duration=5, damage_by_turn=10), 'Game developer')
     game_state = 'playing'
@@ -1991,6 +2011,13 @@ def play_game():
 
         libtcod.console_flush()
 
+        #erase all objects at their old locations, before they move. Used to be after check_level_up
+            #but moved to fix duplicate monster chars on floor
+
+        for object in objects:
+            object.clear()
+
+
         check_level_up()
 
 
@@ -1999,9 +2026,6 @@ def play_game():
         message_wait('B', 'You see an enormous hairy boar and what appear to be her offspring, she looks angry! Press SPACE to continue..',
                      libtcod.red)
 
-        #erase all objects at their old locations, before they move
-        for object in objects:
-            object.clear()
 
         #handles keys and exit game if needed
         player_action = handle_keys()
