@@ -43,7 +43,7 @@ RECT_HEIGHT = 16 - PANEL2_HEIGHT  # 16 being the max height of the enemy fov pan
 #FOV
 FOV_ALGO = 0  #Default FOV algorithm
 FOV_LIGHT_WALLS = True  #Light walls or not
-TORCH_RADIUS = 25
+TORCH_RADIUS = 50
 
 #Item parameters
 HEAL_AMOUNT = 40
@@ -1383,7 +1383,7 @@ def render_all():
     for eff in player.fighter.effects:
 
         if eff.effect_name == 'Poisoned':
-            render_bar_simple(panel, 1, 3+total_effects, BAR_WIDTH, 'Poisoned X ' + str(eff.applied_times), (eff.duration-eff.turns_passed), eff.duration, libtcod.darker_green, libtcod.darkest_green)
+            render_bar_simple(panel, 1, 3 + total_effects, BAR_WIDTH, 'Poisoned X ' + str(eff.applied_times), (eff.duration-eff.turns_passed), eff.duration, libtcod.darker_green, libtcod.darkest_green)
             total_effects += 1
             print total_effects
             for i in player.fighter.effects:
@@ -1396,8 +1396,8 @@ def render_all():
             total_effects += 1
 
         if eff.effect_name == 'electric power':
-            render_bar_simple(panel, 1, 3+total_effects, BAR_WIDTH, 'Electrified Level ' + str(eff.applied_times), eff.m_elec_count, eff.m_elec_trigger, libtcod.light_blue,
-               libtcod.blue)
+            render_bar_simple(panel, 1, 3+total_effects, BAR_WIDTH, 'Electrified Level ' + str(eff.applied_times), eff.m_elec_count, eff.m_elec_trigger, libtcod.yellow,
+               libtcod.orange)
             total_effects += 1
 
 

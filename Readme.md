@@ -57,20 +57,17 @@ Heal player - '['
 Damage player - '#'
 
 #Features:
-( - = Done, *- = TODO)
+(- = TODO)
+
 - Hunger and food system
 - Scrolls, potions
 - Effects (poison, confuse, paralyze etc)
 - Evasion/accuracy/critical strike system
-- Autorest
-
-*- Mouse to path
-
-*- Autoexplore
-
-*- Turn system
-
-*- Scent tracking
+- Autorest-
+- Mouse to path-
+- Autoexplore-
+- Turn system-
+- Scent tracking-
 
 
 #Minor TODO/bugs:
@@ -99,7 +96,11 @@ Damage player - '#'
 - Fatal poison warning is whiffy
 - Xp bar isn't rendering properly
 - Paralyze is tripled when lightning goes off and you are paralyzed
-- lgihtning mutation blue colour doesn't stay when you move but does when you pass with '5  '
+- lightning mutation blue colour doesn't stay when you move but does when you pass with '5'
+- Add a slice in half effect that colours squares directly beihnd the enemy red. By subtracting
+    monster.x and y from player.x and y and figuring out which changed and in which direction 
+    (+ or -) and rolling for a number of squares and if not blocked to paint those squares.
+
  
 
 
@@ -141,6 +142,7 @@ Damage player - '#'
 
 
 #Done:
+- Added mutations, currently a little buggy.
 - Added paralyze effect and gave it to fireflys.
 - Added critical hits for player, currently hidden from monsters.
 - Made damage in attack vary blow by blow by including "acc_roll-ev_roll + power-defense"
