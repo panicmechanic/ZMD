@@ -43,7 +43,7 @@ RECT_HEIGHT = 16 - PANEL2_HEIGHT  # 16 being the max height of the enemy fov pan
 #FOV
 FOV_ALGO = 0  #Default FOV algorithm
 FOV_LIGHT_WALLS = True  #Light walls or not
-TORCH_RADIUS = 50
+TORCH_RADIUS = 35
 
 #Item parameters
 HEAL_AMOUNT = 40
@@ -295,17 +295,31 @@ class Fighter:
         if self.effects != []:
             for i in self.effects:
                 #If an effect with the same name already exists, add its duration to the existing copy.
-                if i.effect_name is not None and i.effect_name == Effect.effect_name :
+                if i.mutation == False and i.effect_name == Effect.effect_name:
                     i.duration += Effect.base_duration
                     i.applied_times += 1
-                    print i.duration
-
                     message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you further!',
                             libtcod.yellow)
+
+                elif i.mutation == True and i.effect_name == Effect.effect_name and Effect.mutation == True:
+                    i.applied_times += 1
+
+                    message('The gods have blessed your ' + Effect.effect_name + ' further!',
+                            libtcod.white)
 
                 else:
                     self.effects.append(Effect)
                     message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you!', libtcod.yellow)
+
+        elif Effect.mutation == True:
+            self.effects.append(Effect)
+            libtcod.console_set_default_background(panel, libtcod.darkest_grey)
+            libtcod.console_clear(panel)
+
+            message(object_origin_name + ' ' + Effect.effect_name + '!' + ' Press space to continue.', libtcod.white)
+            update_msgs()
+            wait_for_spacekey()
+
 
         else:
             self.effects.append(Effect)
@@ -667,6 +681,7 @@ def check_run_effects(obj):
     # Check for effects, if there is 1 or more and their turns_passed value is not == duration, increase its turn_passed value by one, if it is equal to duration remove it.
     if obj.fighter.effects is not None:
         for eff in obj.fighter.effects:
+
             #Deal with non mutation effects
             if eff.mutation == False:
 
@@ -723,11 +738,12 @@ def check_run_effects(obj):
             #If it is a mutation
             elif eff.mutation == True:
                 if eff.m_elec == True:
-
-                    if eff.m_elec_count < eff.m_elec_trigger:
+                    #Each application halves the turns needed to charge
+                    real_trigger = eff.m_elec_trigger / eff.applied_times
+                    if eff.m_elec_count < real_trigger:
                         eff.m_elec_count +=1
                     #if it has accumulated enough turns
-                    if eff.m_elec_count == eff.m_elec_trigger:
+                    if eff.m_elec_count >= real_trigger:
                         for obj in objects:
                             fire_times = eff.applied_times
                             fired_times = 0
@@ -735,7 +751,8 @@ def check_run_effects(obj):
                             #Find an object that isn't the player within 1 tile and fire if fired_times < fire_times
                             #This is buggy, leaves copies of monster chars on tiles after it fires.
                             if obj.fighter and player.distance_to(obj) <= 1 and obj != player and obj.fighter.hp > 5 and fired_times < fire_times:
-
+                                libtcod.console_set_default_background(panel, libtcod.darkest_grey)
+                                libtcod.console_clear(panel)
                                 message('You feel a tingle.. Press space to continue', libtcod.white)
                                 #print the game messages, one line at a time
 
@@ -843,7 +860,7 @@ def place_objects(room):
             choice = random_choice(monster_chances)
             if choice == 'Dog':
                 #create an dog
-                fighter_component = Fighter(hp=40, defense=1, power=5, xp=35, ev=5, acc=5, death_function=monster_death)
+                fighter_component = Fighter(hp=40, defense=1, power=5, xp=400, ev=5, acc=5, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'd', 'Dog', libtcod.darker_orange, blocks=True, fighter=fighter_component,
                                  ai=ai_component, description='A large, brown muscular looking dog. His eyes glow red.')
@@ -1396,7 +1413,7 @@ def render_all():
             total_effects += 1
 
         if eff.effect_name == 'electric power':
-            render_bar_simple(panel, 1, 3+total_effects, BAR_WIDTH, 'Electrified Level ' + str(eff.applied_times), eff.m_elec_count, eff.m_elec_trigger, libtcod.yellow,
+            render_bar_simple(panel, 1, 3+total_effects, BAR_WIDTH, 'Electrified Level ' + str(eff.applied_times), eff.m_elec_count, eff.m_elec_trigger/eff.applied_times, libtcod.yellow,
                libtcod.orange)
             total_effects += 1
 
@@ -1446,6 +1463,7 @@ def wait_for_spacekey():  #Make cast heal message appear without having to press
     key = libtcod.console_wait_for_keypress(True)
     choice = None
     while choice == None:  #keep asking until a choice is made
+        render_all()
         if key.vk == libtcod.KEY_SPACE:
             choice = 'space'
             return 'cancelled'
@@ -1857,7 +1875,7 @@ def monster_death(monster):
             for eff in player.fighter.effects:
 
                 #If
-                if eff.m_elec_count < eff.m_elec_trigger and eff.m_elec == True:
+                if eff.m_elec_count < eff.m_elec_trigger/eff.applied_times and eff.m_elec == True:
 
                     #blow strength
 
@@ -1965,7 +1983,7 @@ def new_game():
 
 
     # Add an effect like this:
-    player.fighter.add_effect(Effect(effect_name='electric power', mutation=True, m_elec=True, m_elec_trigger=10, m_elec_damage=100), 'Game developer')
+
     #player.fighter.add_effect(Effect('Paralyzed', duration=5, paralyzed=True, base_duration=5), 'Game developer')
     #player.fighter.add_effect(Effect('cruelly hurt', duration=5, damage_by_turn=10), 'Game developer')
     game_state = 'playing'
@@ -2174,6 +2192,12 @@ def check_level_up():  #TODO: Add cool mutations to fighter class like horns
             elif choice == 4:
                 player.fighter.ev += 2
                 player.fighter.acc += 1
+
+        level_mutate = (2, 3, 5, 7, 9, 12)
+        for i in level_mutate:
+            if player.level == i:
+                #This will eventually be a pick a random mutation function
+                player.fighter.add_effect(Effect(effect_name='electric power', mutation=True, m_elec=True, m_elec_trigger=125, m_elec_damage=150), 'For your valiant effort you have earned the gods favour, they convene and offer you')
 
 
 def random_choice_index(chances):  #choose one option from list of chances, returning its index
