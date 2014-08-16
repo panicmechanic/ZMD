@@ -95,7 +95,7 @@ Damage player - '#'
 - Fatal poison warning is whiffy
 - Xp bar isn't rendering properly
 - Paralyze is tripled when lightning goes off and you are paralyzed
-- Poison is being appended more than once.
+- Poison is being appended more than once. Something in add_effect() or roll_for_effect(). Debug it.
 - lightning mutation blue colour doesn't stay when you move but does when you pass with '5'
 - Add a slice in half effect that colours squares directly beihnd the enemy red. By subtracting
     monster.x and y from player.x and y and figuring out which changed and in which direction 
@@ -104,6 +104,7 @@ Damage player - '#'
 - tingle wait_for_spacekey()leaves chars on floor while add_effect mutation wait_for_spacekey() does not
     is also something that happen when pressing '5' but not when pressing any movement key
 - Improvement! Now only doubles the char for one turn.. 
+- Fix effect double append, highlighted lines both fire, although maybe not in the same run.
    
 
  

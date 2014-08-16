@@ -294,13 +294,14 @@ class Fighter:
 
         #if effects is not empty, iterate through them
         if self.effects != []:
+
             for i in self.effects:
                 #If an effect with the same name already exists, add its duration to the existing copy.
                 if i.mutation == False and i.effect_name == Effect.effect_name:
                     i.duration += Effect.base_duration
                     i.applied_times += 1
                     message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you further!',
-                            libtcod.yellow)
+                            libtcod.white)
 
                 elif i.mutation == True and i.effect_name == Effect.effect_name and Effect.mutation == True:
                     i.applied_times += 1
@@ -821,7 +822,7 @@ def place_objects(room):
     #chance of each monsters
     monster_chances = {}
     monster_chances['Dog'] = 20  #Dog always spawns, even if all other monsters have 0 chance
-    monster_chances['Snake'] = from_dungeon_level([[3, 1], [5, 3], [50, 7]])
+    monster_chances['Snake'] = from_dungeon_level([[3000, 1], [5, 3], [50, 7]])
     monster_chances['Imp'] = from_dungeon_level([[1, 1], [30, 5], [50, 7]])
     monster_chances['Firefly'] = from_dungeon_level([[1, 1], [30, 3], [60, 7]]) #TODO: Fix paralyse bug
     monster_chances['Crab'] = from_dungeon_level([[1, 1], [30, 3], [60, 7]])
