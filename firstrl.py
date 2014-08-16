@@ -43,7 +43,7 @@ RECT_HEIGHT = 16 - PANEL2_HEIGHT  # 16 being the max height of the enemy fov pan
 #FOV
 FOV_ALGO = 0  #Default FOV algorithm
 FOV_LIGHT_WALLS = True  #Light walls or not
-TORCH_RADIUS = 35
+TORCH_RADIUS = 30
 
 #Item parameters
 HEAL_AMOUNT = 40
@@ -315,7 +315,6 @@ class Fighter:
             self.effects.append(Effect)
             libtcod.console_set_default_background(panel, libtcod.darkest_grey)
             libtcod.console_clear(panel)
-
             message(object_origin_name + ' ' + Effect.effect_name + '!' + ' Press space to continue.', libtcod.white)
             update_msgs()
             wait_for_spacekey()
@@ -661,19 +660,7 @@ class Effect:
         self.m_elec_trigger = m_elec_trigger
         self.m_elec_damage = m_elec_damage
 
-def check_for_paralysis(fighter):
-    global objects
-    #check for paralysis
-    for eff in fighter.effects:
-        if eff.paralysed is not None:
-            while eff.turns_passed is not eff.duration:
-                check_by_turn()
-                for obj in objects:
-                    if obj.ai:
-                        obj.ai.take_turn
 
-                if eff.turns_passed is not eff.duration:
-                    eff.turns_passed += 1
 
 
 def check_run_effects(obj):
@@ -754,18 +741,19 @@ def check_run_effects(obj):
                                 libtcod.console_set_default_background(panel, libtcod.darkest_grey)
                                 libtcod.console_clear(panel)
                                 message('You feel a tingle.. Press space to continue', libtcod.white)
-                                #print the game messages, one line at a time
-
                                 update_msgs()
-
                                 wait_for_spacekey()
+
+
                                 libtcod.console_set_char_background(con, obj.x, obj.y, libtcod.blue, libtcod.BKGND_SCREEN)
-                                map[obj.x][obj.y].diff_color = libtcod.darkest_grey
+                                map[obj.x][obj.y].diff_color = libtcod.blue
                                 message('A bolt of lightning hits the ' + str(obj.name) + ' for ' + str(eff.m_elec_damage) + ' hit points!', libtcod.white)
 
                                 obj.fighter.take_damage(eff.m_elec_damage)
                                 eff.m_elec_count = 0
                                 fired_times += 1
+
+                                map[obj.x][obj.y].diff_color = libtcod.darkest_grey
 
                             #Function has completed, reset fired_times
                             if fired_times == fire_times:
@@ -1333,7 +1321,9 @@ def render_all():
     global turn
     global hunger_level
 
+
     if fov_recompute:
+        libtcod.console_clear(con)
         #recompute FOV if needed (the player moved or something)
         fov_recompute = False
         libtcod.map_compute_fov(fov_map, player.x, player.y, TORCH_RADIUS, FOV_LIGHT_WALLS, FOV_ALGO)
@@ -1463,12 +1453,20 @@ def wait_for_spacekey():  #Make cast heal message appear without having to press
     key = libtcod.console_wait_for_keypress(True)
     choice = None
     while choice == None:  #keep asking until a choice is made
+        fov_recompute=True
+
         render_all()
         if key.vk == libtcod.KEY_SPACE:
             choice = 'space'
             return 'cancelled'
+
+
+
         #check for keypress, render and flush the screen to present monster inside fov.
         libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS | libtcod.EVENT_MOUSE, key, mouse)
+        fov_recompute=True
+
+        render_all()
 
 
 def message_yn(messagequestion, messagey, color1=libtcod.white, color2=libtcod.white):
@@ -1957,6 +1955,8 @@ def target_monster(max_range=None):
 
 def new_game():
     global player, inventory, game_msgs, game_state, dungeon_level, turn_increment, heal_rate, turn_5, hunger_level
+
+    key = libtcod.Key()
     #create object representing player
     fighter_component = Fighter(hp=1000, defense=3, power=6, xp=0, ev=5, acc=10, death_function=player_death,
                                 effects=[])
@@ -2021,6 +2021,12 @@ def play_game():
     mouse = libtcod.Mouse()
     key = libtcod.Key()
 
+    #Add elec
+    elec = True
+    if elec == True:
+        player.fighter.add_effect(Effect(effect_name='electric power', mutation=True, applied_times=5, m_elec=True, m_elec_trigger=125, m_elec_damage=150), 'For your valiant effort you have earned the gods favour, they convene and offer you')
+        elec = False
+
     ##MAIN LOOP##
     while not libtcod.console_is_window_closed():
         #render the screen
@@ -2039,12 +2045,6 @@ def play_game():
         check_level_up()
 
 
-        #check for message wait conditions, definitely shouldn't be in main loop. Should be nested in boar object
-            #then if is in FOV, print it's message
-        message_wait('B', 'You see an enormous hairy boar and what appear to be her offspring, she looks angry! Press SPACE to continue..',
-                     libtcod.red)
-
-
         #handles keys and exit game if needed
         player_action = handle_keys()
 
@@ -2052,9 +2052,10 @@ def play_game():
             save_game()
             break
 
+        #handle paralysis
         if player_action == 'paralyzed' and game_state == 'playing':
             check_by_turn()
-            check_run_effects(player)
+            check_run_effects(player)#May be the cause of poison/paralyzed interaction
             for obj in objects:
                 if obj.ai:
                     obj.ai.take_turn()
@@ -2193,7 +2194,7 @@ def check_level_up():  #TODO: Add cool mutations to fighter class like horns
                 player.fighter.ev += 2
                 player.fighter.acc += 1
 
-        level_mutate = (2, 3, 5, 7, 9, 12)
+        level_mutate = (3, 5, 9, 12)
         for i in level_mutate:
             if player.level == i:
                 #This will eventually be a pick a random mutation function

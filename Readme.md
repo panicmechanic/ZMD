@@ -86,8 +86,7 @@ Damage player - '#'
 - Bones and fountains appear over objects
 - Figure out how to make msgs background black
 - Rough balancing
-- Mutations effects (a lightning mutation to ocassionally zap adjacent enemies, 
-    turning BKGND to blue for one frame.
+- Poison/Paralyze interaction bug (triples poison) something in check_for_paralysis (nope, function wasn't called anywhere so deleted it)
 - Use color more sparingly, change any important messages to white
 - Change cast_fireball to apply a burning effect to all inside range for 5 turns. 
 - Add gui bar for eff in monster.effects to display effects like burning, poisoned, confused, paralysed.
@@ -100,6 +99,11 @@ Damage player - '#'
 - Add a slice in half effect that colours squares directly beihnd the enemy red. By subtracting
     monster.x and y from player.x and y and figuring out which changed and in which direction 
     (+ or -) and rolling for a number of squares and if not blocked to paint those squares.
+- wait_for_spacekey() may be the cause of the left over characters on screen.
+- tingle wait_for_spacekey()leaves chars on floor while add_effect mutation wait_for_spacekey() does not
+    is also something that happen when pressing '5' but not when pressing any movement key
+- Improvement! Now only doubles the char for one turn.. 
+   
 
  
 
