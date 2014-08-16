@@ -95,6 +95,7 @@ Damage player - '#'
 - Fatal poison warning is whiffy
 - Xp bar isn't rendering properly
 - Paralyze is tripled when lightning goes off and you are paralyzed
+- Poison is being appended more than once.
 - lightning mutation blue colour doesn't stay when you move but does when you pass with '5'
 - Add a slice in half effect that colours squares directly beihnd the enemy red. By subtracting
     monster.x and y from player.x and y and figuring out which changed and in which direction 

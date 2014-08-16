@@ -71,15 +71,16 @@ LIMIT_FPS = 20  #20 frames-per-second maximum
 #TODO: NEED TO CHANGE THESE VALUES AT SOME POINT, MAYBE AFTER NOISE SYSTEM
 color_dark_wall = libtcod.Color(120, 90, 55)
 color_light_wall = libtcod.Color(150, 120, 85)
-color_dark_ground = libtcod.Color(110, 110, 110)
-color_light_ground = libtcod.Color(150, 150, 150)
+color_dark_ground = libtcod.Color(100, 100, 100)
+color_light_ground = libtcod.Color(130, 130, 130)
 
 
 class Tile:
     # a tile of the map, and its properties
-    def __init__(self, blocked, block_sight=None, diff_color=None):
+    def __init__(self, blocked, block_sight=None, diff_color=None, elec_flash=False):
         self.blocked = blocked
         self.diff_color = diff_color
+        self.elec_flash = elec_flash
 
         #all tiles start unexplored
         self.explored = False
@@ -737,16 +738,20 @@ def check_run_effects(obj):
 
                             #Find an object that isn't the player within 1 tile and fire if fired_times < fire_times
                             #This is buggy, leaves copies of monster chars on tiles after it fires.
-                            if obj.fighter and player.distance_to(obj) <= 1 and obj != player and obj.fighter.hp > 5 and fired_times < fire_times:
+                            if obj.fighter and player.distance_to(obj) <= 1 and obj != player and obj.fighter.hp > 5 and fired_times < eff.applied_times:
                                 libtcod.console_set_default_background(panel, libtcod.darkest_grey)
                                 libtcod.console_clear(panel)
+
+                                map[obj.x][obj.y].diff_color = libtcod.blue
+                                map[obj.x][obj.y].elec_flash = True
+
                                 message('You feel a tingle.. Press space to continue', libtcod.white)
                                 update_msgs()
                                 wait_for_spacekey()
 
 
-                                libtcod.console_set_char_background(con, obj.x, obj.y, libtcod.blue, libtcod.BKGND_SCREEN)
-                                map[obj.x][obj.y].diff_color = libtcod.blue
+
+
                                 message('A bolt of lightning hits the ' + str(obj.name) + ' for ' + str(eff.m_elec_damage) + ' hit points!', libtcod.white)
 
                                 obj.fighter.take_damage(eff.m_elec_damage)
@@ -1345,7 +1350,18 @@ def render_all():
                     if wall:
                         libtcod.console_set_char_background(con, x, y, color_light_wall, libtcod.BKGND_SET)
                     elif map[x][y].diff_color is not None:
-                        libtcod.console_set_char_background(con, x, y, map[x][y].diff_color, libtcod.BKGND_SET)
+
+                        #If flash is true, render it once, then set to false, this shouldn't work as wait_for_spacekey()
+                            #uses render_all() in its while loop. Problem lies elsewhere I think.
+                        if map[x][y].elec_flash == True:
+
+                            libtcod.console_set_char_background(con, x, y, libtcod.light_blue, libtcod.BKGND_SET)
+
+                            map[x][y].elec_flash = False
+
+                        #Else elec_flash has been resolved or never True and diff_color is not None
+                        else:
+                            libtcod.console_set_char_background(con, x, y, map[x][y].diff_color, libtcod.BKGND_SET)
                     else:
                         libtcod.console_set_char_background(con, x, y, color_light_ground, libtcod.BKGND_SET)
                     #since it's visible, explore it
@@ -1453,20 +1469,23 @@ def wait_for_spacekey():  #Make cast heal message appear without having to press
     key = libtcod.console_wait_for_keypress(True)
     choice = None
     while choice == None:  #keep asking until a choice is made
-        fov_recompute=True
 
-        render_all()
         if key.vk == libtcod.KEY_SPACE:
             choice = 'space'
             return 'cancelled'
+            libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS | libtcod.EVENT_MOUSE, key, mouse)
+            fov_recompute=True
+            render_all()
+
 
 
 
         #check for keypress, render and flush the screen to present monster inside fov.
         libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS | libtcod.EVENT_MOUSE, key, mouse)
         fov_recompute=True
+        for i in range(0, 5, 1):
 
-        render_all()
+            render_all()
 
 
 def message_yn(messagequestion, messagey, color1=libtcod.white, color2=libtcod.white):
@@ -1570,7 +1589,7 @@ def player_move_or_attack(dx, dy):
 
         target = None
         for obj in objects:
-            if obj.fighter and obj.x == x and obj.y == y:
+            if obj.fighter and obj.x == x and obj.y == y and obj != player:
                 target = obj
                 break
 
@@ -1579,14 +1598,21 @@ def player_move_or_attack(dx, dy):
             outcome = 'moved'
             fov_recompute=True
 
-        elif is_blocked(x, y):
+        elif is_blocked(x, y) and dx != 0:
             message('You stumble into the wall..', libtcod.white)
             outcome = 'stumble'
+
+
+        elif is_blocked(x, y) and dx == 0:
+            message('You rest a turn.', libtcod.white)
+            outcome = 'moved'
+            fov_recompute=True
 
         elif is_blocked(x, y) == False:
             player.move(dx, dy)
             fov_recompute = True
             outcome = 'moved'
+            fov_recompute=True
 
     return outcome
 
@@ -1630,7 +1656,8 @@ def handle_keys():
             return outcome
         elif key.vk == libtcod.KEY_KP5:
             pass  #do nothing ie wait for the monster to come to you
-            return 'moved'
+            outcome = player_move_or_attack(0, 0)
+            return outcome
 
         else:
             #test for other keys
