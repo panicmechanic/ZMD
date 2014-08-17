@@ -147,6 +147,7 @@ Damage player - '#'
 
 
 #Done:
+
 - Added display damage on hit!
 - Added mutations, currently a little buggy.
 - Added paralyze effect and gave it to fireflys.

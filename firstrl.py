@@ -365,7 +365,7 @@ class Fighter:
         #a simple formula for attack damage
 
         ev_roll = libtcod.random_get_int(0, 0, target.fighter.ev)
-        acc_min = self.acc / 4
+        acc_min = self.acc / 10
         acc_roll = libtcod.random_get_int(0, acc_min, self.acc)
         #Figure out the total difference between evasion and accuracy
         quality_string = None
@@ -375,7 +375,7 @@ class Fighter:
         #damage is power+ acc_roll - target.defense
         damage = (self.power + dam_roll) - target.fighter.defense
 
-        crit_roll = libtcod.random_get_int(0, 0, 500)
+
 
         if ev_roll <= acc_roll:
 
@@ -401,15 +401,31 @@ class Fighter:
                 quality_string = 'a perfect'
 
             #check for crit if player is the attacker
-            if crit_roll <= acc_roll and self.owner.name == 'player':
-                damage += damage*3
+            if self.owner.name == 'player':
 
-                #color the floor with blood
-                #TODO: Maybe this would lok better with 1-3 painted tiles rather than just one in a + 1 range
-                libtcod.console_set_char_background(con, target.x, target.y, libtcod.darker_red, libtcod.BKGND_SET)
-                map[target.x][target.y].diff_color = libtcod.darker_red
-                message('You deal a devastating critical blow to the ' + str(target.name) + '!', libtcod.white)
+                difference = acc_roll - ev_roll
 
+                if difference >= 10:
+                    #color the floor with blood
+                    #TODO: Maybe this would look better with 1-3 painted tiles rather than just one in a + 1 range
+                    libtcod.console_set_char_background(con, target.x, target.y, libtcod.darker_red, libtcod.BKGND_SET)
+                    map[target.x][target.y].diff_color = libtcod.darker_red
+                    message('You deal a devastating critical blow to the ' + str(target.name) + '!', libtcod.white)
+
+                    #Size of critical boost, kater will roll for this damage
+                    if difference >= 10:
+                        damage += damage*3
+                    elif difference <= 15:
+                        damage += damage*4
+                    elif difference <= 20:
+                        damage += damage*5
+                    elif difference <= 25:
+                        damage += damage*6
+
+                print acc_roll
+                print ev_roll
+                print difference
+                print 'Damage:' + str(damage)
 
             # #Player messages and colors##
             if damage > 0 and self.owner.name == 'player':
@@ -439,6 +455,7 @@ class Fighter:
             message('The ' + self.owner.name.capitalize() + ' missed you!', libtcod.white)
 
         quality_string = None
+        damage = 0
 
     # check for auto cast_effect
     def roll_for_effect(self, target):
@@ -1502,7 +1519,21 @@ def display_damage(self):
         #For each char entry in list1, set a foreground colour, the character for that tile.
             #also increase count to reflect change
         for i in list1:
-            libtcod.console_set_default_foreground(con, libtcod.red)
+            if self.display_dmg < 3:
+                libtcod.console_set_default_foreground(con, libtcod.orange)
+            elif self.display_dmg < 5:
+                libtcod.console_set_default_foreground(con, libtcod.dark_orange)
+            elif self.display_dmg < 7:
+                libtcod.console_set_default_foreground(con, libtcod.darker_orange)
+            elif self.display_dmg < 9:
+                libtcod.console_set_default_foreground(con, libtcod.dark_red)
+            elif self.display_dmg < 12:
+                libtcod.console_set_default_foreground(con, libtcod.darker_red)
+            elif self.display_dmg < 15:
+                libtcod.console_set_default_foreground(con, libtcod.red)
+            elif self.display_dmg >= 16:
+                libtcod.console_set_default_foreground(con, libtcod.yellow)
+
             libtcod.console_put_char(con, self.x+count, self.y, str(i), libtcod.BKGND_NONE)
             count += 1
 
@@ -2364,7 +2395,6 @@ def hunger():
         return 'Very hungry'
     elif hunger_level >= 0 or hunger_level < 0:
         return 'Starving!'
-        print hunger_level
 
 
 def get_equipped_in_slot(slot):  #returns the equipment in a slot or None if it's empty
