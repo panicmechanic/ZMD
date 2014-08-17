@@ -81,30 +81,22 @@ Damage player - '#'
 - Have evasion and accuracy both draw their values from a new fighter variable 'dex'.
 - Add more food types (so far; feta, bread)
 - Remove todo list from fristrl.py
-- Add potion random names by setting variables first time the create_items function is run 
-    and apply the function to the names of the potions
 - Bones and fountains appear over objects
 - Figure out how to make msgs background black
 - Rough balancing
-- Poison/Paralyze interaction bug (triples poison) something in check_for_paralysis (nope, function wasn't called anywhere so deleted it)
 - Use color more sparingly, change any important messages to white
 - Change cast_fireball to apply a burning effect to all inside range for 5 turns. 
 - Add gui bar for eff in monster.effects to display effects like burning, poisoned, confused, paralysed.
-- Add effect set char color function for burning etc.
 - Paralyze still lets you hit first few turns 
-- Fatal poison warning is whiffy
-- Xp bar isn't rendering properly
 - Paralyze is tripled when lightning goes off and you are paralyzed
 - Poison is being appended more than once. Something in add_effect() or roll_for_effect(). Debug it.
 - lightning mutation blue colour doesn't stay when you move but does when you pass with '5'
 - Add a slice in half effect that colours squares directly beihnd the enemy red. By subtracting
     monster.x and y from player.x and y and figuring out which changed and in which direction 
     (+ or -) and rolling for a number of squares and if not blocked to paint those squares.
-- wait_for_spacekey() may be the cause of the left over characters on screen.
-- tingle wait_for_spacekey()leaves chars on floor while add_effect mutation wait_for_spacekey() does not
-    is also something that happen when pressing '5' but not when pressing any movement key
-- Improvement! Now only doubles the char for one turn.. 
 - Fix effect double append, highlighted lines both fire, although maybe not in the same run.
+- Geting an occasional "ValueError: list.remove(x): x not in list" error after check_run_effects().
+
    
 
  
@@ -113,9 +105,13 @@ Damage player - '#'
 
 
 #Major TODO (in rough order):
+- Create 'Forget map' effect
+- Make critical hits a function of accuracy roll and evasion roll (a la sil)
+- Implement numdice*numfaces rolling system a la sil for attack.
 - Break up firstrl.py into modules
 - Turn system
 - Fighter speed system
+- Add potion random names
 - Add objects x 3/5/1 in inventory and floor
 - Add more attack type effects like explode.
 - Add monster drops based on difficulty, to encourage risk/reward
@@ -131,23 +127,27 @@ Damage player - '#'
 - Quest system
 - Auto-explore
 - Graphical overhaul (possibly tileset)
-- High score page
+- High score page (start in player_death())
 - Add all descriptions
 - Add danger_evaluate function for describe feature
 - Add ranged combat
 - Add more content (weapons/items/effects/monsters)
 - Add random generators for items and weapons
 - Improve monster pathfinding, will probably require path function. Also need to fix path to last seen.
+- Reduce evasion by 1 for every adjacent monster
 - Create a jelly_monster that splits when hit.
-- Stealth system
+- Stealth system, via angbands monster alertness level, perception score and players stealth roll.
 - Puzzles(?)
 - Armor/skin/muscle/attack type simulation
-- Not happy with add/ev charatcer level up, too much choice. Maybe just give player a random stat
+- Not happy with add/ev character level up, too much choice. Maybe just give player a random stat
     and boost acc and ev by 2.
+- Implement some of sil's approach to skills and levels. 
+- Add damage flash number
 
 
 
 #Done:
+- Added display damage on hit!
 - Added mutations, currently a little buggy.
 - Added paralyze effect and gave it to fireflys.
 - Added critical hits for player, currently hidden from monsters.
