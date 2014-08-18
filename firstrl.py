@@ -78,7 +78,7 @@ color_light_ground = libtcod.Color(130, 130, 130)
 
 class Tile:
     # a tile of the map, and its properties
-    def __init__(self, blocked, block_sight=None, diff_color=None, color_flash=False):
+    def __init__(self, blocked, block_sight=None, diff_color=None, color_flash=None):
         self.blocked = blocked
         self.diff_color = diff_color
 
@@ -744,7 +744,7 @@ def check_run_effects(obj):
                                 map[obj.x][obj.y].diff_color = libtcod.darkest_grey
 
                                 #Tell render_all() to run elec flash routine
-                                map[obj.x][obj.y].color_flash = True
+                                map[obj.x][obj.y].color_flash = libtcod.light_blue
 
                                 message('You feel a tingle.. Press space to continue', libtcod.white)
 
@@ -756,7 +756,7 @@ def check_run_effects(obj):
 
 
 
-                                message('A bolt of lightning hits the ' + str(obj.name) + ' for ' + str(eff.m_elec_damage) + ' hit points!', libtcod.white)
+                                message('A bolt of lightning hits the ' + str(obj.name) + ' for ' + str(eff.m_elec_damage) + ' damage!', libtcod.white)
 
                                 obj.fighter.take_damage(eff.m_elec_damage)
                                 eff.m_elec_count = 0
@@ -777,6 +777,11 @@ def number_of_turns():
     return turns
 
 def update_msgs():
+
+    #prepare to render the GUI panel
+    libtcod.console_set_default_background(panel, libtcod.darkest_grey)
+    libtcod.console_clear(panel)
+
     y = 1
     for (line, color) in game_msgs:
         libtcod.console_set_default_foreground(panel, color)
@@ -817,7 +822,7 @@ def place_objects(room):
     monster_chances['Dog'] = 30  #Dog always spawns, even if all other monsters have 0 chance
     monster_chances['Snake'] = from_dungeon_level([[3, 1], [5, 3], [50, 7]])
     monster_chances['Imp'] = from_dungeon_level([[1, 1], [30, 5], [50, 7]])
-    monster_chances['Firefly'] = from_dungeon_level([[1, 1], [30, 3], [60, 7]]) #TODO: Fix paralyse bug
+    monster_chances['Firefly'] = from_dungeon_level([[1000, 1], [30, 3], [60, 7]]) #TODO: Fix paralyse bug
     monster_chances['Crab'] = from_dungeon_level([[1, 1], [30, 3], [60, 7]])
     monster_chances['Goat'] = from_dungeon_level([[15, 2], [30, 8], [60, 10]])
     monster_chances['Eagle'] = from_dungeon_level([[15, 5], [30, 8], [60, 10]])
@@ -884,7 +889,7 @@ def place_objects(room):
                 effect_roll = 10
                 fighter_component = Fighter(hp=20, defense=0, power=8, xp=50, ev=15, acc=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
                 ai_component = BasicMonsterAI()
-                monster = Object(x, y, 'f', 'Firefly', libtcod.darker_lime, blocks=True, fighter=fighter_component,
+                monster = Object(x, y, 'f', 'Firefly', libtcod.darkest_lime, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
                                  description='A small power firefly. He moves very fast, but looks weak.')
 
@@ -1347,27 +1352,26 @@ def render_all():
 
                         libtcod.console_set_char_background(con, x, y, color_light_wall, libtcod.BKGND_SET)
 
-                    #If map.diff_color id not None, render the color instead
+                    #Is ground, if map.diff_color is not None, render the color instead
                     elif map[x][y].diff_color is not None:
+                         libtcod.console_set_char_background(con, x, y, map[x][y].diff_color, libtcod.BKGND_SET)
 
-                        #If flash is true, render it once, then set to false, this shouldn't work as wait_for_spacekey()
-                            #uses render_all() in its while loop. Problem lies elsewhere I think.
-                        if map[x][y].color_flash == True:
+                    #If flash is true, render it once, then set to false, this shouldn't work as wait_for_spacekey()
+                        #uses render_all() in its while loop. Problem lies elsewhere I think.
+                    elif map[x][y].color_flash is not None:
 
-                            #Make the color blue flash for one render
-                            libtcod.console_set_char_background(con, x, y, libtcod.light_blue, libtcod.BKGND_SET)
+                        #Make the color blue flash for one render
+                        libtcod.console_set_char_background(con, x, y, map[x][y].color_flash, libtcod.BKGND_SET)
 
-                            #Immediately set to false to ensure this only runs once
-                            map[x][y].color_flash = False
+                        #Immediately set to false to ensure this only runs once
+                        map[x][y].color_flash = None
 
-                        #Else map.color_flash is not true and there is  a map.diff_color value
-                        else:
-                            libtcod.console_set_char_background(con, x, y, map[x][y].diff_color, libtcod.BKGND_SET)
 
                     #Else it has no diff_color value and should be set to the default color
                     else:
                         libtcod.console_set_char_background(con, x, y, color_light_ground, libtcod.BKGND_SET)
-                    #since it's visible, explore it
+
+                    #Since it's visible, set it to explored
                     map[x][y].explored = True
 
 
@@ -1524,15 +1528,11 @@ def wait_for_spacekey():  #Make cast heal message appear without having to press
             fov_recompute=True
             render_all()
 
-
-
-
         #check for keypress, render and flush the screen to present monster inside fov.
         libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS | libtcod.EVENT_MOUSE, key, mouse)
         fov_recompute=True
-        for i in range(0, 5, 1):
 
-            render_all()
+        render_all()
 
 
 def message_yn(messagequestion, messagey, color1=libtcod.white, color2=libtcod.white):
@@ -1628,6 +1628,7 @@ def player_move_or_attack(dx, dy):
     if player.fighter.paralysis == True:
         outcome = 'paralyzed'
         message('You are paralyzed and cannot move!', libtcod.white)
+
 
     #Else, move or attack
     elif player.fighter.paralysis == False:
@@ -1908,21 +1909,22 @@ def cast_fireball():  #FIGURE OUT HOW TO PAUSE AFTER THIS MESSAGE BEFORE DEALING
     message('Lef-click a target tile for the fireball, or right_click to cancel.', libtcod.light_cyan)
     (x, y) = target_tile()
     if x is None: return 'cancelled'
-    message(
-        'Hephaestus turns his crippled body to you from an unseen dimension, and the air surrounding you explodes in a violent fireball! Press SPACE to continue.',
+    message('Hephaestus turns his crippled body to you from an unseen dimension, and the air surrounding you explodes in a violent fireball! Press SPACE to continue.',
         libtcod.orange)
-    render_all()
+
+    update_msgs()
     wait_for_spacekey()
+
 
     for obj in objects:  #damage every fighter in range, including the player
         if obj.distance(x, y) <= FIREBALL_RADIUS and obj.fighter and obj != player:
-            message('The ' + obj.name + ' is completely immolated and loses ' + str(FIREBALL_DAMAGE) + ' hit points.',
+            message('The ' + obj.name + ' is completely immolated and takes ' + str(FIREBALL_DAMAGE) + ' damage.',
                     libtcod.orange)
-            libtcod.console_set_char_background(con, obj.x, obj.y, libtcod.orange, libtcod.BKGND_SET)
+            map[obj.x][obj.y].color_flash = libtcod.orange
 
 
 
-            obj.fighter.take_damage(FIREBALL_DAMAGE)
+    obj.fighter.take_damage(FIREBALL_DAMAGE)
 
 
 
@@ -2150,18 +2152,18 @@ def play_game():
         #handle paralysis
         if player_action == 'paralyzed' and game_state == 'playing':
             check_by_turn()
-            check_run_effects(player)#May be the cause of poison/paralyzed interaction
             for obj in objects:
                 if obj.ai:
                     obj.ai.take_turn()
+            check_run_effects(player)#May be the cause of poison/paralyzed interaction
 
 
         if player_action == 'moved' and game_state == 'playing':
             check_by_turn()
-            check_run_effects(player)
             for obj in objects:
                 if obj.ai:
                     obj.ai.take_turn()
+            check_run_effects(player)
 
 
 
@@ -2289,7 +2291,7 @@ def check_level_up():  #TODO: Add cool mutations to fighter class like horns
                 player.fighter.acc += 1
 
         #Add a random mutation
-        level_mutate = (5, 7, 9, 12)
+        level_mutate = (2, 7, 9, 12)
         for i in level_mutate:
             if player.level == i:
                 #This will eventually be a pick a random mutation function
