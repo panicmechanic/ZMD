@@ -72,12 +72,13 @@ Damage player 10 hit points - '#'
 - Flash damage on hit
 - Godly mutations
 
-Features TODO:
-- Mouse to path*
-- Autoexplore/Shift run*
+#Features TODO:
+
+- Mouse to path
+- Autoexplore/Shift run
 - Turn system
 - Speed system
-- Scent tracking*
+- Scent tracking
 
 #Minor TODO/bugs:
 
@@ -110,7 +111,7 @@ For alpha release:
     - Fix current bugs: paralysis/poison duplication, paralyze taking a turn to 
         apply (move to different loop), bones/fountains cover items, warhammer 
         splatter not firing with elec.
-        (3 days - These have been difficult to pin down)
+        (3 days - One for each day as these have been difficult to pin down)
     - Move monster gen to new file and add enough monsters for 10-15 levels
         (1 day - Simple enough)
     - Add 2 more mutations
