@@ -78,11 +78,11 @@ color_light_ground = libtcod.Color(130, 130, 130)
 
 class Tile:
     # a tile of the map, and its properties
-    def __init__(self, blocked, block_sight=None, diff_color=None, elec_flash=False):
+    def __init__(self, blocked, block_sight=None, diff_color=None, color_flash=False):
         self.blocked = blocked
         self.diff_color = diff_color
 
-        self.elec_flash = elec_flash
+        self.color_flash = color_flash
 
         #all tiles start unexplored
         self.explored = False
@@ -379,26 +379,7 @@ class Fighter:
 
         if ev_roll <= acc_roll:
 
-            #TODO: This may not work perfectly, print all values and check, monsters seem to roll better attacks.
-            #string gen for message
 
-            #Doesn't seem to average out values properly
-            value = self.acc / 10
-
-            if acc_roll <= value or acc_roll <= 0:
-                quality_string = 'an appalling'
-            elif acc_roll <= value*2:
-                quality_string = 'a poor'
-            elif acc_roll <= value*4:
-                quality_string = 'an average'
-            elif acc_roll <= value*6:
-                quality_string = 'a good'
-            elif acc_roll <= value*8:
-                quality_string = 'an excellent'
-            elif acc_roll <= value*9:
-                quality_string = 'an almost perfect'
-            elif acc_roll >= value*10:
-                quality_string = 'a perfect'
 
             #check for crit if player is the attacker
             if self.owner.name == 'player':
@@ -422,30 +403,26 @@ class Fighter:
                     elif difference <= 25:
                         damage += damage*6
 
-                print acc_roll
-                print ev_roll
-                print difference
-                print 'Damage:' + str(damage)
 
             # #Player messages and colors##
             if damage > 0 and self.owner.name == 'player':
                 #make the target take some damage and print the value
-                message('You deal ' + quality_string + ' attack to the ' + target.name + ' for ' + str(damage) + ' hit points!', libtcod.green)
+                message('You hit the ' + target.name + ' for ' + str(damage) + ' damage!', libtcod.green)
                 target.fighter.take_damage(damage)
 
             elif damage <= 0 and self.owner.name == 'player':
                 #else print a message about how puny you are
-                message('You deal ' + quality_string + ' attack to the ' + target.name + ' but it has no effect!', libtcod.grey)
+                message('You hit the ' + target.name + ' but it has no effect!', libtcod.grey)
 
             ##Monster messages and colors##
             elif damage > 0 and self.owner.name != 'player':
                 #make the target take some damage and print the value
-                message(self.owner.name.capitalize() + ' deals ' + quality_string + ' attack to you for ' + str(damage) + ' hit points!', libtcod.red)
+                message(self.owner.name.capitalize() + ' hit you for ' + str(damage) + ' damage!', libtcod.red)
                 target.fighter.take_damage(damage)
                 self.roll_for_effect(target)
 
             elif damage <= 0 and self.owner.name != 'player':
-                message(self.owner.name.capitalize() + ' deals ' + quality_string + ' attack to you but it has no effect!', libtcod.grey)
+                message(self.owner.name.capitalize() + ' hits you but it has no effect!', libtcod.grey)
                 self.roll_for_effect(target)
 
         elif self.owner.name == 'player' and ev_roll > acc_roll:
@@ -709,28 +686,6 @@ def check_run_effects(obj):
                 if eff.damage_by_turn is not None:
                     obj.fighter.take_damage(eff.damage_by_turn)
 
-                if eff.paralyzed != None:
-                    obj.fighter.paralysis = True
-
-
-
-
-                #If turns_passed is not equal to the duration, add one turn
-                if eff.turns_passed is not eff.duration:
-                    eff.turns_passed += 1
-
-
-
-                #if turns_passed is equal to duration, remove the effect
-                elif eff.turns_passed == eff.duration:
-                    #if the effect caused paralysis, set the fighters variable to False to allow movement again
-                    if eff.paralyzed != None:
-                        obj.fighter.paralysis = False
-                        message('You can move again!')
-                    obj.fighter.remove_effect(eff)
-                    eff.turns_passed=0
-
-
                 # check for fatal turn_by_damage limit if effect has damage_by_turn
                 if eff.damage_by_turn is not None:
 
@@ -750,6 +705,23 @@ def check_run_effects(obj):
                         message('You are no longer fatally ' + eff.effect_name + '.')
                         eff.fatal_alert = False
 
+                #If the effect causes paralysis, set fighter paralysis to true
+                if eff.paralyzed != None:
+                    obj.fighter.paralysis = True
+
+                #if turns_passed is equal to duration, remove the effect
+                if eff.turns_passed == eff.duration:
+                    #if the effect caused paralysis, set the fighters variable to False to allow movement again
+                    if eff.paralyzed != None:
+                        obj.fighter.paralysis = False
+                        message('You can move again!')
+                    obj.fighter.remove_effect(eff)
+                    eff.turns_passed=0
+
+                #If turns_passed is not equal to the duration, add one turn
+                if eff.turns_passed < eff.duration:
+                    eff.turns_passed += 1
+
             #If it is a mutation
             elif eff.mutation == True:
                 if eff.m_elec == True:
@@ -764,18 +736,21 @@ def check_run_effects(obj):
                             fired_times = 0
 
                             #Find an object that isn't the player within 1 tile and fire if fired_times < fire_times
-                            #This is buggy, leaves copies of monster chars on tiles after it fires.
-                            if obj.fighter and player.distance_to(obj) <= 1 and obj != player and obj.fighter.hp > 5 and fired_times < eff.applied_times:
-                                libtcod.console_set_default_background(panel, libtcod.darkest_grey)
-                                libtcod.console_clear(panel)
+                            if obj.fighter and player.distance_to(obj) <= 1 and obj != player and obj.fighter.hp > 1 and fired_times < eff.applied_times:
 
+
+
+                                #Set map.diff_color to darkest_grey.
                                 map[obj.x][obj.y].diff_color = libtcod.darkest_grey
 
-                                #TODO: Needs fixing as currently only shows last color for one farme
-                                map[obj.x][obj.y].elec_flash = True
+                                #Tell render_all() to run elec flash routine
+                                map[obj.x][obj.y].color_flash = True
 
                                 message('You feel a tingle.. Press space to continue', libtcod.white)
+
+                                #Update msgs
                                 update_msgs()
+                                #And wait for space key to cotinue
                                 wait_for_spacekey()
 
 
@@ -792,14 +767,6 @@ def check_run_effects(obj):
                             #Function has completed, reset fired_times
                             if fired_times == fire_times:
                                 fired_times = 0
-
-
-
-
-
-
-
-
     else:
         return 'no effects'
 
@@ -817,8 +784,6 @@ def update_msgs():
         libtcod.console_print_ex(panel, MSG_X, y, libtcod.BKGND_SCREEN, libtcod.LEFT, line)
 
         y += 1
-
-
 
     libtcod.console_blit(panel, 0, 0, SCREEN_WIDTH, PANEL_HEIGHT, 0, 0, PANEL_Y)
 
@@ -1379,20 +1344,27 @@ def render_all():
 
                     #it's visible
                     if wall:
+
                         libtcod.console_set_char_background(con, x, y, color_light_wall, libtcod.BKGND_SET)
+
+                    #If map.diff_color id not None, render the color instead
                     elif map[x][y].diff_color is not None:
 
                         #If flash is true, render it once, then set to false, this shouldn't work as wait_for_spacekey()
                             #uses render_all() in its while loop. Problem lies elsewhere I think.
-                        if map[x][y].elec_flash == True:
+                        if map[x][y].color_flash == True:
 
+                            #Make the color blue flash for one render
                             libtcod.console_set_char_background(con, x, y, libtcod.light_blue, libtcod.BKGND_SET)
 
-                            map[x][y].elec_flash = False
+                            #Immediately set to false to ensure this only runs once
+                            map[x][y].color_flash = False
 
-                        #Else elec_flash has been resolved or never True and diff_color is not None
+                        #Else map.color_flash is not true and there is  a map.diff_color value
                         else:
                             libtcod.console_set_char_background(con, x, y, map[x][y].diff_color, libtcod.BKGND_SET)
+
+                    #Else it has no diff_color value and should be set to the default color
                     else:
                         libtcod.console_set_char_background(con, x, y, color_light_ground, libtcod.BKGND_SET)
                     #since it's visible, explore it
@@ -1435,8 +1407,8 @@ def render_all():
 
     #show the player's stats
     level_up_xp = LEVEL_UP_BASE + player.level * LEVEL_UP_FACTOR
-    render_bar(panel, 1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.red, libtcod.darker_red)
-    render_bar(panel, 1, 2, BAR_WIDTH, 'XP', player.fighter.xp, level_up_xp, libtcod.lightest_purple,
+    render_bar(panel, 1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.light_red, libtcod.darkest_red)
+    render_bar(panel, 1, 2, BAR_WIDTH, 'XP', player.fighter.xp, level_up_xp, libtcod.light_blue,
                libtcod.darkest_blue)
     render_bar_simple(panel, 1, 3, BAR_WIDTH, str(hunger()), hunger_level, 800, libtcod.orange,
                libtcod.darker_orange)
@@ -1982,43 +1954,47 @@ def monster_death(monster):
     equipped = get_all_equipped(player)
     for i in equipped:
         if i.owner.char == chr(24):
+            elec_check = False
             for eff in player.fighter.effects:
+                if eff.m_elec == True:
+                    elec_check = True
 
-                #If
-                if eff.m_elec_count < eff.m_elec_trigger/eff.applied_times and eff.m_elec == True:
 
-                    #blow strength
+                if elec_check == True and eff.m_elec_count == eff.m_elec_trigger/eff.applied_times:
+                    pass
 
-                    message('The ' + str(monster.name) + ' explodes under the ferocious blow of your ' + str(i.owner.name) + '!', libtcod.white)
-                    #Use blow strength as a max number of gibs
-                    rand_num_gibs = libtcod.random_get_int(0, 1, 7)
-                    for num in range(0, rand_num_gibs, 1):
-                        #choose random spot for gibs
-                        x = libtcod.random_get_int(0, monster.x + 1, monster.x - 1)
-                        y = libtcod.random_get_int(0, monster.y + 1, monster.y - 1)
-                        if not is_blocked(x, y):
-                            #roll for type of gib
-                            roll = libtcod.random_get_int(0, 0, 3)
-                            if roll == 0:
-                                gib = Object(x, y, '%', 'guts', libtcod.darker_red, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
-                                libtcod.console_set_char_background(con, x, y, libtcod.dark_red, libtcod.BKGND_SET)
-                                map[x][y].diff_color = libtcod.dark_red
-                            if roll == 1:
-                                gib = Object(x, y, "^", 'sinew', libtcod.dark_red, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
-                                libtcod.console_set_char_background(con, x, y, libtcod.darker_red, libtcod.BKGND_SET)
-                                map[x][y].diff_color = libtcod.darker_red
-                            if roll == 2:
-                                gib = Object(x, y, '$', 'guts', libtcod.darker_purple, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
-                                libtcod.console_set_char_background(con, x, y, libtcod.darkest_red, libtcod.BKGND_SET)
-                                map[x][y].diff_color = libtcod.darkest_red
-                            if roll == 3:
-                                gib = Object(x, y, '/', 'broken bone', libtcod.white, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
-                                libtcod.console_set_char_background(con, x, y, libtcod.dark_red, libtcod.BKGND_SET)
-                                map[x][y].diff_color = libtcod.dark_red
+            #blow strength
 
-                            #append gib and send it to back
-                            objects.append(gib)
-                            gib.send_to_back()
+            message('The ' + str(monster.name) + ' explodes under the ferocious blow of your ' + str(i.owner.name) + '!', libtcod.white)
+            #Use blow strength as a max number of gibs
+            rand_num_gibs = libtcod.random_get_int(0, 1, 7)
+            for num in range(0, rand_num_gibs, 1):
+                #choose random spot for gibs
+                x = libtcod.random_get_int(0, monster.x + 1, monster.x - 1)
+                y = libtcod.random_get_int(0, monster.y + 1, monster.y - 1)
+                if not is_blocked(x, y):
+                    #roll for type of gib
+                    roll = libtcod.random_get_int(0, 0, 3)
+                    if roll == 0:
+                        gib = Object(x, y, '%', 'guts', libtcod.darker_red, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
+                        libtcod.console_set_char_background(con, x, y, libtcod.dark_red, libtcod.BKGND_SET)
+                        map[x][y].diff_color = libtcod.dark_red
+                    if roll == 1:
+                        gib = Object(x, y, "^", 'sinew', libtcod.dark_red, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
+                        libtcod.console_set_char_background(con, x, y, libtcod.darker_red, libtcod.BKGND_SET)
+                        map[x][y].diff_color = libtcod.darker_red
+                    if roll == 2:
+                        gib = Object(x, y, '$', 'guts', libtcod.darker_purple, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
+                        libtcod.console_set_char_background(con, x, y, libtcod.darkest_red, libtcod.BKGND_SET)
+                        map[x][y].diff_color = libtcod.darkest_red
+                    if roll == 3:
+                        gib = Object(x, y, '/', 'broken bone', libtcod.white, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
+                        libtcod.console_set_char_background(con, x, y, libtcod.dark_red, libtcod.BKGND_SET)
+                        map[x][y].diff_color = libtcod.dark_red
+
+                    #append gib and send it to back
+                    objects.append(gib)
+                    gib.send_to_back()
 
 
 
@@ -2313,7 +2289,7 @@ def check_level_up():  #TODO: Add cool mutations to fighter class like horns
                 player.fighter.acc += 1
 
         #Add a random mutation
-        level_mutate = (3, 5, 9, 12)
+        level_mutate = (5, 7, 9, 12)
         for i in level_mutate:
             if player.level == i:
                 #This will eventually be a pick a random mutation function

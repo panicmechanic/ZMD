@@ -63,7 +63,8 @@ Damage player - '#'
 - Scrolls, potions
 - Effects (poison, confuse, paralyze etc)
 - Evasion/accuracy/critical strike system
-- Autorest-
+- Autorest
+- Flash damage on hit
 - Mouse to path-
 - Autoexplore-
 - Turn system-
@@ -96,7 +97,9 @@ Damage player - '#'
     (+ or -) and rolling for a number of squares and if not blocked to paint those squares.
 - Fix effect double append, highlighted lines both fire, although maybe not in the same run.
 - Geting an occasional "ValueError: list.remove(x): x not in list" error after check_run_effects().
-
+- Shift-run
+- Problem with warhammer splatter and lightning mutation
+- Add knockout effect for sneaking up on enemies
    
 
  
@@ -142,12 +145,15 @@ Damage player - '#'
 - Not happy with add/ev character level up, too much choice. Maybe just give player a random stat
     and boost acc and ev by 2.
 - Implement some of sil's approach to skills and levels. 
-- Add damage flash number
+
+
+
 
 
 
 #Done:
 
+- Added colour range for damage flash based on severity of damage.
 - Added display damage on hit!
 - Added mutations, currently a little buggy.
 - Added paralyze effect and gave it to fireflys.
