@@ -6,7 +6,14 @@ import weaponchances
 import time
 from weaponchances import create_item
 
-# FATAL EFFECT
+#BORDER VARIABLES
+
+BORDER_CORNER = chr(15)
+BORDER_FILL = '*'
+BORDER_COLOR = libtcod.gold
+BORDER_BACKGROUND = libtcod.darkest_red
+
+#FATAL EFFECT
 FATAL_EFFECT = False
 FATAL_NAME = None
 
@@ -40,6 +47,7 @@ EFFECTS_GUI = 4
 PANEL2_HEIGHT = 53
 PANEL2_WIDTH = 25
 RECT_HEIGHT = 16 - PANEL2_HEIGHT  # 16 being the max height of the enemy fov panel.
+MSG_STOP = MSG_WIDTH - PANEL2_WIDTH
 
 #FOV
 FOV_ALGO = 0  #Default FOV algorithm
@@ -1330,8 +1338,6 @@ def render_all():
     global objects
     global turn
     global hunger_level
-    global FATAL_EFFECT, FATAL_NAME
-
 
     if fov_recompute:
         libtcod.console_clear(con)
@@ -1382,7 +1388,6 @@ def render_all():
                     map[x][y].explored = True
 
 
-
     #draw all objects in list, except the player, want it to always appear on top, so we draw it later
     for object in objects:
 
@@ -1403,18 +1408,42 @@ def render_all():
     libtcod.console_blit(con, 0, 0, MAP_WIDTH, MAP_HEIGHT, 0, 0, 0)
 
     #prepare to render the GUI panel
-    libtcod.console_set_default_background(panel, libtcod.darkest_grey)
+    libtcod.console_set_default_background(panel, BORDER_BACKGROUND)
     libtcod.console_clear(panel)
+
+    # prepare and color the msgs background
+    libtcod.console_set_default_background(msgs, BORDER_BACKGROUND)
+    libtcod.console_clear(msgs)
+
+    libtcod.console_set_default_foreground(msgs, BORDER_COLOR)
+    border = calc_border()
+
+    #Top bar
+    libtcod.console_print_ex(msgs, 0, 0, libtcod.BKGND_SCREEN, libtcod.LEFT, border)
+
+    #Bottom Bar
+    libtcod.console_print_ex(msgs, 0, MSG_HEIGHT, libtcod.BKGND_SCREEN, libtcod.LEFT, border)
+
+    #For the height of msgs, minus one for the top bar that already displays it.
+    for y_num in range(0, MSG_HEIGHT-1, 1):
+        #Do the left side
+        libtcod.console_put_char(msgs, 0, y_num+1, BORDER_FILL, libtcod.BKGND_SCREEN)
+
+        #Do the right side
+        libtcod.console_put_char(msgs, MSG_STOP-1, y_num+1, BORDER_FILL , libtcod.BKGND_SCREEN)
+
+        #Do the left side
+        libtcod.console_put_char(msgs, -1, y_num+1, BORDER_FILL, libtcod.BKGND_SCREEN)
+
+
 
     #print the game messages, one line at a time
     y = 1
     for (line, color) in game_msgs:
-        libtcod.console_set_default_foreground(panel, color)
-        libtcod.console_set_default_background(panel, libtcod.black)#TODO: Figure out how to make msgs background black
-        libtcod.console_print_ex(panel, MSG_X, y, libtcod.BKGND_SCREEN, libtcod.LEFT, line)
+        libtcod.console_set_default_foreground(msgs, color)
+        libtcod.console_print_ex(msgs, 1, y, libtcod.BKGND_NONE, libtcod.LEFT, line)
 
         y += 1
-
 
     #show the player's stats
     level_up_xp = LEVEL_UP_BASE + player.level * LEVEL_UP_FACTOR
@@ -1427,7 +1456,6 @@ def render_all():
     #Check for total number of effects for gui
     total_effects = 1
 
-
     for eff in player.fighter.effects:
 
         if eff.effect_name == 'poisoned':
@@ -1436,8 +1464,6 @@ def render_all():
             print total_effects
             for i in player.fighter.effects:
                 print i.effect_name
-
-
 
         if eff.effect_name == 'Paralyzed':
             render_bar_simple(panel, 1, 3+total_effects, BAR_WIDTH, 'Paralyzed X ' + str(eff.applied_times), (eff.duration-eff.turns_passed), eff.duration, libtcod.purple,
@@ -1456,6 +1482,9 @@ def render_all():
 
     #blit the contents of "panel" to the root console
     libtcod.console_blit(panel, 0, 0, SCREEN_WIDTH, PANEL_HEIGHT, 0, 0, PANEL_Y)
+
+    #blit the contents of "msgs" to the root console
+    libtcod.console_blit(msgs, 0, 0, MSG_STOP, 0, 0, MSG_X, PANEL_Y)
 
     #prepare to render the second GUI panel
     libtcod.console_set_default_background(panel2, libtcod.darkest_grey)
@@ -1615,13 +1644,13 @@ def message_wait(char, messagetext, color=libtcod.white):
                 libtcod.console_flush()
 
 
-def message(new_msg, color=libtcod.white):  #TODO: Why can't this function end with render_all()?
+def message(new_msg, color=libtcod.white):
     #split the message if necessary, among multiple lines
     new_msg_lines = textwrap.wrap(new_msg, MSG_WIDTH)
 
     for line in new_msg_lines:
         #if the buffer is full, remove the first line to make room for the new one
-        if len(game_msgs) == MSG_HEIGHT:
+        if len(game_msgs) == MSG_HEIGHT-1:
             del game_msgs[0]
 
         #add the new line as a tuple, with the text and the color
@@ -2051,6 +2080,17 @@ def target_monster(max_range=None):
             if obj.x == x and obj.y == y and obj.fighter and obj != player:
                 return obj
 
+def calc_border():
+
+    border_len = []
+    #For each step in the range of the msg_width(msg_stop), add one filler tile
+    for i in range(0, MSG_STOP-2, 1):
+        border_len.append(BORDER_FILL)
+    border = ''.join(border_len)
+
+
+    border1 = BORDER_CORNER + border + BORDER_CORNER
+    return border1
 
 def new_game():
     global player, inventory, game_msgs, game_state, dungeon_level, turn_increment, heal_rate, turn_5, hunger_level
@@ -2062,6 +2102,7 @@ def new_game():
     player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter_component)
     player.level = 1
     #Create the list of game messages and their colors, starts empty
+
     game_msgs = []
     inventory = []
     player_effects = []
@@ -2090,7 +2131,7 @@ def new_game():
 
 
     #a warm welcoming message!
-    message('Zeus is a dick! Go fuck him up.', libtcod.purple)
+    message('Zeus is a dick! Go fuck him up.', libtcod.white)
 
     #initial equipment: a dagger
     equipment_component = Equipment(slot='left hand', power_bonus=2)
@@ -2445,6 +2486,7 @@ libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'python/First RL', False)
 libtcod.sys_set_fps(LIMIT_FPS)
 con = libtcod.console_new(MAP_WIDTH, MAP_HEIGHT)
 panel = libtcod.console_new(SCREEN_WIDTH, PANEL_HEIGHT)
+msgs = libtcod.console_new(MSG_WIDTH, PANEL_HEIGHT)
 panel2 = libtcod.console_new(PANEL2_WIDTH, SCREEN_HEIGHT)
 main_menu()
 
@@ -2509,4 +2551,5 @@ main_menu()
 # list new_msg_lines to print them one by one. Line 1210.
 # - A quest in which you msut retrieve the cyclops eye patch, new level, labyrinth, long journey, difficult foes
 # when you reach the cyclops, you may fight him, or doing something clever but not immediately
+# obvious to kill him instantly.
 # obvious to kill him instantly.

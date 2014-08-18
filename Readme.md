@@ -87,7 +87,6 @@ Damage player - '#'
 - Add more food types (so far; feta, bread)
 - Remove todo list from fristrl.py
 - Bones and fountains appear over objects
-- Figure out how to make msgs background black
 - Rough balancing
 - Use color more sparingly, change any important messages to white
 - Change cast_fireball to apply a burning effect to all inside range for 5 turns. 
@@ -145,6 +144,7 @@ Damage player - '#'
 - Implement some of sil's approach to skills and levels. 
 
 #Done:
+- Made msgs background black with new console "msgs"
 - Added colour range for damage flash based on severity of damage.
 - Added display damage on hit!
 - Added mutations, currently a little buggy.
