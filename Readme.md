@@ -19,22 +19,24 @@ Repetitive tasks (such as grinding) should be kept to a minimum, including those
 to cross the dungeon, hot keys like fire/grab/open should be less than 5 and ideally use 
 a universal hotkey system.
 
-The game takes inspiration from Brogue, Sil and DCSS, and aims to be simple and relatively
+The game takes inspiration from Brogue, Sil, Angband and DCSS, and aims to be simple and relatively
 intuitive, while providing deep and rewarding functionality through the complex systems
-synonymous with roguelikes(such as combat). It currently uses an experience point system, 
-although this may change in the future.
+synonymous with roguelikes(such as combat, effects, speed and random generation). It currently uses 
+an experience point system, although this may change in the future.
 
 Originally just a way for me to learn python, as it grew I decided to manage the project
 properly and get it on GitHub. Any help/advice is greatly appreciated.
 
 #To play:
+
 Download as a zip, extract into a folder of your choosing, and run firstrl.py.
+You will need to have Python 2.7 installed.
 
 #Controls:
 
 Move with the numpad or arrow keys
 
-Rest - Numpad 5
+Rest a turn - Numpad 5
 
 AutoRest - 'r'
 
@@ -58,10 +60,9 @@ See all map - ']'
 
 Heal player - '['
 
-Damage player - '#'
+Damage player 10 hit points - '#'
 
 #Features:
-(- = TODO)
 
 - Hunger and food system
 - Scrolls, potions
@@ -69,61 +70,83 @@ Damage player - '#'
 - Evasion/accuracy/critical strike system
 - Autorest
 - Flash damage on hit
-- Mouse to path-
-- Autoexplore-
-- Turn system-
-- Scent tracking-
+- Godly mutations
 
+Features TODO:
+- Mouse to path*
+- Autoexplore/Shift run*
+- Turn system
+- Speed system
+- Scent tracking*
 
 #Minor TODO/bugs:
 
-- get_player_effects and iterate_through_list seem to only
-	want to show the first element of each list on the GUI.	
-    Put 2 new boxes with equipped items and effects iterated and displayed with \n.
-- Add estimated time length to major todo list below.
-- Figure out how to get fatal effect warning to display on panel2, line 535.
 - Finish lever object
-- Have evasion and accuracy both draw their values from a new fighter variable 'dex'.
-- Add more food types (so far; feta, bread)
-- Remove todo list from fristrl.py
+- Remove todo list from firstrl.py
 - Bones and fountains appear over objects
 - Rough balancing
-- Use color more sparingly, change any important messages to white
 - Change cast_fireball to apply a burning effect to all inside range for 5 turns. 
 - Add gui bar for eff in monster.effects to display effects like burning, poisoned, confused, paralysed.
 - Paralyze still lets you hit first few turns 
 - Paralyze is tripled when lightning goes off and you are paralyzed
 - Poison is being appended more than once. Something in add_effect() or roll_for_effect(). Debug it.
-- Add a slice in half effect that colours squares directly beihnd the enemy red. By subtracting
-    monster.x and y from player.x and y and figuring out which changed and in which direction 
-    (+ or -) and rolling for a number of squares and if not blocked to paint those squares.
 - Fix effect double append, highlighted lines both fire, although maybe not in the same run.
 - Geting an occasional "ValueError: list.remove(x): x not in list" error after check_run_effects().
-- Shift-run
-- Problem with warhammer splatter and lightning mutation
-- Add knockout effect for sneaking up on enemies
+- Problem with warhammer splatter and lightning mutationmaknig it not fire
+- Make bottom right box display info under mouse on mouse over
    
-#Major TODO (in rough order):
-- Create 'Forget map' effect
-- Create 'blind' effect
-- Make critical hits a function of accuracy roll and evasion roll (a la sil)
-- Implement numdice*numfaces rolling system a la sil for attack.
-- Break up firstrl.py into modules
-- Turn system
-- Fighter speed system
-- Add potion random names
-- Add objects x 3/5/1 in inventory and floor
-- Add more attack type effects like explode.
-- Add monster drops based on difficulty, to encourage risk/reward
-- Improve GUI. Maybe a border.
+#Alpha TODO:
+
+For alpha release:
+    
+    - MAJOR: Implement numdice*numfaces rolling system a la sil for attack. 
+        (2 days - Will need to change attack, defense, ev, acc)
+    - Add more items/weapons
+        (2 days - After num*dice change, this will require a complete rework
+    - MAJOR: Turn system http://www.roguebasin.com/index.php?title=A_simple_turn_scheduling_system_--_Python_implementation
+        (3 days - Will probably require serious restructuring)
+    - MAJOR: Implement speed via angbands method here: http://journal.stuffwithstuff.com/2014/07/15/a-turn-based-game-loop/
+        (1 day - Probably not too bad as only adding a function here)
+    - Fix current bugs: paralysis/poison duplication, paralyze taking a turn to 
+        apply (move to different loop), bones/fountains cover items, warhammer 
+        splatter not firing with elec.
+        (3 days - These have been difficult to pin down)
+    - Move monster gen to new file and add enough monsters for 10-15 levels
+        (1 day - Simple enough)
+    - Add 2 more mutations
+        (2 days - 1 for each as still no ideas, look at sil's abilities for inspiration)
+    - Create 'forget map' effect
+        (0.5 days - Seems simple enough)
+    - Create 'blind' effect
+        (0.5 days - Simple again)
+    - Create 'burning' effect
+        (0.5 days - Simple, every turn set a random orange colour too)
+    - Add ranged combat if not too complex. Will need to integrate a render_all call for
+        for each tile from attacker to target to paint an 'arrow' and display it once.
+        Some internet time will be necessary to research.
+        (3 days - Allow for 3 days to integrate this, research will give better estimates.
+    - Add simple win condition for alpha release purposes
+        (2 days - Will need to create win_screen() on win.)
+    
+    ALPHA UPDATE:
+    19/08/14 (started countdown):    
+        TOTAL DAYS = 20.5 (21)
+        ALPHA RELEASE DATE = 9th September
+        
+#Remaining major TODO (in rough order):
+
+- Noise effect/Color variation in tiles; first time map is created they should be set
+- Shift-run (if next.x,y is not_blocked() and no fighter is in fov, take next step)
 - Add click messages to see page of messages, rather than delete them, 
     append them to a new list, to be displayed on click + current game_msgs
-- Release a playable alpha
+- Add objects x 3/5/1 in inventory and floor
+- Break up firstrl.py into modules, move modules that are called for by weaponchances
+    into new files as directed from reddit post.
 - Scent tracking
 - Mutations/Godly powers
 - Click-to-path for map and GUI
 - Save maps and add upward stairs.
-- New level types (forest, swamp, mountain range, meadow)
+- New level types (forest, swamp, mountain range, meadow, hell)
 - Quest system
 - Auto-explore
 - Graphical overhaul (possibly tileset)
@@ -137,13 +160,23 @@ Damage player - '#'
 - Reduce evasion by 1 for every adjacent monster
 - Create a jelly_monster that splits when hit.
 - Stealth system, via angbands monster alertness level, perception score and players stealth roll.
+- Add knockout effect for sneaking up on enemies
 - Puzzles(?)
 - Armor/skin/muscle/attack type simulation
-- Not happy with add/ev character level up, too much choice. Maybe just give player a random stat
-    and boost acc and ev by 2.
+- Add skills a la sil
 - Implement some of sil's approach to skills and levels. 
+- Add more food types (so far; feta, bread)
+- Add a slice in half effect that colours squares directly beihnd the enemy red. By subtracting
+    monster.x and y from player.x and y and figuring out which changed and in which direction 
+    (+ or -) and rolling for a number of squares and if not blocked to paint those squares.
+- Monster drops
+- Add potion random names
+- Add monster drops based on difficulty, to encourage risk/reward
+- Figure out how to get fatal effect warning to display on panel2, line 535.
 
 #Done:
+- Made critical hits a function of accuracy
+- Added borders and fixed character info to display iterative lists
 - Made msgs background black with new console "msgs"
 - Added colour range for damage flash based on severity of damage.
 - Added display damage on hit!

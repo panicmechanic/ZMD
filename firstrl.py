@@ -2164,8 +2164,6 @@ def new_game():
         if object.path is not None:
             object.path = None
 
-
-
     # Add an effect like this:
 
     #player.fighter.add_effect(Effect('Paralyzed', duration=5, paralyzed=True, base_duration=5), 'Game developer')
@@ -2190,7 +2188,6 @@ def new_game():
     inventory.append(obj)
     equipment_component.equip()
     obj.always_visible = True
-
 
 def initialize_fov():
     global fov_recompute, fov_map
@@ -2237,8 +2234,6 @@ def play_game():
 
             object.clear()
 
-
-
         check_level_up()
 
 
@@ -2265,8 +2260,6 @@ def play_game():
                     obj.ai.take_turn()
             check_run_effects(player)
 
-
-
 def main_menu():
 
     img = libtcod.image_load('zeus1.png')
@@ -2281,7 +2274,6 @@ def main_menu():
         libtcod.console_print_ex(0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 4, libtcod.BKGND_NONE, libtcod.CENTER,
                                  'ZEUS MUST DIE')
 
-
         #show options and wait for the player's choice
         choice = menu('', ['Play a new game', 'Continue last game', 'Quit'], 24)
 
@@ -2293,7 +2285,6 @@ def main_menu():
             play_game()
         elif choice == 2:  #Quit
             break
-
 
 def save_game():
     #open a new empty shelve (possibly overwriting an old one) to write the game data
@@ -2311,7 +2302,6 @@ def save_game():
     file['turn_5'] = turn_5
 
     file.close
-
 
 def load_game():
     #open the previously saved shelve and load the game data
@@ -2339,11 +2329,6 @@ def load_game():
         if object.path is not None:
             object.path = None
 
-
-
-
-
-
 def next_level():
     global dungeon_level
     #advance to the next level
@@ -2354,7 +2339,6 @@ def next_level():
     dungeon_level += 1
     make_map()  # create a fresh new level!
     initialize_fov()
-
 
 def check_level_up():  #TODO: Add cool mutations to fighter class like horns
     #see if a players expereince is enough to level up
@@ -2396,7 +2380,6 @@ def check_level_up():  #TODO: Add cool mutations to fighter class like horns
             if player.level == i:
                 #This will eventually be a pick a random mutation function
                 player.fighter.add_effect(Effect(effect_name='electric power', mutation=True, m_elec=True, m_elec_trigger=125, m_elec_damage=150), 'For your valiant effort you have earned the gods favour, they convene and offer you')
-
 
 def random_choice_index(chances):  #choose one option from list of chances, returning its index
     #the dice will land on some number between 1 and the sum of the chances
@@ -2538,66 +2521,18 @@ msgs = libtcod.console_new(MSG_WIDTH, PANEL_HEIGHT)
 panel2 = libtcod.console_new(PANEL2_WIDTH, SCREEN_HEIGHT)
 main_menu()
 
-
-
-
-#Done so far:
-#- Implemented singular boss system (will do for now)
-#- Implemented message_wait system for discoveries the player needs to pay attention to. Currently displays on second loop.
-#- Half implemented describe feature
-#- Implement hunger system! Food still buggy  so only one type right now.
-#- Implemented poison feature
-#- Implemented wait for space key feature
-#- Give monsters proper pathfinding.
-#- Implemented space to continue after scroll messages
-#- Created see all map debug key
-#- Created special room function, but is not seperated from the map because v+h_tunnel does not check for intersection
-# - Added an effects class that can be applied to monsters in the same way equipment class was made.
-# - FIXED THE FUCKING DESCRIPTION FUNCTION, SELF.DESCRIPTION WAS SET AS = SELF.. I'M AN IDIOT.
-# - Implemented EV! Took like 5 minutes..
-# - Added accuracy roll, a min/max system; roll = libtcod.random_get_int(0, acc_min, acc_max) where acc_min is acc_max/2
-# - Added a new gui to the right, displays monster.fighter hp bars when in FOV
-# - Added character info box to panel2, discard irrelevant/duplicated information like xp.
-# - Figured out why health only regenerates when pressing 5, other turns weren't returning 'moved'
-# - Figured out why effects weren't working, the check_run_effects function was never finding effects as a result of a
-#line, once fixed this revealed a small cascade of errors and incomplete programming, all fixed now!
-
 #To do:
-#- Add mutations n shit
 
-#- Add a monster.drop_item system to drop shit like gnoll tooth which you need for quests etc.
-#- Need to create decorative item class, could do cool stuff
-#- MAJOR: Create new map() functions for different terrain types
-#- MAJOR: Add attack types (slash, stab, crush, etc.)  for weapon classes.
 #- MAJOR: Add conversation system for effects
 #- MAJOR URGENT NEXT ISSUE: Maybe also implement scent tracking as well - http://codeumbra.eu/complete-roguelike-tutorial-using-c-and-libtcod-extra-3-scent-tracking
-#- Add high score page at main menu based off total xp
-#- Figure out how to change the walls to objects with a char.
-#- Implement mouse pathfinding - click to move.
-#- MAJOR: Turn system http://www.roguebasin.com/index.php?title=A_simple_turn_scheduling_system_--_Python_implementation
+
 # - MAJOR, URGENT?: Implement ascii/tileset option, create artwork using that pixel editor
-#- MJAOR, URGENT: Implement speed via angbands method here: http://journal.stuffwithstuff.com/2014/07/15/a-turn-based-game-loop/
-# - Initial thoughts: speed value is added to fighter class, an add energy function is applied to all objects with a
-#- fighter class in the list objects, an if statment follows: if any object reaches 100 they must take an action
-#- Begin breaking game up into modules, initially the map init and fov init, which should allow me to debug and test new
-# areas outside of the game more easily (i.e. a program that imports all items and places them on the map so I can
-# see how they look
-# - Figure  out how to make stumble not call ai.take_turn.
-# Add mutations/godly abilities/quests/new level types/evasion
-# new level types  will require some new learning and research, for instance the gates
-# of hell will not be able to be based off example code
+
+
 #- Decide on features needed for an alpha release to get feedback and playtesting. New menu/UI, a few more items, more monsters,
 # some click to move functionality, skills (think sil) and mutations. Keep it simple, play tggw to get some idea of what
 #is need for a release. Add new scrolls, new effects, fix evasion. Then work towards those features exclusively.
 # Gotta fix that bread bug before a playable alpha.
 #- Add new UI to right hand bar, one box for mouse over description, another for a list of enemies and their health bars
 #with mouse-over-to-target functionality
-# - add accuracy roll, maybe a min/max system; roll = libtcod.random_get_int(0, acc_min, acc_max)
-# - Add click to path functionality on monster hp bars.
-# - get_player_effects and iterate_through_list seem to only want to show the first element of each list
-# rather than print them line by line, figure it out dum dum. Use info on how message() uses the
-# list new_msg_lines to print them one by one. Line 1210.
-# - A quest in which you msut retrieve the cyclops eye patch, new level, labyrinth, long journey, difficult foes
-# when you reach the cyclops, you may fight him, or doing something clever but not immediately
-# obvious to kill him instantly.
-# obvious to kill him instantly.
+
