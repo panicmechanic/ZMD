@@ -1559,7 +1559,7 @@ def render_all():
 
     char_info = '\nLevel: ' + str(player.level) + '\nDungeon level: ' + str(dungeon_level) + '\nAttack: ' + str(player.fighter.power) + '\nDefense: ' + str(
         player.fighter.defense) + '\nEvasion: ' + str(player.fighter.ev) + '\nAccuracy: ' + str(
-        player.fighter.acc) + '\nEffects: ' + get_player_effects() + '\n\nEquipped Items:' + iterate_through_list(
+        player.fighter.acc) + '\n\nEffects: ' + get_player_effects() + '\n\nEquipped Items:' + iterate_through_list(
         get_all_equipped(player))
 
     libtcod.console_print_ex(panel2, 1, 26, libtcod.BKGND_NONE, libtcod.LEFT, char_info)
@@ -1912,24 +1912,18 @@ def player_rest():
             carry_on = False
             message('You rest to regain all of your health', libtcod.green)
 
+def get_player_effects():  # Get player effects and return them in pargraphed strings
 
-
-
-
-def get_player_effects():  # Get player effects and return them in a readable string
     list_effects = []
     for e in player.fighter.effects:
         list_effects.append(str(e.effect_name))
-    name_effects = ', '.join(list_effects)  #join the list, seperated by commas
-    count = 0
-    for i in name_effects:
-        count += 1
-    if count >= 1:
-        for i in name_effects:
-            return '\n' + name_effects.capitalize()
-    else:
-        return 'None'
 
+    list1 = []
+    for i in list_effects:
+
+       list1.append('\n ' + str(i).capitalize())
+
+    return ' '.join(list1)
 
 def closest_monster(max_range):
     #find closest enemy, up to a maximum range, and in the players FOV
@@ -2503,7 +2497,7 @@ def iterate_through_list(x):
     list1 = []
     for i in x:
 
-       list1.append('\n' + str(i.owner.name).capitalize())
+       list1.append('\n ' + str(i.owner.name).capitalize())
     return ' '.join(list1)
 
 
