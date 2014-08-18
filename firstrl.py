@@ -342,8 +342,6 @@ class Fighter:
 
         elif Effect.mutation == True:
             self.effects.append(Effect)
-            libtcod.console_set_default_background(panel, libtcod.darkest_grey)
-            libtcod.console_clear(panel)
             message(object_origin_name + ' ' + Effect.effect_name + '!' + ' Press space to continue.', libtcod.white)
             update_msgs()
             wait_for_spacekey()
@@ -793,19 +791,39 @@ def number_of_turns():
 
 def update_msgs():
 
-    #prepare to render the GUI panel
-    libtcod.console_set_default_background(panel, libtcod.darkest_grey)
-    libtcod.console_clear(panel)
+    #prepare to render the msgs panel
+    libtcod.console_set_default_background(msgs, BORDER_BACKGROUND)
+    libtcod.console_clear(msgs)
+    #Color borders
+    libtcod.console_set_default_foreground(msgs, BORDER_COLOR)
+
+    for y_num in range(1, MSG_HEIGHT, 1):
+
+        ##MSGS HOZ VERTICAL BORDERS##
+        #Do the left side for messages
+        libtcod.console_put_char(msgs, 0, y_num, BORDER_FILL, libtcod.BKGND_NONE)
+
+        #Do the right side for messages
+        libtcod.console_put_char(msgs, MSG_STOP-1, y_num, BORDER_FILL , libtcod.BKGND_NONE)
+
+     #Set border for msgs
+    border = calc_border(MSG_STOP)
+
+    #Top and bottom border bar for msgs
+    #Top
+    libtcod.console_print_ex(msgs, 0, 0, libtcod.BKGND_NONE, libtcod.LEFT, border)
+    #Bottom
+    libtcod.console_print_ex(msgs, 0, MSG_HEIGHT, libtcod.BKGND_NONE, libtcod.LEFT, border)
 
     y = 1
     for (line, color) in game_msgs:
-        libtcod.console_set_default_foreground(panel, color)
-        libtcod.console_set_default_background(panel, libtcod.black)#TODO: Figure out how to make msgs background black
-        libtcod.console_print_ex(panel, MSG_X, y, libtcod.BKGND_SCREEN, libtcod.LEFT, line)
+        libtcod.console_set_default_foreground(msgs, color)
+        libtcod.console_print_ex(msgs, 1, y, libtcod.BKGND_NONE, libtcod.LEFT, line)
 
         y += 1
 
-    libtcod.console_blit(panel, 0, 0, SCREEN_WIDTH, PANEL_HEIGHT, 0, 0, PANEL_Y)
+    libtcod.console_blit(msgs, 0, 0, MSG_STOP, 0, 0, MSG_X, PANEL_Y)
+
 
 def count_turns(turn_duration):  #Returns a true value when no_of_turns has passed
     global turn_increment, turn_5
@@ -835,8 +853,8 @@ def place_objects(room):
     #chance of each monsters
     monster_chances = {}
     monster_chances['Dog'] = 30  #Dog always spawns, even if all other monsters have 0 chance
-    monster_chances['Snake'] = from_dungeon_level([[3000, 1], [5, 3], [50, 7]])
-    monster_chances['Imp'] = from_dungeon_level([[1, 1], [30, 5], [50, 7]])
+    monster_chances['Snake'] = from_dungeon_level([[3, 1], [5, 3], [50, 7]])
+    monster_chances['Imp'] = from_dungeon_level([[5, 1], [30, 5], [50, 7]])
     monster_chances['Firefly'] = from_dungeon_level([[1,2], [30, 3], [60, 7]]) #TODO: Fix paralyse bug
     monster_chances['Crab'] = from_dungeon_level([[1, 1], [30, 3], [60, 7]])
     monster_chances['Goat'] = from_dungeon_level([[15, 2], [30, 8], [60, 10]])
@@ -1421,7 +1439,9 @@ def render_all():
     libtcod.console_set_default_background(panel2, BORDER_BACKGROUND)
     libtcod.console_clear(panel2)
 
+    ###########
     ##BORDERS##
+    ###########
 
     #Prepare to render the borders
     libtcod.console_set_default_foreground(msgs, BORDER_COLOR)
@@ -1432,7 +1452,7 @@ def render_all():
     #For the height of panel, minus one for the top bar that already displays it.
     for y_num in range(1, MSG_HEIGHT, 1):
 
-        ##MSGS HOZ VERTICAL BORDERS##
+        ##MSGS VERTICAL BORDERS##
         #Do the left side for messages
         libtcod.console_put_char(msgs, 0, y_num, BORDER_FILL, libtcod.BKGND_NONE)
 
@@ -1448,7 +1468,7 @@ def render_all():
     #Different range, same function.
     for y_num in range(1, MAP_HEIGHT, 1):
 
-        ##MSGS HOZ VERTICAL BORDERS##
+        ##PANEL2 VERTICAL BORDERS##
         #Do the left side for messages
         libtcod.console_put_char(panel2, 0, y_num, BORDER_FILL, libtcod.BKGND_NONE)
 
@@ -1536,7 +1556,7 @@ def render_all():
     #blit the contents of "msgs" to the root console
     libtcod.console_blit(msgs, 0, 0, MSG_STOP, 0, 0, MSG_X, PANEL_Y)
 
-    #Change color from border color
+    #Change color from border color for panel2
     libtcod.console_set_default_foreground(panel2, libtcod.white)
 
     # display a title
@@ -1695,7 +1715,7 @@ def message_wait(char, messagetext, color=libtcod.white):
 
 def message(new_msg, color=libtcod.white):
     #split the message if necessary, among multiple lines
-    new_msg_lines = textwrap.wrap(new_msg, MSG_WIDTH)
+    new_msg_lines = textwrap.wrap(new_msg, MSG_STOP-1)
 
     for line in new_msg_lines:
         #if the buffer is full, remove the first line to make room for the new one
@@ -2000,12 +2020,10 @@ def cast_fireball():  #FIGURE OUT HOW TO PAUSE AFTER THIS MESSAGE BEFORE DEALING
     for obj in objects:  #damage every fighter in range, including the player
         if obj.distance(x, y) <= FIREBALL_RADIUS and obj.fighter and obj != player:
             message('The ' + obj.name + ' is completely immolated and takes ' + str(FIREBALL_DAMAGE) + ' damage.',
-                    libtcod.orange)
+                    libtcod.white)
             map[obj.x][obj.y].color_flash = libtcod.orange
 
-
-
-    obj.fighter.take_damage(FIREBALL_DAMAGE)
+            obj.fighter.take_damage(FIREBALL_DAMAGE)
 
 
 
@@ -2082,7 +2100,7 @@ def monster_death(monster):
 
 
     message('The ' + monster.name.capitalize() + ' dies! You gain ' + str(monster.fighter.xp) + ' experience points.',
-            libtcod.orange)
+            libtcod.white)
     monster.char = '%'
     monster.color = libtcod.dark_red
     monster.blocks = False
