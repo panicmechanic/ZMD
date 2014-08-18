@@ -23,7 +23,7 @@ SCREEN_WIDTH = 130
 SCREEN_HEIGHT = 60
 
 #size of the map
-MAP_WIDTH = 105
+MAP_WIDTH = 106
 MAP_HEIGHT = 53
 
 #parameters for dungeon generator
@@ -34,9 +34,10 @@ MAX_ROOMS = 55
 #sizes and coordinates relevant for GUI
 BAR_WIDTH = 20
 PANEL_HEIGHT = 7
+
 PANEL_Y = SCREEN_HEIGHT - PANEL_HEIGHT
-MSG_X = BAR_WIDTH + 2
-MSG_WIDTH = SCREEN_WIDTH - BAR_WIDTH - 2
+MSG_X = BAR_WIDTH + 1
+MSG_WIDTH = SCREEN_WIDTH - BAR_WIDTH - 1
 MSG_HEIGHT = PANEL_HEIGHT - 1
 INVENTORY_WIDTH = 50
 LEVEL_SCREEN_WIDTH = 40
@@ -44,10 +45,11 @@ CHARACTER_SCREEN_WIDTH = 25
 EFFECTS_GUI = 4
 
 # PANEL 2
-PANEL2_HEIGHT = 53
-PANEL2_WIDTH = 25
+PANEL2_HEIGHT = SCREEN_HEIGHT
+PANEL2_WIDTH = 24
 RECT_HEIGHT = 16 - PANEL2_HEIGHT  # 16 being the max height of the enemy fov panel.
 MSG_STOP = MSG_WIDTH - PANEL2_WIDTH
+PANEL_WIDTH = SCREEN_WIDTH - PANEL2_WIDTH
 
 #FOV
 FOV_ALGO = 0  #Default FOV algorithm
@@ -1415,27 +1417,75 @@ def render_all():
     libtcod.console_set_default_background(msgs, BORDER_BACKGROUND)
     libtcod.console_clear(msgs)
 
+    #prepare to render the second GUI panel
+    libtcod.console_set_default_background(panel2, BORDER_BACKGROUND)
+    libtcod.console_clear(panel2)
+
+    ##BORDERS##
+
+    #Prepare to render the borders
     libtcod.console_set_default_foreground(msgs, BORDER_COLOR)
-    border = calc_border()
+    libtcod.console_set_default_foreground(panel, BORDER_COLOR)
+    libtcod.console_set_default_foreground(panel2, BORDER_COLOR)
 
-    #Top bar
-    libtcod.console_print_ex(msgs, 0, 0, libtcod.BKGND_SCREEN, libtcod.LEFT, border)
+    #First, the vertical borders
+    #For the height of panel, minus one for the top bar that already displays it.
+    for y_num in range(1, MSG_HEIGHT, 1):
 
-    #Bottom Bar
-    libtcod.console_print_ex(msgs, 0, MSG_HEIGHT, libtcod.BKGND_SCREEN, libtcod.LEFT, border)
+        ##MSGS HOZ VERTICAL BORDERS##
+        #Do the left side for messages
+        libtcod.console_put_char(msgs, 0, y_num, BORDER_FILL, libtcod.BKGND_NONE)
 
-    #For the height of msgs, minus one for the top bar that already displays it.
-    for y_num in range(0, MSG_HEIGHT-1, 1):
-        #Do the left side
-        libtcod.console_put_char(msgs, 0, y_num+1, BORDER_FILL, libtcod.BKGND_SCREEN)
+        #Do the right side for messages
+        libtcod.console_put_char(msgs, MSG_STOP-1, y_num, BORDER_FILL , libtcod.BKGND_NONE)
 
-        #Do the right side
-        libtcod.console_put_char(msgs, MSG_STOP-1, y_num+1, BORDER_FILL , libtcod.BKGND_SCREEN)
+        ##HEALTH/POIS BARS VERTICAL BORDERS##
+        #Do the left side for health bars
+        libtcod.console_put_char(panel, 0, y_num, BORDER_FILL, libtcod.BKGND_NONE)
 
-        #Do the left side
-        libtcod.console_put_char(msgs, -1, y_num+1, BORDER_FILL, libtcod.BKGND_SCREEN)
+        #Right side already done
+
+    #Different range, same function.
+    for y_num in range(1, MAP_HEIGHT, 1):
+
+        ##MSGS HOZ VERTICAL BORDERS##
+        #Do the left side for messages
+        libtcod.console_put_char(panel2, 0, y_num, BORDER_FILL, libtcod.BKGND_NONE)
 
 
+        #Do the right side for messages
+        libtcod.console_put_char(panel2, PANEL2_WIDTH-1, y_num, BORDER_FILL, libtcod.BKGND_NONE)
+
+    #Set border for msgs
+    border = calc_border(MSG_STOP)
+
+    #Top and bottom border bar for msgs
+    #Top
+    libtcod.console_print_ex(msgs, 0, 0, libtcod.BKGND_NONE, libtcod.LEFT, border)
+    #Bottom
+    libtcod.console_print_ex(msgs, 0, MSG_HEIGHT, libtcod.BKGND_NONE, libtcod.LEFT, border)
+
+    #Set border for panel
+    border = calc_border(MSG_X+1)
+
+    #Top and bottom border bar for panel (health bars)
+    #Top
+    libtcod.console_print_ex(panel, 0, 0, libtcod.BKGND_NONE, libtcod.LEFT, border)
+    #Bottom
+    libtcod.console_print_ex(panel, 0, MSG_HEIGHT, libtcod.BKGND_NONE, libtcod.LEFT, border)
+
+    #Set border for panel2
+    border = calc_border(PANEL2_WIDTH)
+
+    #Top and bottom border bar for panel2
+    #Top
+    libtcod.console_print_ex(panel2, 0, 0, libtcod.BKGND_NONE, libtcod.LEFT, border)
+    #Bottom
+    libtcod.console_print_ex(panel2, 0, MAP_HEIGHT-1, libtcod.BKGND_NONE, libtcod.LEFT, border)
+    #Middle
+    libtcod.console_print_ex(panel2, 0, 23, libtcod.BKGND_NONE, libtcod.LEFT, border)
+
+    ##END BORDERS##
 
     #print the game messages, one line at a time
     y = 1
@@ -1447,7 +1497,7 @@ def render_all():
 
     #show the player's stats
     level_up_xp = LEVEL_UP_BASE + player.level * LEVEL_UP_FACTOR
-    render_bar(panel, 1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.light_red, libtcod.darkest_red)
+    render_bar(panel, 1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.red, libtcod.darker_crimson)
     render_bar(panel, 1, 2, BAR_WIDTH, 'XP', player.fighter.xp, level_up_xp, libtcod.light_blue,
                libtcod.darkest_blue)
     render_bar_simple(panel, 1, 3, BAR_WIDTH, str(hunger()), hunger_level, 800, libtcod.orange,
@@ -1486,12 +1536,11 @@ def render_all():
     #blit the contents of "msgs" to the root console
     libtcod.console_blit(msgs, 0, 0, MSG_STOP, 0, 0, MSG_X, PANEL_Y)
 
-    #prepare to render the second GUI panel
-    libtcod.console_set_default_background(panel2, libtcod.darkest_grey)
-    libtcod.console_clear(panel2)
+    #Change color from border color
+    libtcod.console_set_default_foreground(panel2, libtcod.white)
 
     # display a title
-    libtcod.console_print_ex(panel2, 5, 0, libtcod.BKGND_NONE, libtcod.LEFT, 'Enemies in FOV:')
+    libtcod.console_print_ex(panel2, 5, 1, libtcod.BKGND_NONE, libtcod.LEFT, 'Enemies in FOV:')
 
     #print the enemy fighters hp, and a bar below them, as long as the total width does not exceed 16
     y = 2
@@ -1500,7 +1549,7 @@ def render_all():
         # if object is in fov and is a fighter and is not the player, and the list of objects is not too
         #  long, render a bar for that object
         if libtcod.map_is_in_fov(fov_map, obj.x, obj.y) and obj.fighter and obj.name != 'player' and y <= 14:
-            render_bar(panel2, 3, y, BAR_WIDTH, str(obj.name.capitalize()), obj.fighter.hp, obj.fighter.max_hp,
+            render_bar(panel2, 2, y, BAR_WIDTH, str(obj.name.capitalize()), obj.fighter.hp, obj.fighter.max_hp,
                        libtcod.red, libtcod.darker_red)
             y += 2
 
@@ -1510,7 +1559,7 @@ def render_all():
 
     char_info = '\nLevel: ' + str(player.level) + '\nDungeon level: ' + str(dungeon_level) + '\nAttack: ' + str(player.fighter.power) + '\nDefense: ' + str(
         player.fighter.defense) + '\nEvasion: ' + str(player.fighter.ev) + '\nAccuracy: ' + str(
-        player.fighter.acc) + '\nEffects: ' + get_player_effects() + '\n\nEquipped Items:' + '\n' + iterate_through_list(
+        player.fighter.acc) + '\nEffects: ' + get_player_effects() + '\n\nEquipped Items:' + iterate_through_list(
         get_all_equipped(player))
 
     libtcod.console_print_ex(panel2, 1, 26, libtcod.BKGND_NONE, libtcod.LEFT, char_info)
@@ -2080,11 +2129,11 @@ def target_monster(max_range=None):
             if obj.x == x and obj.y == y and obj.fighter and obj != player:
                 return obj
 
-def calc_border():
+def calc_border(x):
 
     border_len = []
     #For each step in the range of the msg_width(msg_stop), add one filler tile
-    for i in range(0, MSG_STOP-2, 1):
+    for i in range(0, x-2, 1):
         border_len.append(BORDER_FILL)
     border = ''.join(border_len)
 
@@ -2136,7 +2185,14 @@ def new_game():
     #initial equipment: a dagger
     equipment_component = Equipment(slot='left hand', power_bonus=2)
     obj = Object(0, 0, '-', 'wooden dagger', libtcod.darkest_orange, equipment=equipment_component,
-                 description='A small wodden dagger, it provides a bonus to attack.')
+                 description='A small wooden dagger, it provides a bonus to attack.')
+    inventory.append(obj)
+    equipment_component.equip()
+    obj.always_visible = True
+
+    equipment_component = Equipment(slot='right hand', power_bonus=2)
+    obj = Object(0, 0, '-', 'bone dagger', libtcod.darkest_orange, equipment=equipment_component,
+                 description='A small bone dagger, it provides a bonus to attack.')
     inventory.append(obj)
     equipment_component.equip()
     obj.always_visible = True
@@ -2444,13 +2500,11 @@ def get_all_equipped(obj):  #returns a list of equipped items
 
 
 def iterate_through_list(x):
-    count = 0
+    list1 = []
     for i in x:
-        count += 1
-        if count == 1:
-            return str(i.owner.name).capitalize()
-        elif count >= 2:
-            return str(i.owner.name).capitalize()
+
+       list1.append('\n' + str(i.owner.name).capitalize())
+    return ' '.join(list1)
 
 
 def add_bones(x, y):
