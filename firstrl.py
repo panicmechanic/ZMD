@@ -301,7 +301,11 @@ class Fighter:
     def add_effect(self, Effect, object_origin_name):  # Add effect to the fighter class's list of effects
         # check if the effect already exists, if it does, just increase the duration
 
+        #This is the cause of the duplication, maybe when two snakes score poison, or
+            #perhaps the if, elif else statement aren't robust enough.
+
         #if effects is not empty, iterate through them
+        #appended = False
         if self.effects != []:
 
             for i in self.effects:
@@ -311,14 +315,18 @@ class Fighter:
                     i.applied_times += 1
                     message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you further!',
                             libtcod.white)
+                    #appended = True
 
                 elif i.mutation == True and i.effect_name == Effect.effect_name and Effect.mutation == True:
                     i.applied_times += 1
 
+
                     message('The gods have blessed your ' + Effect.effect_name + ' further!',
                             libtcod.white)
 
+                #Think this may be the line that fires ocassinoally causing duplication
                 else:
+
                     self.effects.append(Effect)
                     message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you!', libtcod.yellow)
 

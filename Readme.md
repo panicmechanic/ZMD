@@ -15,10 +15,14 @@ There should be many different level types for you to interact with, providing a
 variety of challenges and problems to solve with brains or brawn as you continue your
 journey, creating your own odyssey as you go.
 
+Repetitive tasks (such as grinding) should be kept to a minimum, including those necessary
+to cross the dungeon, hot keys like fire/grab/open should be less than 5 and ideally use 
+a universal hotkey system.
+
 The game takes inspiration from Brogue, Sil and DCSS, and aims to be simple and relatively
 intuitive, while providing deep and rewarding functionality through the complex systems
-synonymous with roguelikes. It currently uses an experience point system, although this
-may change in the future.
+synonymous with roguelikes(such as combat). It currently uses an experience point system, 
+although this may change in the future.
 
 Originally just a way for me to learn python, as it grew I decided to manage the project
 properly and get it on GitHub. Any help/advice is greatly appreciated.
@@ -91,7 +95,7 @@ Damage player - '#'
 - Paralyze still lets you hit first few turns 
 - Paralyze is tripled when lightning goes off and you are paralyzed
 - Poison is being appended more than once. Something in add_effect() or roll_for_effect(). Debug it.
-- lightning mutation blue colour doesn't stay when you move but does when you pass with '5'
+
 - Add a slice in half effect that colours squares directly beihnd the enemy red. By subtracting
     monster.x and y from player.x and y and figuring out which changed and in which direction 
     (+ or -) and rolling for a number of squares and if not blocked to paint those squares.
