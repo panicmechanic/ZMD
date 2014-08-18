@@ -79,7 +79,7 @@ Damage player - '#'
 
 - get_player_effects and iterate_through_list seem to only
 	want to show the first element of each list on the GUI.	
-- Put 2 new boxes with equipped items and effects iterated and displayed with \n
+    Put 2 new boxes with equipped items and effects iterated and displayed with \n.
 - Add estimated time length to major todo list below.
 - Figure out how to get fatal effect warning to display on panel2, line 535.
 - Finish lever object
@@ -95,7 +95,6 @@ Damage player - '#'
 - Paralyze still lets you hit first few turns 
 - Paralyze is tripled when lightning goes off and you are paralyzed
 - Poison is being appended more than once. Something in add_effect() or roll_for_effect(). Debug it.
-
 - Add a slice in half effect that colours squares directly beihnd the enemy red. By subtracting
     monster.x and y from player.x and y and figuring out which changed and in which direction 
     (+ or -) and rolling for a number of squares and if not blocked to paint those squares.
@@ -105,14 +104,9 @@ Damage player - '#'
 - Problem with warhammer splatter and lightning mutation
 - Add knockout effect for sneaking up on enemies
    
-
- 
-
-
-
-
 #Major TODO (in rough order):
 - Create 'Forget map' effect
+- Create 'blind' effect
 - Make critical hits a function of accuracy roll and evasion roll (a la sil)
 - Implement numdice*numfaces rolling system a la sil for attack.
 - Break up firstrl.py into modules
@@ -150,13 +144,7 @@ Damage player - '#'
     and boost acc and ev by 2.
 - Implement some of sil's approach to skills and levels. 
 
-
-
-
-
-
 #Done:
-
 - Added colour range for damage flash based on severity of damage.
 - Added display damage on hit!
 - Added mutations, currently a little buggy.
@@ -194,7 +182,3 @@ Damage player - '#'
 - Added accuracy roll, a min/max system.
 - Added a new GUI to the right, displays monster.fighter hp bars when in FOV
 - Added character info box to panel2, discarded irrelevant/duplicated information like xp.
-
-
-
-

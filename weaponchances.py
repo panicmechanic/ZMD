@@ -495,5 +495,4 @@ def create_item(x, y):
         objects.remove(item)
     item_chances = {}
 
-
     # - Fix eat_food being applied to the player every time a new map is made. Use debug on the eat)hunger function toi figure out why it's being called

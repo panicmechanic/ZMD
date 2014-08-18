@@ -477,70 +477,6 @@ class BasicMonsterAI:
         else:
             monster_move_or_attack(monster)
 
-def monster_move_or_attack(monster):
-
-    #If the monster is in the players FOV, monster can see player.
-    if libtcod.map_is_in_fov(fov_map, monster.x, monster.y): #If the monster is in the players FOV
-
-        #move towards player if far away
-
-        # pygmys can attack one block further in every direction.
-        if monster.char == 'p' and monster.distance_to(player) <= 2:
-            if player.fighter.hp > 0:
-                monster.fighter.attack(player)
-
-
-        elif monster.distance_to(player) >= 2:
-            #compute how to reach the player
-            # TODO: Insert an if statement to check for a blocked tile, pick an adjacent one and move into it instead
-            # or have other monsters be seen as a blocked tile? may need to write path function for this.
-
-            #and move one tile towards them
-            monster.move_towards(player.x, player.y)
-            check_run_effects(monster)
-
-        #close enough, attack! (if the player is still alive.)
-        elif player.fighter.hp > 0:
-            monster.fighter.attack(player)
-
-
-
-    else:
-        #the player cannot see the monster
-        #if we have an old path, follow it
-
-        #If path is not empty and the distance to the player is greater than 2
-        if monster.path is not None and not libtcod.path_is_empty(monster.path):
-
-            nextx, nexty = libtcod.path_walk(monster.path, True)
-            dx = nextx - monster.x
-            dy = nexty - monster.y
-            monster.move(dx, dy)
-
-        #stop boar and baby boars and pygmys from wandering
-        elif not monster.char == 'B' or monster.char == 'b' or monster.char == 'p':
-            #path is empty, wander randomly
-            rand_direction = libtcod.random_get_int(0, 1, 8)
-            if rand_direction == 1:
-                monster.move(-1, 1)
-            elif rand_direction == 2:
-                monster.move(0, 1)
-            elif rand_direction == 3:
-                monster.move(1, 1)
-            elif rand_direction == 4:
-                monster.move(-1, 0)
-            elif rand_direction == 5:
-                monster.move(1, 0)
-            elif rand_direction == 6:
-                monster.move(-1, -1)
-            elif rand_direction == 7:
-                monster.move(0, -1)
-            else:
-                monster.move(1, -1)
-        else:
-            return 'cancelled'
-
-
 class ConfusedMonster:
     #AI for a temporarily confused monster, reverts to normal AI after a while
     def __init__(self, old_ai, num_turns=CONFUSE_NUM_TURNS):
@@ -673,11 +609,69 @@ class Effect:
         self.m_elec_trigger = m_elec_trigger
         self.m_elec_damage = m_elec_damage
 
+def monster_move_or_attack(monster):
+
+    #If the monster is in the players FOV, monster can see player.
+    if libtcod.map_is_in_fov(fov_map, monster.x, monster.y): #If the monster is in the players FOV
+
+        # pygmys can attack one block further in every direction.
+        if monster.char == 'p' and monster.distance_to(player) <= 2:
+            if player.fighter.hp > 0:
+                monster.fighter.attack(player)
+
+        #move towards player if far away
+        elif monster.distance_to(player) >= 2:
+            #compute how to reach the player
+            # TODO: Insert an if statement to check for a blocked tile, pick an adjacent one and move into it instead
+            # or have other monsters be seen as a blocked tile? may need to write path function for this.
+
+            #and move one tile towards them
+            monster.move_towards(player.x, player.y)
+            check_run_effects(monster)
+
+        #close enough, attack! (if the player is still alive.)
+        elif player.fighter.hp > 0:
+            monster.fighter.attack(player)
+
+    else:
+        #the player cannot see the monster
 
 
+        #if we have an old path, follow it
+        #If path is not empty and the distance to the player is greater than 2
+        if monster.path is not None and not libtcod.path_is_empty(monster.path):
+
+            nextx, nexty = libtcod.path_walk(monster.path, True)
+            dx = nextx - monster.x
+            dy = nexty - monster.y
+            monster.move(dx, dy)
+
+        #stop boar and baby boars and pygmys from wandering
+        elif not monster.char == 'B' or monster.char == 'b' or monster.char == 'p':
+            #path is empty, wander randomly
+            rand_direction = libtcod.random_get_int(0, 1, 8)
+            if rand_direction == 1:
+                monster.move(-1, 1)
+            elif rand_direction == 2:
+                monster.move(0, 1)
+            elif rand_direction == 3:
+                monster.move(1, 1)
+            elif rand_direction == 4:
+                monster.move(-1, 0)
+            elif rand_direction == 5:
+                monster.move(1, 0)
+            elif rand_direction == 6:
+                monster.move(-1, -1)
+            elif rand_direction == 7:
+                monster.move(0, -1)
+            else:
+                monster.move(1, -1)
+        else:
+            return 'cancelled'
 
 def check_run_effects(obj):
     global fov_recompute
+
     # Check for effects, if there is 1 or more and their turns_passed value is not == duration, increase its turn_passed value by one, if it is equal to duration remove it.
     if obj.fighter.effects is not None:
         for eff in obj.fighter.effects:
@@ -698,8 +692,11 @@ def check_run_effects(obj):
                 if eff.damage_by_turn is not None:
 
                     turns_left = eff.duration - eff.turns_passed
+
                     total_dmg = turns_left * eff.damage_by_turn
-                    if total_dmg >= obj.fighter.hp:
+
+                    #If total damage to be dealt is larger than the players hp and the players hp is 1 or more
+                    if total_dmg >= obj.fighter.hp and obj.fighter.hp >= 1:
                         #Todo make this a class variable in fighter.
                         FATAL_EFFECT = True
                         FATAL_NAME = str(eff.effect_name)
@@ -707,7 +704,7 @@ def check_run_effects(obj):
                         message('You are fatally ' + eff.effect_name + '!')
                         #works up to here, then doesn't want to print the warning
                         libtcod.console_print_ex(panel, 1, 4, libtcod.BKGND_NONE, libtcod.LEFT, 'Fatally ' + FATAL_NAME + '!')
-                    elif eff.fatal_alert == True:
+                    elif eff.fatal_alert == True and player.fighter.hp >= 1:
                         FATAL_EFFECT = False
                         FATAL_NAME = None
                         message('You are no longer fatally ' + eff.effect_name + '.')
@@ -828,9 +825,9 @@ def place_objects(room):
     #chance of each monsters
     monster_chances = {}
     monster_chances['Dog'] = 30  #Dog always spawns, even if all other monsters have 0 chance
-    monster_chances['Snake'] = from_dungeon_level([[3, 1], [5, 3], [50, 7]])
+    monster_chances['Snake'] = from_dungeon_level([[3000, 1], [5, 3], [50, 7]])
     monster_chances['Imp'] = from_dungeon_level([[1, 1], [30, 5], [50, 7]])
-    monster_chances['Firefly'] = from_dungeon_level([[1000, 1], [30, 3], [60, 7]]) #TODO: Fix paralyse bug
+    monster_chances['Firefly'] = from_dungeon_level([[1,2], [30, 3], [60, 7]]) #TODO: Fix paralyse bug
     monster_chances['Crab'] = from_dungeon_level([[1, 1], [30, 3], [60, 7]])
     monster_chances['Goat'] = from_dungeon_level([[15, 2], [30, 8], [60, 10]])
     monster_chances['Eagle'] = from_dungeon_level([[15, 5], [30, 8], [60, 10]])
@@ -867,7 +864,7 @@ def place_objects(room):
 
             elif choice == 'Snake':
                 #create a Snake
-                effect_component = Effect('Poisoned', duration=5, damage_by_turn=2, base_duration=5)
+                effect_component = Effect('poisoned', duration=5, damage_by_turn=2, base_duration=5)
                 effect_roll = 20
                 fighter_component = Fighter(hp=35, defense=2, power=5, xp=100, ev=10, acc=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
                 ai_component = BasicMonsterAI()
@@ -974,6 +971,7 @@ def place_objects(room):
         y = libtcod.random_get_int(0, room.y1 + 1, room.y2 - 1)
 
         # Set weaponchances functions and variables to work
+        # How to do this in modules?
         weaponchances.dungeon_level = dungeon_level
         weaponchances.objects = objects
         weaponchances.Equipment = Equipment
@@ -1332,6 +1330,7 @@ def render_all():
     global objects
     global turn
     global hunger_level
+    global FATAL_EFFECT, FATAL_NAME
 
 
     if fov_recompute:
@@ -1431,12 +1430,14 @@ def render_all():
 
     for eff in player.fighter.effects:
 
-        if eff.effect_name == 'Poisoned':
+        if eff.effect_name == 'poisoned':
             render_bar_simple(panel, 1, 3 + total_effects, BAR_WIDTH, 'Poisoned X ' + str(eff.applied_times), (eff.duration-eff.turns_passed), eff.duration, libtcod.darker_green, libtcod.darkest_green)
             total_effects += 1
             print total_effects
             for i in player.fighter.effects:
                 print i.effect_name
+
+
 
         if eff.effect_name == 'Paralyzed':
             render_bar_simple(panel, 1, 3+total_effects, BAR_WIDTH, 'Paralyzed X ' + str(eff.applied_times), (eff.duration-eff.turns_passed), eff.duration, libtcod.purple,
@@ -2056,7 +2057,7 @@ def new_game():
 
     key = libtcod.Key()
     #create object representing player
-    fighter_component = Fighter(hp=1000, defense=3, power=6, xp=0, ev=5, acc=10, death_function=player_death,
+    fighter_component = Fighter(hp=100, defense=3, power=6, xp=0, ev=5, acc=10, death_function=player_death,
                                 effects=[])
     player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter_component)
     player.level = 1
