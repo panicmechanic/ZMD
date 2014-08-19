@@ -103,6 +103,8 @@ Damage player 10 hit points - '#'
 - Give fighters an awareness value equal to sleeping, wandering, aware. If monster is in fov and distance < 10
  
     roll stealth/detection and raise awareness 1 level. While sleeping cannot wander.
+    
+- Fix name_stat_gen() and make iterate_through_list() print each item with auto wrap. 
       
 
 - Still some minor bugs to iron out to roll, level up needs changing which will probably require adding the following:
@@ -112,17 +114,15 @@ Damage player 10 hit points - '#'
         Calisthenics (strength)  - Increase attack (power sides by 1), increase ranged range. 
         Gymnastics (dexterity)   - Increase acc/ev, small boost to speed
         Shadow training (stealth)- Improve stealth, improve speed
-        Meditation (will)        - Improve accuracy, perception checks, skill helps mutations
+        Meditation (will)        - Improve accuracy, perception checks, skill helps mutations      
 
-
-   
 #Alpha TODO:
 
 For alpha release:
     
     - MAJOR: Implement numdice*numfaces rolling system a la sil for attack. 
         (DONE - 1 DAY. Still need to update check_level_up and change old monster values)
-    - Add more items/weapons
+    - Add more items/weapons, implement 4 skills above
         (1 day - After num*dice change, this will require a complete rework
     - MAJOR: Turn system http://www.roguebasin.com/index.php?title=A_simple_turn_scheduling_system_--_Python_implementation
         (DONE - 1.5 HOURS)

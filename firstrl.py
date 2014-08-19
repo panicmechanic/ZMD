@@ -1507,6 +1507,8 @@ def render_all():
                         libtcod.console_set_default_foreground(con, libtcod.Color(150, 150, 150))
                         libtcod.console_put_char(con, x, y, FLOOR_CHAR, libtcod.BKGND_SCREEN)
 
+
+
                     #Since it's visible, set it to explored
                     map[x][y].explored = True
 
