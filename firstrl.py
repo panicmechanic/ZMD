@@ -77,12 +77,8 @@ LEVEL_UP_FACTOR = 200
 
 
 #FPS
-LIMIT_FPS = 60  #20 frames-per-second maximum
+LIMIT_FPS = 100  #60 frames-per-second maximum
 
-
-
-
-#TODO: NEED TO CHANGE THESE VALUES AT SOME POINT, MAYBE AFTER NOISE SYSTEM
 color_dark_wall = libtcod.Color(120, 90, 55)
 color_light_wall = libtcod.Color(150, 120, 85)
 color_dark_ground = libtcod.Color(100, 100, 100)
@@ -275,6 +271,7 @@ class Fighter:
         #Standard of 50 means it will heal at the same rate as the player
         self.heal_rate = heal_rate
         self.heal_counter = heal_counter
+
         self.death_function = death_function
         self.effects = effects
         self.cast_effect = cast_effect
@@ -887,7 +884,7 @@ def place_objects(room):
             choice = random_choice(monster_chances)
             if choice == 'Dog':
                 #create an dog
-                fighter_component = Fighter(hp=40, defense=1, power=5, xp=400, ev=5, acc=5, speed=10, death_function=monster_death)
+                fighter_component = Fighter(hp=40, defense=1, power=5, xp=40, ev=5, acc=5, speed=10, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'd', 'Dog', libtcod.darker_orange, blocks=True, fighter=fighter_component,
                                  ai=ai_component, description='A large, brown muscular looking dog. His eyes glow red.')
@@ -1620,8 +1617,8 @@ def display_damage(self):
 
     #If self is player and player took damage, display a char.
     if self == player and self.display_dmg != None:
-        libtcod.console_set_default_foreground(con, libtcod.dark_red)
-        libtcod.console_set_char_background(con, self.x, self.y, libtcod.black, libtcod.BKGND_SET)
+        libtcod.console_set_default_foreground(con, libtcod.darker_red)
+        libtcod.console_set_char_background(con, self.x, self.y, libtcod.silver, libtcod.BKGND_SET)
         libtcod.console_put_char(con, self.x, self.y, '*', libtcod.BKGND_SCREEN)
 
 def wait_for_spacekey():  #Make cast heal message appear without having to press the same key twice
@@ -2558,6 +2555,7 @@ def add_bones(x, y):
 
             objects.append(item)
             item.send_to_back()
+
 
 
 ################

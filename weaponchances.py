@@ -47,7 +47,7 @@ def add_food_and_scrolls(x, y):
     item_chances['bread'] = from_dungeon_level([[10, 1], [15, 5]])
     item_chances['feta cheese'] = from_dungeon_level([[5, 1], [8, 5]])
     item_chances['lightning'] = from_dungeon_level([[1, 2], [15, 6]])
-    item_chances['fireball'] = from_dungeon_level([[1000, 1], [15, 6]])
+    item_chances['fireball'] = from_dungeon_level([[1, 1], [15, 6]])
     item_chances['confuse'] = from_dungeon_level([[1, 2], [15, 5]])
 
     choice = random_choice(item_chances)
@@ -422,6 +422,8 @@ def create_item(x, y):
         equipment_component = Equipment(slot='finger', max_hp_bonus=50)
         item = Object(x, y, chr(249), 'Golden ring of health', libtcod.gold, equipment=equipment_component, item=None,
                       always_visible=True)
+
+
 
     elif choice == 'golden ring of strength':
         equipment_component = Equipment(slot='finger', power_bonus=8)
