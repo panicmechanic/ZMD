@@ -193,6 +193,7 @@ For alpha release:
 
 #Done:
 
+- Fixed player_rest() to print full health message instead of already healthy message
 - Changed player colour
 - Gave wall and floor tiles a character
 - Added color player red when damaged

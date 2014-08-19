@@ -79,12 +79,12 @@ def add_food_and_scrolls(x, y):
 
     elif choice == 'bread':
         #create a piece of bread
-        item_component = Item(food_value=200)
+        item_component = Item(food_value=2000)
         item = Object(x, y, ';', 'piece of bread', libtcod.darkest_red, item=item_component, always_visible=True)
 
     elif choice == 'feta cheese':
         #create a piece of bread
-        item_component = Item(food_value=400)
+        item_component = Item(food_value=4000)
         item = Object(x, y, ';', 'lump of feta cheese', libtcod.white, item=item_component, always_visible=True)
 
     objects.append(item)

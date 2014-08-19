@@ -69,7 +69,7 @@ HEAL_RATE = 1
 #Food properties
 HUNGER_RATE = 1
 HUNGER_TOTAL = 8000
-HUNGER_WARNING = 500
+HUNGER_WARNING = 100
 
 #Player parameters
 LEVEL_UP_BASE = 200
@@ -245,10 +245,6 @@ class Object:
             #set the color and then draw the character that represents this object at its position
             libtcod.console_set_default_foreground(con, self.color)
             libtcod.console_put_char(con, self.x, self.y, self.char, libtcod.BKGND_NONE)
-
-
-
-
 
     def clear(self):
         #erase the character that represents this object
@@ -1917,14 +1913,15 @@ def player_rest():
             carry_on = False
             message('You cannot rest while fatally ' + FATAL_NAME + '!')
 
-        if carry_on == True:
-            check_by_turn(10)
-            check_run_effects(player)
-
         if player.fighter.hp == player.fighter.max_hp:
             carry_on=False
             message('You are already at full health', libtcod.white)
             break
+
+        if carry_on == True:
+            check_by_turn(10)
+            check_run_effects(player)
+
 
         if player.fighter.hp == (player.fighter.max_hp/2)-1:
             carry_on = False
@@ -2428,15 +2425,18 @@ def from_dungeon_level(table):
 #Handles turns/speed/heal
 def check_by_turn(speed):
     global heal_rate, turn_increment, turn_5, hunger_level
+    hunger_fire=0
     for i in range(0, speed, 1):
         turn_increment += 1
 
-        hunger_level -= HUNGER_RATE
-
-
-
-
-
+        #Deal with hunger
+        #Add one to the count
+        hunger_fire +=1
+        #If count is 2, decrease hunger by HUNGER_RATE
+        if hunger_fire == 2:
+            hunger_level -= HUNGER_RATE
+            #Reset hunger_fire
+            hunger_fire=0
 
         #Iterate through objects list
         for obj in objects:
@@ -2491,17 +2491,21 @@ def hunger():
     #return string of hunger level (Full, Content, Peckish, Hungry, Starving)
     #TODO: make starving, v. hungry different colors
     global hunger_level
-    if hunger_level >= 740:
+    increment = HUNGER_TOTAL/5
+
+    if hunger_level >= increment*5:
         return 'Full'
-    elif hunger_level >= 600:
+    elif hunger_level >= increment*4:
         return 'Content'
-    elif hunger_level >= 400:
+    elif hunger_level >= increment*3:
         return 'Peckish'
-    elif hunger_level >= 250:
+    elif hunger_level >= increment*2:
         return 'Hungry'
-    elif hunger_level >= 1:
+    elif hunger_level >= increment:
         return 'Very hungry'
-    elif hunger_level >= 0 or hunger_level < 0:
+    elif hunger_level >= 1:
+        return 'Nearly starving'
+    elif hunger_level <= 0:
         return 'Starving!'
 
 
