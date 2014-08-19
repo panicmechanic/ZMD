@@ -287,15 +287,18 @@ class Fighter:
         bonus_dice = (sum(equipment.power_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_power_dice))
         bonus_sides = (sum(equipment.power_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_power_sides))
 
+        #Need to integrate effects below
         #sum(effect.power_effect for effect in self.effects))
 
-        CURRENT_ATTACK = str(bonus_dice) + ',' + str(bonus_sides)
+        dice_sides = []
+        dice_sides.append(bonus_dice)
+        dice_sides.append(bonus_sides)
+
+        return dice_sides
+
+
 
         #perform roll of dice here
-        roll_total = 0
-        for i in range(0, bonus_dice, 1):
-            roll_total += libtcod.random_get_int(0, 1, bonus_sides)
-        return roll_total
 
 
     @property
@@ -305,11 +308,11 @@ class Fighter:
 
         #sum(effect.power_effect for effect in self.effects))
 
-        #perform roll of dice here
-        roll_total = 0
-        for i in range(0, bonus_dice, 1):
-            roll_total += libtcod.random_get_int(0, 1, bonus_sides)
-        return roll_total
+        dice_sides = []
+        dice_sides.append(bonus_dice)
+        dice_sides.append(bonus_sides)
+
+        return dice_sides
 
 
     @property
@@ -411,9 +414,10 @@ class Fighter:
         quality_string = None
 
         #roll for extra damage
-        dam_roll = libtcod.random_get_int(0, 0, acc_roll)
+        #dam_roll = libtcod.random_get_int(0, 0, acc_roll)
         #damage is power+ acc_roll - target.defense
-        damage = (self.power + dam_roll) - target.fighter.defense
+
+        damage = roll_for(self.power) - roll_for(target.fighter.defense)
 
         if ev_roll <= acc_roll:
 
@@ -848,6 +852,16 @@ def update_msgs():
         y += 1
 
     libtcod.console_blit(msgs, 0, 0, MSG_STOP, 0, 0, MSG_X, PANEL_Y)
+
+def roll_for(list):
+
+    roll_total = 0
+    #For i in range of the list's first value (which should be the number of dice)
+    for i in range(0, list[0], 1):
+        #Roll for a number between 1 and the second value (which should be the sides)
+        roll_total += libtcod.random_get_int(0, 1, list[1])
+
+    return roll_total
 
 
 def count_turns(turn_duration):  #Returns a true value when no_of_turns has passed
@@ -1625,7 +1639,7 @@ def render_all():
                                   'Character Information:\n')
 
     char_info = '\nLevel: ' + str(player.level) + '\nDungeon level: ' + str(dungeon_level) + '\nAttack: ' + str(
-        CURRENT_ATTACK) + '\nDefense: ' + str(
+        player.fighter.power) + '\nDefense: ' + str(
         player.fighter.defense) + '\nEvasion: ' + str(player.fighter.ev) + '\nAccuracy: ' + str(
         player.fighter.acc) + '\nTurns: ' + total_turns() + '\n\nEffects: ' + get_player_effects() + '\n\nEquipped Items:' + iterate_through_list(
         get_all_equipped(player))

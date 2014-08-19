@@ -105,11 +105,11 @@ Damage player 10 hit points - '#'
     roll stealth/detection and raise awareness 1 level. While sleeping cannot wander.
 - Apply @ property to defense and see if it works.
 - Need to update effects to use dicts.
-    
-    
+        
 
-
-
+- Bugs in character info box
+- Still needs accuracy and other @properties to be changed
+- Currently effects calculation is not integrated
 
    
 #Alpha TODO:
@@ -152,6 +152,8 @@ For alpha release:
         
 #Remaining major TODO (in rough order):
 
+- Make inventory a list in the fighter class.
+- Make monsters drop items in inventory based on a roll from inventory
 - Fix pathfinding
 - Noise effect/Color variation in tiles; first time map is created they should be set
 - Shift-run (if next.x,y is not_blocked() and no fighter is in fov, take next step)
