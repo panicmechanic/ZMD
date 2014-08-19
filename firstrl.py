@@ -11,7 +11,7 @@ from weaponchances import create_item
 BORDER_CORNER = chr(15)
 BORDER_FILL = '+'
 BORDER_COLOR = libtcod.gold
-BORDER_BACKGROUND = libtcod.darkest_red
+BORDER_BACKGROUND = libtcod.darkest_grey
 
 #FATAL EFFECT
 FATAL_EFFECT = False
@@ -54,7 +54,7 @@ PANEL_WIDTH = SCREEN_WIDTH - PANEL2_WIDTH
 #FOV
 FOV_ALGO = 0  #Default FOV algorithm
 FOV_LIGHT_WALLS = True  #Light walls or not
-TORCH_RADIUS = 30
+TORCH_RADIUS = 25
 
 #Item parameters
 HEAL_AMOUNT = 40
@@ -86,6 +86,8 @@ color_dark_wall = libtcod.Color(120, 90, 55)
 color_light_wall = libtcod.Color(150, 120, 85)
 color_dark_ground = libtcod.Color(100, 100, 100)
 color_light_ground = libtcod.Color(130, 130, 130)
+WALL_CHAR = '#'
+FLOOR_CHAR = '.'
 
 
 class Tile:
@@ -383,8 +385,6 @@ class Fighter:
         self.owner.display_dmg = damage
 
 
-
-
     def attack(self, target):
 
         #a simple formula for attack damage
@@ -400,11 +400,7 @@ class Fighter:
         #damage is power+ acc_roll - target.defense
         damage = (self.power + dam_roll) - target.fighter.defense
 
-
-
         if ev_roll <= acc_roll:
-
-
 
             #check for crit if player is the attacker
             if self.owner.name == 'player':
@@ -686,6 +682,12 @@ def monster_move_or_attack(monster):
         else:
             return 'cancelled'
 
+def roll(dice, sides):
+    result = 0
+    for i in range(0, dice, 1):
+        roll = libtcod.random_get_int(0, 1, sides)
+        result += roll
+
 def check_run_effects(obj):
     global fov_recompute
 
@@ -809,19 +811,19 @@ def update_msgs():
 
         ##MSGS HOZ VERTICAL BORDERS##
         #Do the left side for messages
-        libtcod.console_put_char(msgs, 0, y_num, BORDER_FILL, libtcod.BKGND_NONE)
+        libtcod.console_put_char(msgs, 0, y_num, BORDER_FILL, libtcod.BKGND_SCREEN)
 
         #Do the right side for messages
-        libtcod.console_put_char(msgs, MSG_STOP-1, y_num, BORDER_FILL , libtcod.BKGND_NONE)
+        libtcod.console_put_char(msgs, MSG_STOP-1, y_num, BORDER_FILL , libtcod.BKGND_SCREEN)
 
      #Set border for msgs
     border = calc_border(MSG_STOP)
 
     #Top and bottom border bar for msgs
     #Top
-    libtcod.console_print_ex(msgs, 0, 0, libtcod.BKGND_NONE, libtcod.LEFT, border)
+    libtcod.console_print_ex(msgs, 0, 0, libtcod.BKGND_SCREEN, libtcod.LEFT, border)
     #Bottom
-    libtcod.console_print_ex(msgs, 0, MSG_HEIGHT, libtcod.BKGND_NONE, libtcod.LEFT, border)
+    libtcod.console_print_ex(msgs, 0, MSG_HEIGHT, libtcod.BKGND_SCREEN, libtcod.LEFT, border)
 
     y = 1
     for (line, color) in game_msgs:
@@ -893,7 +895,7 @@ def place_objects(room):
             choice = random_choice(monster_chances)
             if choice == 'Dog':
                 #create an dog
-                fighter_component = Fighter(hp=40, defense=1, power=5, xp=400, ev=5, acc=5, speed=7, death_function=monster_death)
+                fighter_component = Fighter(hp=40, defense=1, power=5, xp=400, ev=5, acc=5, speed=10, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'd', 'Dog', libtcod.darker_orange, blocks=True, fighter=fighter_component,
                                  ai=ai_component, description='A large, brown muscular looking dog. His eyes glow red.')
@@ -902,7 +904,7 @@ def place_objects(room):
                 #create a Snake
                 effect_component = Effect('poisoned', duration=5, damage_by_turn=2, base_duration=5)
                 effect_roll = 20
-                fighter_component = Fighter(hp=35, defense=2, power=5, xp=100, ev=10, acc=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
+                fighter_component = Fighter(hp=35, defense=2, power=5, xp=100, ev=10, acc=10, speed=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 's', 'Snake', libtcod.darker_grey, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
@@ -910,15 +912,14 @@ def place_objects(room):
 
             elif choice == 'Imp':
                 #create an Imp
-                fighter_component = Fighter(hp=20, defense=10, power=6, xp=50, ev=8, acc=9, speed=5, death_function=monster_death)
+                fighter_component = Fighter(hp=20, defense=10, power=6, xp=50, ev=8, acc=9, speed=9, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'i', 'Imp', libtcod.darker_green, blocks=True, fighter=fighter_component,
                                  ai=ai_component, description='A green Imp, skilled in defensive fighting.')
 
             elif choice == 'Eagle':
                 #create an eagle
-                fighter_component = Fighter(hp=100, defense=3, power=10, xp=200, ev=20, acc=10,
-                                            death_function=monster_death)
+                fighter_component = Fighter(hp=100, defense=3, power=10, xp=200, ev=20, acc=10, speed=10, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'e', 'Eagle', libtcod.darker_sepia, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
@@ -928,7 +929,7 @@ def place_objects(room):
                 #create a glow fly
                 effect_component = Effect('Paralyzed', duration=5, paralyzed=True, base_duration=5)
                 effect_roll = 10
-                fighter_component = Fighter(hp=20, defense=0, power=8, xp=50, ev=15, acc=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
+                fighter_component = Fighter(hp=20, defense=0, power=8, xp=50, ev=15, acc=10, speed=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'f', 'Firefly', libtcod.darkest_lime, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
@@ -936,7 +937,7 @@ def place_objects(room):
 
             elif choice == 'Pygmy':
                 #create a pygmy
-                fighter_component = Fighter(hp=120, defense=6, power=8, xp=250, ev=20, acc=10,
+                fighter_component = Fighter(hp=120, defense=6, power=8, xp=250, ev=20, acc=10, speed=10,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'p', 'Chieftain', libtcod.darkest_pink, blocks=True, fighter=fighter_component,
@@ -950,7 +951,7 @@ def place_objects(room):
                     y = libtcod.random_get_int(0, monster.y + 2, monster.y - 2)
                     if not is_blocked(x, y):
                         #create other pygmys
-                        fighter_component = Fighter(hp=100, defense=4, power=4, xp=200, ev=20, acc=10,
+                        fighter_component = Fighter(hp=100, defense=4, power=4, xp=200, ev=20, acc=10, speed=10,
                                                     death_function=monster_death)
                         ai_component = BasicMonsterAI()
                         other_pygmy = Object(x, y, 'p', 'Pygmy', libtcod.dark_pink, blocks=True,
@@ -961,16 +962,16 @@ def place_objects(room):
 
             elif choice == 'Goat':
                 #create a goat
-                fighter_component = Fighter(hp=140, defense=4, power=5, xp=60, ev=25, acc=10,
+                fighter_component = Fighter(hp=140, defense=4, power=5, xp=60, ev=25, acc=10, speed=8,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'g', 'Goat', libtcod.lighter_grey, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
-                                 description='A goat, with gnarled grey hair and wispy beard. He looks tough and nimble.')
+                                 description='A goat, with gnarled grey hair and wispy beard. He looks fast.')
 
             elif choice == 'Bull':
                 #create a bull
-                fighter_component = Fighter(hp=200, defense=1, power=8, xp=250, ev=20, acc=10,
+                fighter_component = Fighter(hp=200, defense=1, power=8, xp=250, ev=20, acc=10, speed=10,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, chr(142), 'Bull', libtcod.light_flame, blocks=True, fighter=fighter_component,
@@ -979,21 +980,21 @@ def place_objects(room):
 
             elif choice == 'Crab':
                 #create a crab
-                fighter_component = Fighter(hp=50, defense=6, power=9, xp=50, ev=30, acc=10,
+                fighter_component = Fighter(hp=50, defense=6, power=9, xp=50, ev=30, acc=10, speed=12,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'c', 'Crab', libtcod.dark_yellow, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
-                                 description='A very large yellow crab, he skitters sideways across the floor using his armored legs. He looks tough.')
+                                 description='A very large yellow crab, he skitters slowly sideways across the floor using his armored legs. He looks tough but slow.')
 
             elif choice == 'Centaur':
                 #create a centaur
-                fighter_component = Fighter(hp=180, defense=7, power=10, xp=300, ev=20, acc=10,
+                fighter_component = Fighter(hp=180, defense=7, power=10, xp=300, ev=20, acc=14, speed=9,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'C', 'Centaur', libtcod.darker_magenta, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
-                                 description='A mythical creature; half human, half horse. He has the strength of a beast, and the intelligence of a man.')
+                                 description='A mythical creature; half human, half horse. He has the speed of a beast, and the dexterity of a man.')
 
             objects.append(monster)
 
@@ -1265,7 +1266,7 @@ def make_map():
 
 def boar_mother(x, y):
     global map, rooms
-    fighter_component = Fighter(hp=35, defense=2, power=6, xp=400, ev=20, acc=10, death_function=monster_death)
+    fighter_component = Fighter(hp=35, defense=2, power=6, xp=400, ev=20, acc=10, speed=10, death_function=monster_death)
     ai_component = BasicMonsterAI()
     boar = Object(x, y, 'B', 'Giant Boar Mother', libtcod.darker_red, blocks=True, fighter=fighter_component,
                   ai=ai_component, description='A big angry ')
@@ -1279,7 +1280,7 @@ def boar_mother(x, y):
         y = libtcod.random_get_int(0, boar.y + 2, boar.y - 2)
         if not is_blocked(x, y):
             #create baby boars
-            fighter_component = Fighter(hp=2, defense=0, power=3, xp=5, ev=1, acc=10, death_function=monster_death)
+            fighter_component = Fighter(hp=2, defense=0, power=3, xp=5, ev=1, acc=10, speed=10, death_function=monster_death)
             ai_component = BasicMonsterAI()
             monster = Object(x, y, 'b', 'Baby boar', libtcod.darkest_red, blocks=True, fighter=fighter_component,
                              ai=ai_component, description='A baby boar, how cute.')
@@ -1384,23 +1385,30 @@ def render_all():
                     if map[x][y].explored:
                         if wall:
                             libtcod.console_set_char_background(con, x, y, color_dark_wall, libtcod.BKGND_SET)
+                            libtcod.console_set_default_foreground(con, libtcod.Color(130, 100, 65))
+                            libtcod.console_put_char(con, x, y, WALL_CHAR, libtcod.BKGND_SCREEN)
                         else:
                             libtcod.console_set_char_background(con, x, y, color_dark_ground, libtcod.BKGND_SET)
+                            libtcod.console_set_default_foreground(con, libtcod.Color(80, 80, 80))
+                            libtcod.console_put_char(con, x, y, FLOOR_CHAR, libtcod.BKGND_SCREEN)
                 else:
 
                     #it's visible
                     if wall:
-
                         libtcod.console_set_char_background(con, x, y, color_light_wall, libtcod.BKGND_SET)
+                        libtcod.console_set_default_foreground(con, libtcod.Color(180, 150, 115))
+                        libtcod.console_put_char(con, x, y, WALL_CHAR, libtcod.BKGND_SCREEN)
 
                     #Is ground, if map.diff_color is not None, render the color instead
                     elif map[x][y].diff_color is not None:
                          libtcod.console_set_char_background(con, x, y, map[x][y].diff_color, libtcod.BKGND_SET)
 
+
                     #If flash is true, render it once, then set to false, this shouldn't work as wait_for_spacekey()
                         #uses render_all() in its while loop. Problem lies elsewhere I think.
                     elif map[x][y].color_flash is not None:
 
+                        #Make the color blue flash for one render
                         #Make the color blue flash for one render
                         libtcod.console_set_char_background(con, x, y, map[x][y].color_flash, libtcod.BKGND_SET)
 
@@ -1411,6 +1419,8 @@ def render_all():
                     #Else it has no diff_color value and should be set to the default color
                     else:
                         libtcod.console_set_char_background(con, x, y, color_light_ground, libtcod.BKGND_SET)
+                        libtcod.console_set_default_foreground(con, libtcod.Color(150, 150, 150))
+                        libtcod.console_put_char(con, x, y, FLOOR_CHAR, libtcod.BKGND_SCREEN)
 
                     #Since it's visible, set it to explored
                     map[x][y].explored = True
@@ -2148,7 +2158,7 @@ def new_game():
     #create object representing player
     fighter_component = Fighter(hp=100, defense=3, power=6, xp=0, ev=5, acc=10, speed=10, death_function=player_death,
                                 effects=[])
-    player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter_component)
+    player = Object(0, 0, '@', 'player', libtcod.darkest_grey, blocks=True, fighter=fighter_component)
     player.level = 1
     #Create the list of game messages and their colors, starts empty
 
