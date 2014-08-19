@@ -1625,8 +1625,8 @@ def display_damage(self):
 
     #If self is player and player took damage, display a char.
     if self == player and self.display_dmg != None:
-        libtcod.console_set_default_foreground(con, libtcod.darker_red)
-        libtcod.console_set_char_background(con, self.x, self.y, libtcod.gold, libtcod.BKGND_SET)
+        libtcod.console_set_default_foreground(con, libtcod.dark_red)
+        libtcod.console_set_char_background(con, self.x, self.y, libtcod.black, libtcod.BKGND_SET)
         libtcod.console_put_char(con, self.x, self.y, '*', libtcod.BKGND_SCREEN)
 
 def wait_for_spacekey():  #Make cast heal message appear without having to press the same key twice
@@ -1748,6 +1748,11 @@ def player_move_or_attack(dx, dy):
     elif player.fighter.paralysis == False:
         x = player.x + dx
         y = player.y + dy
+        no_move=False
+        if x == player.x and y == player.y:
+            no_move=True
+        print x
+        print y
 
         target = None
         for obj in objects:
@@ -1760,15 +1765,15 @@ def player_move_or_attack(dx, dy):
             outcome = 'moved'
             fov_recompute=True
 
-        elif is_blocked(x, y):
-            message('You stumble into the wall..', libtcod.white)
-            outcome = 'stumble'
-
-
-        elif is_blocked(x, y) and dx == 0 and dy == 0:
+        elif no_move is True:
             message('You rest a turn.', libtcod.white)
             outcome = 'moved'
             fov_recompute=True
+            no_move=False
+
+        elif is_blocked(x, y):
+            message('You stumble into the wall..', libtcod.white)
+            outcome = 'stumble'
 
         elif is_blocked(x, y) == False:
             player.move(dx, dy)
