@@ -204,7 +204,7 @@ def create_item(x, y):
 
     if choice == 'wooden sword':
         #create a wooden sword
-        equipment_component = Equipment(slot='left hand', power_bonus=2)
+        equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=2)
         item = Object(x, y, '/', 'Wooden sword', libtcod.darker_orange, equipment=equipment_component, item=None,
                       always_visible=True)
 
@@ -241,12 +241,12 @@ def create_item(x, y):
     ##AXES##
 
     elif choice == 'wooden axe':
-        equipment_component = Equipment(slot='left hand', power_bonus=2)
+        equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=2)
         item = Object(x, y, chr(244), 'Wooden axe', libtcod.darker_orange, equipment=equipment_component, item=None,
                       always_visible=True)
 
     elif choice == 'bronze axe':
-        equipment_component = Equipment(slot='left hand', power_bonus=6)
+        equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=2)
         item = Object(x, y, chr(244), 'Bronze axe', libtcod.orange, equipment=equipment_component, item=None,
                       always_visible=True)
 
@@ -278,7 +278,7 @@ def create_item(x, y):
     ##WAR HAMMERS##
 
     elif choice == 'stone war hammer':
-        equipment_component = Equipment(slot='left hand', power_bonus=3)
+        equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=2)
         item = Object(x, y, chr(24), 'Stone war hammer', libtcod.darker_grey, equipment=equipment_component, item=None,
                       always_visible=True)
 
@@ -317,7 +317,7 @@ def create_item(x, y):
     ##GAUNTLETS##
 
     elif choice == 'silk gauntlets':
-        equipment_component = Equipment(slot='hands', defense_bonus=1)
+        equipment_component = Equipment(slot='hands', defense_bonus_dice=1, defense_bonus_sides=2)
         item = Object(x, y, chr(7), 'Silk gauntlets', libtcod.light_purple, equipment=equipment_component, item=None,
                       always_visible=True)
 
@@ -357,7 +357,7 @@ def create_item(x, y):
         item = Object(x, y, chr(0), 'nothing', libtcod.darker_orange, equipment=None, item=None, always_visible=False)
 
     elif choice == 'wooden ring mail':
-        equipment_component = Equipment(slot='body', defense_bonus=2)
+        equipment_component = Equipment(slot='body', defense_bonus_dice=2, defense_bonus_sides=1)
         item = Object(x, y, chr(21), 'Wooden ring mail', libtcod.darker_orange, equipment=equipment_component,
                       item=None, always_visible=True)
 
@@ -394,12 +394,12 @@ def create_item(x, y):
                       item=None, always_visible=True)
 
     elif choice == 'wooden ring of strength':
-        equipment_component = Equipment(slot='finger', power_bonus=1)
+        equipment_component = Equipment(slot='finger', power_bonus_dice=1, power_bonus_sides=1)
         item = Object(x, y, chr(249), 'Wooden ring of strength', libtcod.darker_orange, equipment=equipment_component,
                       item=None, always_visible=True)
 
     elif choice == 'wooden ring of defense':
-        equipment_component = Equipment(slot='finger', defense_bonus=1)
+        equipment_component = Equipment(slot='finger', defense_bonus_dice=1, defense_bonus_sides=2)
         item = Object(x, y, chr(249), 'Wooden ring of defense', libtcod.darker_orange, equipment=equipment_component,
                       item=None, always_visible=True)
 

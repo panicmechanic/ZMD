@@ -6,7 +6,7 @@ import weaponchances
 import time
 from weaponchances import create_item
 
-#BORDER VARIABLES
+# BORDER VARIABLES
 
 BORDER_CORNER = chr(15)
 BORDER_FILL = '+'
@@ -70,6 +70,7 @@ HEAL_RATE = 1
 HUNGER_RATE = 1
 HUNGER_TOTAL = 8000
 HUNGER_WARNING = 100
+CURRENT_ATTACK = None
 
 #Player parameters
 LEVEL_UP_BASE = 200
@@ -103,7 +104,6 @@ class Tile:
         self.block_sight = block_sight
 
 
-
 class Rect:
     #A rectangle on the map, used to characterise a room
     def __init__(self, x, y, w, h):
@@ -127,7 +127,8 @@ class Object:
     #this is a generic object: the player, a monster, an item, the stairs...
     #it's always represented by a character on screen.
     def __init__(self, x, y, char, name, color, equipment=None, effects=None, blocks=False, always_visible=False,
-                 fighter=None, ai=None, item=None, description=None, seen=False, path=None, decorative=False, display_dmg=None):
+                 fighter=None, ai=None, item=None, description=None, seen=False, path=None, decorative=False,
+                 display_dmg=None):
         self.x = x
         self.y = y
         self.char = char
@@ -256,12 +257,14 @@ class Object:
 
 class Fighter:
     #combat-related properties and methods (monster, player, npc).
-    def __init__(self, hp, defense, power, xp, ev, acc, speed=None, speed_counter=0, heal_rate=50,
+    def __init__(self, hp, defense_dice, defense_sides, power_dice, power_sides, xp, ev, acc, speed=None, speed_counter=0, heal_rate=50,
                  heal_counter=0, death_function=None, effects=[], cast_effect=None, cast_roll=0, paralysis=False):
         self.base_max_hp = hp
         self.hp = hp
-        self.base_defense = defense
-        self.base_power = power
+        self.base_defense_dice = defense_dice
+        self.base_defense_sides = defense_sides
+        self.base_power_dice = power_dice
+        self.base_power_sides = power_sides
         self.xp = xp
         self.ev = ev
         self.acc = acc
@@ -279,22 +282,41 @@ class Fighter:
         self.paralysis = paralysis
 
 
-
     @property
     def power(self):  #return actual power, by summing up the bonuses from all equipped items
-        bonus = (sum(equipment.power_bonus for equipment in get_all_equipped(self.owner))) + (
-            sum(effect.power_effect for effect in self.effects))
-        return self.base_power + bonus
+        bonus_dice = (sum(equipment.power_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_power_dice))
+        bonus_sides = (sum(equipment.power_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_power_sides))
+
+        #sum(effect.power_effect for effect in self.effects))
+
+        CURRENT_ATTACK = str(bonus_dice) + ',' + str(bonus_sides)
+
+        #perform roll of dice here
+        roll_total = 0
+        for i in range(0, bonus_dice, 1):
+            roll_total += libtcod.random_get_int(0, 1, bonus_sides)
+        return roll_total
+
 
     @property
     def defense(self):  #return actual+ defense, by summing up the bonuses from all equipped items
-        bonus = sum(equipment.defense_bonus for equipment in get_all_equipped(self.owner))
-        return self.base_defense + bonus
+        bonus_dice = (sum(equipment.defense_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_defense_dice))
+        bonus_sides = (sum(equipment.defense_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_defense_sides))
+
+        #sum(effect.power_effect for effect in self.effects))
+
+        #perform roll of dice here
+        roll_total = 0
+        for i in range(0, bonus_dice, 1):
+            roll_total += libtcod.random_get_int(0, 1, bonus_sides)
+        return roll_total
+
 
     @property
     def max_hp(self):  #return actual max_hp, by summing up the bonuses from all equipped items
         bonus = sum(equipment.max_hp_bonus for equipment in get_all_equipped(self.owner))
         return self.base_max_hp + bonus
+
 
     # @property
     #TODO: def ev(self): #return actual evasion
@@ -302,7 +324,7 @@ class Fighter:
     def player_eat_food(self, Item):
         global hunger_level
 
-        if hunger_level >= HUNGER_TOTAL-HUNGER_WARNING:
+        if hunger_level >= HUNGER_TOTAL - HUNGER_WARNING:
             message('You are already full!', libtcod.white)
         else:
             message('Mmm, that was delicious!', libtcod.light_green)
@@ -312,12 +334,11 @@ class Fighter:
                 hunger_level += Item.food_value
 
 
-
     def add_effect(self, Effect, object_origin_name):  # Add effect to the fighter class's list of effects
         # check if the effect already exists, if it does, just increase the duration
 
         #This is the cause of the duplication, maybe when two snakes score poison, or
-            #perhaps the if, elif else statement aren't robust enough.
+        #perhaps the if, elif else statement aren't robust enough.
 
         #if effects is not empty, iterate through them
         #appended = False
@@ -334,7 +355,6 @@ class Fighter:
 
                 elif i.mutation == True and i.effect_name == Effect.effect_name and Effect.mutation == True:
                     i.applied_times += 1
-
 
                     message('The gods have blessed your ' + Effect.effect_name + ' further!',
                             libtcod.white)
@@ -356,9 +376,11 @@ class Fighter:
             self.effects.append(Effect)
             message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you!', libtcod.yellow)
 
+
     def remove_effect(self, Effect):
         if Effect.duration == Effect.turns_passed:
             self.effects.remove(Effect)
+
 
     def take_damage(self, damage):
         global fov_recompute
@@ -380,7 +402,6 @@ class Fighter:
 
 
     def attack(self, target):
-
         #a simple formula for attack damage
 
         ev_roll = libtcod.random_get_int(0, 0, target.fighter.ev)
@@ -410,13 +431,13 @@ class Fighter:
 
                     #Size of critical boost, kater will roll for this damage
                     if difference >= 10:
-                        damage += damage*3
+                        damage += damage * 3
                     elif difference <= 15:
-                        damage += damage*4
+                        damage += damage * 4
                     elif difference <= 20:
-                        damage += damage*5
+                        damage += damage * 5
                     elif difference <= 25:
-                        damage += damage*6
+                        damage += damage * 6
 
 
             # #Player messages and colors##
@@ -449,6 +470,7 @@ class Fighter:
         quality_string = None
         damage = 0
 
+
     # check for auto cast_effect
     def roll_for_effect(self, target):
         #if the fighter has an effect to be cast, and the roll is > cast_roll - add effect to target.
@@ -457,12 +479,12 @@ class Fighter:
             target.fighter.add_effect(self.cast_effect, self.owner.name)
 
 
-
     def heal(self, amount):
         #heal by the given amount, without going over the maximum
         self.hp += amount
         if self.hp > self.max_hp:
             self.hp = self.max_hp
+
 
 class BasicMonsterAI:
     global path
@@ -478,6 +500,7 @@ class BasicMonsterAI:
 
         else:
             monster_move_or_attack(monster)
+
 
 class ConfusedMonster:
     #AI for a temporarily confused monster, reverts to normal AI after a while
@@ -502,7 +525,6 @@ class Item:
         self.use_function = use_function
         self.pick_up_function = pick_up_function
         self.food_value = food_value
-
 
 
     def use(self):
@@ -554,9 +576,11 @@ class Item:
 
 class Equipment:
     #an object that can be equipped, yielding bonuses. Automatically adds the Item component
-    def __init__(self, slot, power_bonus=0, defense_bonus=0, max_hp_bonus=0):
-        self.power_bonus = power_bonus
-        self.defense_bonus = defense_bonus
+    def __init__(self, slot, power_bonus_dice=0, power_bonus_sides=0, defense_bonus_dice=0, defense_bonus_sides=0, max_hp_bonus=0):
+        self.power_bonus_dice = power_bonus_dice
+        self.power_bonus_sides = power_bonus_sides
+        self.defense_bonus_dice = defense_bonus_dice
+        self.defense_bonus_sides = defense_bonus_sides
         self.max_hp_bonus = max_hp_bonus
 
         self.slot = slot
@@ -587,7 +611,10 @@ class Equipment:
 
 class Effect:
     #an effect that can be applied to the character, yielding bonuses or nerfs
-    def __init__(self, effect_name=None, duration=0, turns_passed=0, base_duration=0, power_effect=0, defense_effect=0, max_hp_effect=0, applied_times=1, confused=False, burning=False, damage_by_turn=None, paralyzed=None, fatal_alert=False, mutation=False, m_loop=0, m_loop_turn=0, m_elec=False, m_elec_count=0, m_elec_trigger=5, m_elec_damage=0):
+    def __init__(self, effect_name=None, duration=0, turns_passed=0, base_duration=0, power_effect=0, defense_effect=0,
+                 max_hp_effect=0, applied_times=1, confused=False, burning=False, damage_by_turn=None, paralyzed=None,
+                 fatal_alert=False, mutation=False, m_loop=0, m_loop_turn=0, m_elec=False, m_elec_count=0,
+                 m_elec_trigger=5, m_elec_damage=0):
         self.effect_name = effect_name
         self.duration = duration
         self.turns_passed = turns_passed
@@ -611,10 +638,10 @@ class Effect:
         self.m_elec_trigger = m_elec_trigger
         self.m_elec_damage = m_elec_damage
 
-def monster_move_or_attack(monster):
 
+def monster_move_or_attack(monster):
     #If the monster is in the players FOV, monster can see player.
-    if libtcod.map_is_in_fov(fov_map, monster.x, monster.y): #If the monster is in the players FOV
+    if libtcod.map_is_in_fov(fov_map, monster.x, monster.y):  #If the monster is in the players FOV
 
         # pygmys can attack one block further in every direction.
         if monster.char == 'p' and monster.distance_to(player) <= 2:
@@ -671,11 +698,13 @@ def monster_move_or_attack(monster):
         else:
             return 'cancelled'
 
+
 def roll(dice, sides):
     result = 0
     for i in range(0, dice, 1):
         roll = libtcod.random_get_int(0, 1, sides)
         result += roll
+
 
 def check_run_effects(obj):
     global fov_recompute
@@ -711,7 +740,8 @@ def check_run_effects(obj):
                         eff.fatal_alert = True
                         message('You are fatally ' + eff.effect_name + '!')
                         #works up to here, then doesn't want to print the warning
-                        libtcod.console_print_ex(panel, 1, 4, libtcod.BKGND_NONE, libtcod.LEFT, 'Fatally ' + FATAL_NAME + '!')
+                        libtcod.console_print_ex(panel, 1, 4, libtcod.BKGND_NONE, libtcod.LEFT,
+                                                 'Fatally ' + FATAL_NAME + '!')
                     elif eff.fatal_alert == True and player.fighter.hp >= 1:
                         FATAL_EFFECT = False
                         FATAL_NAME = None
@@ -729,7 +759,7 @@ def check_run_effects(obj):
                         obj.fighter.paralysis = False
                         message('You can move again!')
                     obj.fighter.remove_effect(eff)
-                    eff.turns_passed=0
+                    eff.turns_passed = 0
 
                 #If turns_passed is not equal to the duration, add one turn
                 if eff.turns_passed < eff.duration:
@@ -741,7 +771,7 @@ def check_run_effects(obj):
                     #Each application halves the turns needed to charge
                     real_trigger = eff.m_elec_trigger / eff.applied_times
                     if eff.m_elec_count < real_trigger:
-                        eff.m_elec_count +=1
+                        eff.m_elec_count += 1
                     #if it has accumulated enough turns
                     if eff.m_elec_count >= real_trigger:
                         for obj in objects:
@@ -749,23 +779,20 @@ def check_run_effects(obj):
                             fired_times = 0
 
                             #Find an object that isn't the player within 1 tile and fire if fired_times < fire_times
-                            if obj.fighter and player.distance_to(obj) <= 1 and obj != player and obj.fighter.hp > 1 and fired_times < eff.applied_times:
-
-
-
-
-
+                            if obj.fighter and player.distance_to(
+                                    obj) <= 1 and obj != player and obj.fighter.hp > 1 and fired_times < eff.applied_times:
                                 #Tell render_all() to run elec flash routine
                                 map[obj.x][obj.y].color_flash = libtcod.light_blue
 
                                 message('You feel a tingle.. Press space to continue', libtcod.white)
-                                render_all()#may be unnecessary
+                                render_all()  #may be unnecessary
                                 #Update msgs
                                 update_msgs()
                                 #And wait for space key to cotinue
                                 wait_for_spacekey()
 
-                                message('A bolt of lightning hits the ' + str(obj.name) + ' for ' + str(eff.m_elec_damage) + ' damage!', libtcod.white)
+                                message('A bolt of lightning hits the ' + str(obj.name) + ' for ' + str(
+                                    eff.m_elec_damage) + ' damage!', libtcod.white)
 
                                 obj.fighter.take_damage(eff.m_elec_damage)
                                 eff.m_elec_count = 0
@@ -788,8 +815,8 @@ def number_of_turns():
     turns = turn_increment + (turn_5 * 5)
     return turns
 
-def update_msgs():
 
+def update_msgs():
     #prepare to render the msgs panel
     libtcod.console_set_default_background(msgs, BORDER_BACKGROUND)
     libtcod.console_clear(msgs)
@@ -797,15 +824,14 @@ def update_msgs():
     libtcod.console_set_default_foreground(msgs, BORDER_COLOR)
 
     for y_num in range(1, MSG_HEIGHT, 1):
-
         ##MSGS HOZ VERTICAL BORDERS##
         #Do the left side for messages
         libtcod.console_put_char(msgs, 0, y_num, BORDER_FILL, libtcod.BKGND_SCREEN)
 
         #Do the right side for messages
-        libtcod.console_put_char(msgs, MSG_STOP-1, y_num, BORDER_FILL , libtcod.BKGND_SCREEN)
+        libtcod.console_put_char(msgs, MSG_STOP - 1, y_num, BORDER_FILL, libtcod.BKGND_SCREEN)
 
-     #Set border for msgs
+        #Set border for msgs
     border = calc_border(MSG_STOP)
 
     #Top and bottom border bar for msgs
@@ -852,10 +878,10 @@ def place_objects(room):
     #chance of each monsters
     monster_chances = {}
     monster_chances['Dog'] = 30  #Dog always spawns, even if all other monsters have 0 chance
-    monster_chances['Snake'] = from_dungeon_level([[3, 1], [5, 3], [50, 7]])
-    monster_chances['Imp'] = from_dungeon_level([[5, 1], [30, 5], [50, 7]])
-    monster_chances['Firefly'] = from_dungeon_level([[1,2], [30, 3], [60, 7]]) #TODO: Fix paralyse bug
-    monster_chances['Crab'] = from_dungeon_level([[1, 1], [30, 3], [60, 7]])
+    monster_chances['Snake'] = from_dungeon_level([[3, 2], [5, 3], [50, 7]])
+    monster_chances['Imp'] = from_dungeon_level([[5, 2], [30, 5], [50, 7]])
+    monster_chances['Firefly'] = from_dungeon_level([[1, 2], [30, 3], [60, 7]])  #TODO: Fix paralyse bug
+    monster_chances['Crab'] = from_dungeon_level([[1, 2], [30, 3], [60, 7]])
     monster_chances['Goat'] = from_dungeon_level([[15, 2], [30, 8], [60, 10]])
     monster_chances['Eagle'] = from_dungeon_level([[15, 5], [30, 8], [60, 10]])
     monster_chances['Pygmy'] = from_dungeon_level([[10, 5], [40, 8], [50, 10]])
@@ -884,7 +910,8 @@ def place_objects(room):
             choice = random_choice(monster_chances)
             if choice == 'Dog':
                 #create an dog
-                fighter_component = Fighter(hp=40, defense=1, power=5, xp=40, ev=5, acc=5, speed=10, death_function=monster_death)
+                fighter_component = Fighter(hp=40, defense_dice=1, defense_sides=5, power_dice=1, power_sides=8, xp=40, ev=5, acc=5, speed=10,
+                                            death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'd', 'Dog', libtcod.darker_orange, blocks=True, fighter=fighter_component,
                                  ai=ai_component, description='A large, brown muscular looking dog. His eyes glow red.')
@@ -893,7 +920,9 @@ def place_objects(room):
                 #create a Snake
                 effect_component = Effect('poisoned', duration=5, damage_by_turn=2, base_duration=5)
                 effect_roll = 20
-                fighter_component = Fighter(hp=35, defense=2, power=5, xp=100, ev=10, acc=10, speed=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
+                fighter_component = Fighter(hp=35, defense=2, power=5, xp=100, ev=10, acc=10, speed=10,
+                                            cast_effect=effect_component, cast_roll=effect_roll,
+                                            death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 's', 'Snake', libtcod.darker_grey, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
@@ -901,14 +930,16 @@ def place_objects(room):
 
             elif choice == 'Imp':
                 #create an Imp
-                fighter_component = Fighter(hp=20, defense=10, power=6, xp=50, ev=8, acc=9, speed=9, death_function=monster_death)
+                fighter_component = Fighter(hp=20, defense=10, power=7, xp=50, ev=8, acc=9, speed=9,
+                                            death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'i', 'Imp', libtcod.darker_green, blocks=True, fighter=fighter_component,
                                  ai=ai_component, description='A green Imp, skilled in defensive fighting.')
 
             elif choice == 'Eagle':
                 #create an eagle
-                fighter_component = Fighter(hp=100, defense=3, power=10, xp=200, ev=20, acc=10, speed=10, death_function=monster_death)
+                fighter_component = Fighter(hp=100, defense=3, power=10, xp=200, ev=20, acc=10, speed=10,
+                                            death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'e', 'Eagle', libtcod.darker_sepia, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
@@ -918,7 +949,9 @@ def place_objects(room):
                 #create a glow fly
                 effect_component = Effect('Paralyzed', duration=5, paralyzed=True, base_duration=5)
                 effect_roll = 10
-                fighter_component = Fighter(hp=20, defense=0, power=8, xp=50, ev=15, acc=10, speed=10, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
+                fighter_component = Fighter(hp=20, defense=0, power=8, xp=50, ev=15, acc=10, speed=10,
+                                            cast_effect=effect_component, cast_roll=effect_roll,
+                                            death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'f', 'Firefly', libtcod.darkest_lime, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
@@ -1079,6 +1112,7 @@ def render_bar(panel, x, y, total_width, name, value, maximum, bar_color, back_c
     libtcod.console_print_ex(panel, x + total_width / 2, y, libtcod.BKGND_NONE, libtcod.CENTER,
                              name + ': ' + str(value) + '/' + str(maximum))
 
+
 def render_bar_simple(panel, x, y, total_width, name, value, maximum, bar_color, back_color):
     #render a bar (HP, experience, etc.) first calculate the width of the bar
     bar_width = int(float(value) / maximum * total_width)
@@ -1096,6 +1130,7 @@ def render_bar_simple(panel, x, y, total_width, name, value, maximum, bar_color,
     libtcod.console_set_default_foreground(panel, libtcod.white)
     libtcod.console_print_ex(panel, x + total_width / 2, y, libtcod.BKGND_NONE, libtcod.CENTER,
                              name)
+
 
 def get_names_under_mouse():
     global mouse
@@ -1238,7 +1273,7 @@ def make_map():
 
             #roll_lever = libtcod.random_get_int(0, 0, 1)
             #if roll_lever == 1:
-                #create_inscribed_lever(new_x-1, new_y+1)
+            #create_inscribed_lever(new_x-1, new_y+1)
 
             num_rooms += 1
 
@@ -1255,7 +1290,8 @@ def make_map():
 
 def boar_mother(x, y):
     global map, rooms
-    fighter_component = Fighter(hp=35, defense=2, power=6, xp=400, ev=20, acc=10, speed=10, death_function=monster_death)
+    fighter_component = Fighter(hp=35, defense=2, power=7, xp=400, ev=20, acc=10, speed=10,
+                                death_function=monster_death)
     ai_component = BasicMonsterAI()
     boar = Object(x, y, 'B', 'Giant Boar Mother', libtcod.darker_red, blocks=True, fighter=fighter_component,
                   ai=ai_component, description='A big angry ')
@@ -1269,7 +1305,8 @@ def boar_mother(x, y):
         y = libtcod.random_get_int(0, boar.y + 2, boar.y - 2)
         if not is_blocked(x, y):
             #create baby boars
-            fighter_component = Fighter(hp=2, defense=0, power=3, xp=5, ev=1, acc=10, speed=10, death_function=monster_death)
+            fighter_component = Fighter(hp=2, defense=0, power=3, xp=5, ev=1, acc=10, speed=10,
+                                        death_function=monster_death)
             ai_component = BasicMonsterAI()
             monster = Object(x, y, 'b', 'Baby boar', libtcod.darkest_red, blocks=True, fighter=fighter_component,
                              ai=ai_component, description='A baby boar, how cute.')
@@ -1390,10 +1427,10 @@ def render_all():
 
                     #Is ground, if map.diff_color is not None, render the color instead
                     elif map[x][y].diff_color is not None:
-                         libtcod.console_set_char_background(con, x, y, map[x][y].diff_color, libtcod.BKGND_SET)
+                        libtcod.console_set_char_background(con, x, y, map[x][y].diff_color, libtcod.BKGND_SET)
 
 
-                    #If flash is true, render it once, then set to false, this shouldn't work as wait_for_spacekey()
+                        #If flash is true, render it once, then set to false, this shouldn't work as wait_for_spacekey()
                         #uses render_all() in its while loop. Problem lies elsewhere I think.
                     elif map[x][y].color_flash is not None:
 
@@ -1425,7 +1462,6 @@ def render_all():
 
     #Special damage_draw range count
     for object in objects:
-
         display_damage(object)
 
     #blit the contents of "con" to root console and present it
@@ -1455,13 +1491,12 @@ def render_all():
     #First, the vertical borders
     #For the height of panel, minus one for the top bar that already displays it.
     for y_num in range(1, MSG_HEIGHT, 1):
-
         ##MSGS VERTICAL BORDERS##
         #Do the left side for messages
         libtcod.console_put_char(msgs, 0, y_num, BORDER_FILL, libtcod.BKGND_SCREEN)
 
         #Do the right side for messages
-        libtcod.console_put_char(msgs, MSG_STOP-1, y_num, BORDER_FILL , libtcod.BKGND_SCREEN)
+        libtcod.console_put_char(msgs, MSG_STOP - 1, y_num, BORDER_FILL, libtcod.BKGND_SCREEN)
 
         ##HEALTH/POIS BARS VERTICAL BORDERS##
         #Do the left side for health bars
@@ -1471,14 +1506,13 @@ def render_all():
 
     #Different range, same function.
     for y_num in range(1, MAP_HEIGHT, 1):
-
         ##PANEL2 VERTICAL BORDERS##
         #Do the left side for messages
         libtcod.console_put_char(panel2, 0, y_num, BORDER_FILL, libtcod.BKGND_SCREEN)
 
 
         #Do the right side for messages
-        libtcod.console_put_char(panel2, PANEL2_WIDTH-1, y_num, BORDER_FILL, libtcod.BKGND_SCREEN)
+        libtcod.console_put_char(panel2, PANEL2_WIDTH - 1, y_num, BORDER_FILL, libtcod.BKGND_SCREEN)
 
     #Set border for msgs
     border = calc_border(MSG_STOP)
@@ -1490,7 +1524,7 @@ def render_all():
     libtcod.console_print_ex(msgs, 0, MSG_HEIGHT, libtcod.BKGND_SCREEN, libtcod.LEFT, border)
 
     #Set border for panel
-    border = calc_border(MSG_X+1)
+    border = calc_border(MSG_X + 1)
 
     #Top and bottom border bar for panel (health bars)
     #Top
@@ -1505,7 +1539,7 @@ def render_all():
     #Top
     libtcod.console_print_ex(panel2, 0, 0, libtcod.BKGND_SCREEN, libtcod.LEFT, border)
     #Bottom
-    libtcod.console_print_ex(panel2, 0, MAP_HEIGHT-1, libtcod.BKGND_SCREEN, libtcod.LEFT, border)
+    libtcod.console_print_ex(panel2, 0, MAP_HEIGHT - 1, libtcod.BKGND_SCREEN, libtcod.LEFT, border)
     #Middle
     libtcod.console_print_ex(panel2, 0, 23, libtcod.BKGND_SCREEN, libtcod.LEFT, border)
 
@@ -1525,11 +1559,12 @@ def render_all():
 
     #show the player's stats
     level_up_xp = LEVEL_UP_BASE + player.level * LEVEL_UP_FACTOR
-    render_bar(panel, 1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.red, libtcod.darker_crimson)
+    render_bar(panel, 1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.red,
+               libtcod.darker_crimson)
     render_bar(panel, 1, 2, BAR_WIDTH, 'XP', player.fighter.xp, level_up_xp, libtcod.light_blue,
                libtcod.darkest_blue)
     render_bar_simple(panel, 1, 3, BAR_WIDTH, str(hunger()), hunger_level, HUNGER_TOTAL, libtcod.orange,
-               libtcod.darker_orange)
+                      libtcod.darker_orange)
 
     #Check for total number of effects for gui
     total_effects = 1
@@ -1537,20 +1572,24 @@ def render_all():
     for eff in player.fighter.effects:
 
         if eff.effect_name == 'poisoned':
-            render_bar_simple(panel, 1, 3 + total_effects, BAR_WIDTH, 'Poisoned X ' + str(eff.applied_times), (eff.duration-eff.turns_passed), eff.duration, libtcod.darker_green, libtcod.darkest_green)
+            render_bar_simple(panel, 1, 3 + total_effects, BAR_WIDTH, 'Poisoned X ' + str(eff.applied_times),
+                              (eff.duration - eff.turns_passed), eff.duration, libtcod.darker_green,
+                              libtcod.darkest_green)
             total_effects += 1
             print total_effects
             for i in player.fighter.effects:
                 print i.effect_name
 
         if eff.effect_name == 'Paralyzed':
-            render_bar_simple(panel, 1, 3+total_effects, BAR_WIDTH, 'Paralyzed X ' + str(eff.applied_times), (eff.duration-eff.turns_passed), eff.duration, libtcod.purple,
-               libtcod.darker_purple)
+            render_bar_simple(panel, 1, 3 + total_effects, BAR_WIDTH, 'Paralyzed X ' + str(eff.applied_times),
+                              (eff.duration - eff.turns_passed), eff.duration, libtcod.purple,
+                              libtcod.darker_purple)
             total_effects += 1
 
         if eff.effect_name == 'electric power':
-            render_bar_simple(panel, 1, 3+total_effects, BAR_WIDTH, 'Electrified Level ' + str(eff.applied_times), eff.m_elec_count, eff.m_elec_trigger/eff.applied_times, libtcod.blue,
-               libtcod.darker_yellow)
+            render_bar_simple(panel, 1, 3 + total_effects, BAR_WIDTH, 'Electrified Level ' + str(eff.applied_times),
+                              eff.m_elec_count, eff.m_elec_trigger / eff.applied_times, libtcod.blue,
+                              libtcod.darker_yellow)
             total_effects += 1
 
 
@@ -1585,7 +1624,8 @@ def render_all():
     libtcod.console_print_rect_ex(panel2, 1, 24, PANEL2_WIDTH, RECT_HEIGHT, libtcod.BKGND_NONE, libtcod.LEFT,
                                   'Character Information:\n')
 
-    char_info = '\nLevel: ' + str(player.level) + '\nDungeon level: ' + str(dungeon_level) + '\nAttack: ' + str(player.fighter.power) + '\nDefense: ' + str(
+    char_info = '\nLevel: ' + str(player.level) + '\nDungeon level: ' + str(dungeon_level) + '\nAttack: ' + str(
+        CURRENT_ATTACK) + '\nDefense: ' + str(
         player.fighter.defense) + '\nEvasion: ' + str(player.fighter.ev) + '\nAccuracy: ' + str(
         player.fighter.acc) + '\nTurns: ' + total_turns() + '\n\nEffects: ' + get_player_effects() + '\n\nEquipped Items:' + iterate_through_list(
         get_all_equipped(player))
@@ -1608,11 +1648,11 @@ def display_damage(self):
         list1 = str(self.display_dmg)
 
         #For each char entry in list1, set a foreground colour, the character for that tile.
-            #also increase count to reflect change
+        #also increase count to reflect change
         for i in list1:
             libtcod.console_set_default_foreground(con, libtcod.white)
 
-            libtcod.console_put_char(con, self.x+count, self.y, str(i), libtcod.BKGND_SCREEN)
+            libtcod.console_put_char(con, self.x + count, self.y, str(i), libtcod.BKGND_SCREEN)
             count += 1
 
     #If self is player and player took damage, display a char.
@@ -1620,6 +1660,7 @@ def display_damage(self):
         libtcod.console_set_default_foreground(con, libtcod.darker_red)
         libtcod.console_set_char_background(con, self.x, self.y, libtcod.silver, libtcod.BKGND_SET)
         libtcod.console_put_char(con, self.x, self.y, '*', libtcod.BKGND_SCREEN)
+
 
 def wait_for_spacekey():  #Make cast heal message appear without having to press the same key twice
     libtcod.console_flush()
@@ -1631,18 +1672,17 @@ def wait_for_spacekey():  #Make cast heal message appear without having to press
             choice = 'space'
             return 'cancelled'
             libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS | libtcod.EVENT_MOUSE, key, mouse)
-            fov_recompute=True
+            fov_recompute = True
             render_all()
 
         #check for keypress, render and flush the screen to present monster inside fov.
         libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS | libtcod.EVENT_MOUSE, key, mouse)
-        fov_recompute=True
+        fov_recompute = True
 
         render_all()
 
 
 def message_yn(messagequestion, messagey, color1=libtcod.white, color2=libtcod.white):
-
     message(messagequestion, color1)
     libtcod.console_flush()
     key = libtcod.console_wait_for_keypress(True)
@@ -1660,8 +1700,6 @@ def message_yn(messagequestion, messagey, color1=libtcod.white, color2=libtcod.w
             return choice
 
 
-
-
 def cast_inscribed_lever():
     message_yn(
         'You see a lever made of gold in the floor, it is inscribed with thousands of glyphs you do not recognize, do you wish to pull it? (y=yes, else=no',
@@ -1676,7 +1714,6 @@ def cast_inscribed_lever():
                 weaponchances.create_item(player.x, player.y)
         else:
             pass
-
 
 
 def create_inscribed_lever(x, y):
@@ -1714,11 +1751,11 @@ def message_wait(char, messagetext, color=libtcod.white):
 
 def message(new_msg, color=libtcod.white):
     #split the message if necessary, among multiple lines
-    new_msg_lines = textwrap.wrap(new_msg, MSG_STOP-1)
+    new_msg_lines = textwrap.wrap(new_msg, MSG_STOP - 1)
 
     for line in new_msg_lines:
         #if the buffer is full, remove the first line to make room for the new one
-        if len(game_msgs) == MSG_HEIGHT-1:
+        if len(game_msgs) == MSG_HEIGHT - 1:
             del game_msgs[0]
 
         #add the new line as a tuple, with the text and the color
@@ -1740,9 +1777,9 @@ def player_move_or_attack(dx, dy):
     elif player.fighter.paralysis == False:
         x = player.x + dx
         y = player.y + dy
-        no_move=False
+        no_move = False
         if x == player.x and y == player.y:
-            no_move=True
+            no_move = True
 
         target = None
         for obj in objects:
@@ -1753,13 +1790,13 @@ def player_move_or_attack(dx, dy):
         if target != None:
             player.fighter.attack(target)
             outcome = 'moved'
-            fov_recompute=True
+            fov_recompute = True
 
         elif no_move is True:
             message('You rest a turn.', libtcod.white)
             outcome = 'moved'
-            fov_recompute=True
-            no_move=False
+            fov_recompute = True
+            no_move = False
 
         elif is_blocked(x, y):
             message('You stumble into the wall..', libtcod.white)
@@ -1769,9 +1806,10 @@ def player_move_or_attack(dx, dy):
             player.move(dx, dy)
             fov_recompute = True
             outcome = 'moved'
-            fov_recompute=True
+            fov_recompute = True
 
     return outcome
+
 
 def handle_keys():
     global keys;
@@ -1890,6 +1928,7 @@ def handle_keys():
 
             return 'didnt-take-turn'
 
+
 def player_rest():
     carry_on = True
     while carry_on == True:
@@ -1909,7 +1948,7 @@ def player_rest():
             message('You cannot rest while fatally ' + FATAL_NAME + '!')
 
         if player.fighter.hp == player.fighter.max_hp:
-            carry_on=False
+            carry_on = False
             message('You are already at full health', libtcod.white)
             break
 
@@ -1917,20 +1956,20 @@ def player_rest():
             check_by_turn(10)
             check_run_effects(player)
 
-
-        if player.fighter.hp == (player.fighter.max_hp/2)-1:
+        if player.fighter.hp == (player.fighter.max_hp / 2) - 1:
             carry_on = False
             message('You rest to regain some of your health', libtcod.darkest_green)
-            player.fighter.hp +=1
+            player.fighter.hp += 1
 
-        if player.fighter.hp == (player.fighter.max_hp/1.25)-1:
+        if player.fighter.hp == (player.fighter.max_hp / 1.25) - 1:
             carry_on = False
             message('You rest to regain most of your health', libtcod.darker_green)
-            player.fighter.hp +=1
+            player.fighter.hp += 1
 
         if player.fighter.hp == player.fighter.max_hp:
             carry_on = False
             message('You rest to regain all of your health', libtcod.green)
+
 
 def get_player_effects():  # Get player effects and return them in pargraphed strings
 
@@ -1940,10 +1979,10 @@ def get_player_effects():  # Get player effects and return them in pargraphed st
 
     list1 = []
     for i in list_effects:
-
-       list1.append('\n ' + str(i).capitalize())
+        list1.append('\n ' + str(i).capitalize())
 
     return ' '.join(list1)
+
 
 def closest_monster(max_range):
     #find closest enemy, up to a maximum range, and in the players FOV
@@ -2010,12 +2049,12 @@ def cast_fireball():  #FIGURE OUT HOW TO PAUSE AFTER THIS MESSAGE BEFORE DEALING
     message('Lef-click a target tile for the fireball, or right_click to cancel.', libtcod.light_cyan)
     (x, y) = target_tile()
     if x is None: return 'cancelled'
-    message('Hephaestus turns his crippled body to you from an unseen dimension, and the air surrounding you explodes in a violent fireball! Press SPACE to continue.',
+    message(
+        'Hephaestus turns his crippled body to you from an unseen dimension, and the air surrounding you explodes in a violent fireball! Press SPACE to continue.',
         libtcod.orange)
 
     update_msgs()
     wait_for_spacekey()
-
 
     for obj in objects:  #damage every fighter in range, including the player
         if obj.distance(x, y) <= FIREBALL_RADIUS and obj.fighter and obj != player:
@@ -2024,7 +2063,6 @@ def cast_fireball():  #FIGURE OUT HOW TO PAUSE AFTER THIS MESSAGE BEFORE DEALING
             map[obj.x][obj.y].color_flash = libtcod.orange
 
             obj.fighter.take_damage(FIREBALL_DAMAGE)
-
 
 
 def player_death(player):
@@ -2045,8 +2083,6 @@ def player_death(player):
     #file[''] = xp_total
 
 
-
-
 def monster_death(monster):
     #transform it into a nasty corpse! it doesn't block, can't be attacked and doesn't move.
 
@@ -2055,9 +2091,11 @@ def monster_death(monster):
     equipped = get_all_equipped(player)
     for i in equipped:
         if i.owner.char == chr(24):
-                        #blow strength
+            #blow strength
 
-            message('The ' + str(monster.name) + ' explodes under the ferocious blow of your ' + str(i.owner.name) + '!', libtcod.white)
+            message(
+                'The ' + str(monster.name) + ' explodes under the ferocious blow of your ' + str(i.owner.name) + '!',
+                libtcod.white)
             #Use blow strength as a max number of gibs
             rand_num_gibs = libtcod.random_get_int(0, 1, 7)
             for num in range(0, rand_num_gibs, 1):
@@ -2068,27 +2106,29 @@ def monster_death(monster):
                     #roll for type of gib
                     roll = libtcod.random_get_int(0, 0, 3)
                     if roll == 0:
-                        gib = Object(x, y, '%', 'guts', libtcod.darker_red, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
+                        gib = Object(x, y, '%', 'guts', libtcod.darker_red, blocks=False,
+                                     description='Remains of a squashed ' + str(monster.name) + '.')
                         libtcod.console_set_char_background(con, x, y, libtcod.dark_red, libtcod.BKGND_SET)
                         map[x][y].diff_color = libtcod.dark_red
                     if roll == 1:
-                        gib = Object(x, y, "^", 'sinew', libtcod.dark_red, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
+                        gib = Object(x, y, "^", 'sinew', libtcod.dark_red, blocks=False,
+                                     description='Remains of a squashed ' + str(monster.name) + '.')
                         libtcod.console_set_char_background(con, x, y, libtcod.darker_red, libtcod.BKGND_SET)
                         map[x][y].diff_color = libtcod.darker_red
                     if roll == 2:
-                        gib = Object(x, y, '$', 'guts', libtcod.darker_purple, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
+                        gib = Object(x, y, '$', 'guts', libtcod.darker_purple, blocks=False,
+                                     description='Remains of a squashed ' + str(monster.name) + '.')
                         libtcod.console_set_char_background(con, x, y, libtcod.darkest_red, libtcod.BKGND_SET)
                         map[x][y].diff_color = libtcod.darkest_red
                     if roll == 3:
-                        gib = Object(x, y, '/', 'broken bone', libtcod.white, blocks=False, description='Remains of a squashed ' + str(monster.name) + '.')
+                        gib = Object(x, y, '/', 'broken bone', libtcod.white, blocks=False,
+                                     description='Remains of a squashed ' + str(monster.name) + '.')
                         libtcod.console_set_char_background(con, x, y, libtcod.dark_red, libtcod.BKGND_SET)
                         map[x][y].diff_color = libtcod.dark_red
 
                     #append gib and send it to back
                     objects.append(gib)
                     gib.send_to_back()
-
-
 
     message('The ' + monster.name.capitalize() + ' dies! You gain ' + str(monster.fighter.xp) + ' experience points.',
             libtcod.white)
@@ -2132,24 +2172,24 @@ def target_monster(max_range=None):
             if obj.x == x and obj.y == y and obj.fighter and obj != player:
                 return obj
 
-def calc_border(x):
 
+def calc_border(x):
     border_len = []
     #For each step in the range of the msg_width(msg_stop), add one filler tile
-    for i in range(0, x-2, 1):
+    for i in range(0, x - 2, 1):
         border_len.append(BORDER_FILL)
     border = ''.join(border_len)
 
-
     border1 = BORDER_CORNER + border + BORDER_CORNER
     return border1
+
 
 def new_game():
     global player, inventory, game_msgs, game_state, dungeon_level, turn_increment, turn_5, hunger_level
 
     key = libtcod.Key()
     #create object representing player
-    fighter_component = Fighter(hp=100, defense=3, power=6, xp=0, ev=5, acc=10, speed=10, death_function=player_death,
+    fighter_component = Fighter(hp=100, defense_dice=2, defense_sides=2, power_dice=2, power_sides=2, xp=0, ev=5, acc=10, speed=10, death_function=player_death,
                                 effects=[])
     player = Object(0, 0, '@', 'player', libtcod.silver, blocks=True, fighter=fighter_component)
     player.level = 1
@@ -2186,19 +2226,13 @@ def new_game():
     message('Zeus is a dick! Go fuck him up.', libtcod.white)
 
     #initial equipment: a dagger
-    equipment_component = Equipment(slot='left hand', power_bonus=2)
+    equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=1)
     obj = Object(0, 0, '-', 'wooden dagger', libtcod.darkest_orange, equipment=equipment_component,
                  description='A small wooden dagger, it provides a bonus to attack.')
     inventory.append(obj)
     equipment_component.equip()
     obj.always_visible = True
 
-    equipment_component = Equipment(slot='right hand', power_bonus=2)
-    obj = Object(0, 0, '-', 'bone dagger', libtcod.darkest_orange, equipment=equipment_component,
-                 description='A small bone dagger, it provides a bonus to attack.')
-    inventory.append(obj)
-    equipment_component.equip()
-    obj.always_visible = True
 
 def initialize_fov():
     global fov_recompute, fov_map
@@ -2223,7 +2257,10 @@ def play_game():
     #Add elec
     elec = False
     if elec == True:
-        player.fighter.add_effect(Effect(effect_name='electric power', mutation=True, applied_times=5, m_elec=True, m_elec_trigger=125, m_elec_damage=150), 'For your valiant effort you have earned the gods favour, they convene and offer you')
+        player.fighter.add_effect(
+            Effect(effect_name='electric power', mutation=True, applied_times=5, m_elec=True, m_elec_trigger=125,
+                   m_elec_damage=150),
+            'For your valiant effort you have earned the gods favour, they convene and offer you')
         elec = False
 
     ##MAIN LOOP##
@@ -2235,7 +2272,7 @@ def play_game():
         libtcod.console_flush()
 
         #erase all objects at their old locations, before they move. Used to be after check_level_up
-            #but moved to fix duplicate monster chars on floor
+        #but moved to fix duplicate monster chars on floor
 
         for object in objects:
             if object.display_dmg != None:
@@ -2259,17 +2296,15 @@ def play_game():
         #handle paralysis
         if player_action == 'paralyzed' and game_state == 'playing':
             check_by_turn(player.fighter.speed)
-            check_run_effects(player)#May be the cause of poison/paralyzed interaction
-
+            check_run_effects(player)  #May be the cause of poison/paralyzed interaction
 
         if player_action == 'moved' and game_state == 'playing':
             check_by_turn(player.fighter.speed)
             check_run_effects(player)
 
+
 def main_menu():
-
     img = libtcod.image_load('zeus1.png')
-
 
     while not libtcod.console_is_window_closed():
         #show the background image, at twice the regular console resolution
@@ -2292,6 +2327,7 @@ def main_menu():
         elif choice == 2:  #Quit
             break
 
+
 def save_game():
     #open a new empty shelve (possibly overwriting an old one) to write the game data
     file = shelve.open('savegame', 'n')
@@ -2308,6 +2344,7 @@ def save_game():
     file['turn_5'] = turn_5
 
     file.close
+
 
 def load_game():
     #open the previously saved shelve and load the game data
@@ -2335,6 +2372,7 @@ def load_game():
         if object.path is not None:
             object.path = None
 
+
 def next_level():
     global dungeon_level
     #advance to the next level
@@ -2345,6 +2383,7 @@ def next_level():
     dungeon_level += 1
     make_map()  # create a fresh new level!
     initialize_fov()
+
 
 def check_level_up():  #TODO: Add cool mutations to fighter class like horns, speed boost,
     #see if a players expereince is enough to level up
@@ -2385,7 +2424,11 @@ def check_level_up():  #TODO: Add cool mutations to fighter class like horns, sp
         for i in level_mutate:
             if player.level == i:
                 #This will eventually be a pick a random mutation function
-                player.fighter.add_effect(Effect(effect_name='electric power', mutation=True, m_elec=True, m_elec_trigger=125, m_elec_damage=150), 'For your valiant effort you have earned the gods favour, they convene and offer you')
+                player.fighter.add_effect(
+                    Effect(effect_name='electric power', mutation=True, m_elec=True, m_elec_trigger=125,
+                           m_elec_damage=150),
+                    'For your valiant effort you have earned the gods favour, they convene and offer you')
+
 
 def random_choice_index(chances):  #choose one option from list of chances, returning its index
     #the dice will land on some number between 1 and the sum of the chances
@@ -2422,18 +2465,18 @@ def from_dungeon_level(table):
 #Handles turns/speed/heal
 def check_by_turn(speed):
     global heal_rate, turn_increment, turn_5, hunger_level
-    hunger_fire=0
+    hunger_fire = 0
     for i in range(0, speed, 1):
         turn_increment += 1
 
         #Deal with hunger
         #Add one to the count
-        hunger_fire +=1
+        hunger_fire += 1
         #If count is 2, decrease hunger by HUNGER_RATE
         if hunger_fire == 2:
             hunger_level -= HUNGER_RATE
             #Reset hunger_fire
-            hunger_fire=0
+            hunger_fire = 0
 
         #Iterate through objects list
         for obj in objects:
@@ -2442,17 +2485,17 @@ def check_by_turn(speed):
             if obj.fighter and obj.fighter.speed != None:
 
                 #Increment the speed counter by 1
-                obj.fighter.speed_counter+=1
+                obj.fighter.speed_counter += 1
 
                 #Increment the heal rate by 1
-                obj.fighter.heal_counter+=1
+                obj.fighter.heal_counter += 1
 
                 #If the heal_counter == the heal_rate, heal by 1/100th of fighters hp
                 if obj.fighter.heal_counter == obj.fighter.heal_rate:
-                    heal = obj.fighter.max_hp/100
+                    heal = obj.fighter.max_hp / 100
                     obj.fighter.heal(heal)
                     #Reset counter to 0
-                    obj.fighter.heal_counter=0
+                    obj.fighter.heal_counter = 0
 
 
                 #If the speed value is equal to the speed counter
@@ -2465,7 +2508,7 @@ def check_by_turn(speed):
                         obj.ai.take_turn()
 
                     #Reset speed counter
-                    obj.fighter.speed_counter=0
+                    obj.fighter.speed_counter = 0
 
         #reset turn incrememnt to 0 if it is 5, at the end of the function
         if turn_increment == 5:
@@ -2473,7 +2516,6 @@ def check_by_turn(speed):
             turn_5 += 1
 
     if hunger_level <= 0:
-
         message('You are starving!', libtcod.light_red)
         player.fighter.take_damage(2)
         warning_count = 0
@@ -2488,15 +2530,15 @@ def hunger():
     #return string of hunger level (Full, Content, Peckish, Hungry, Starving)
     #TODO: make starving, v. hungry different colors
     global hunger_level
-    increment = HUNGER_TOTAL/5
+    increment = HUNGER_TOTAL / 5
 
-    if hunger_level >= increment*5:
+    if hunger_level >= increment * 5:
         return 'Full'
-    elif hunger_level >= increment*4:
+    elif hunger_level >= increment * 4:
         return 'Content'
-    elif hunger_level >= increment*3:
+    elif hunger_level >= increment * 3:
         return 'Peckish'
-    elif hunger_level >= increment*2:
+    elif hunger_level >= increment * 2:
         return 'Hungry'
     elif hunger_level >= increment:
         return 'Very hungry'
@@ -2527,8 +2569,7 @@ def get_all_equipped(obj):  #returns a list of equipped items
 def iterate_through_list(x):
     list1 = []
     for i in x:
-
-       list1.append('\n ' + str(i.owner.name).capitalize())
+        list1.append('\n ' + str(i.owner.name).capitalize())
     return ' '.join(list1)
 
 
@@ -2555,7 +2596,6 @@ def add_bones(x, y):
 
             objects.append(item)
             item.send_to_back()
-
 
 
 ################
