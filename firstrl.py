@@ -257,17 +257,19 @@ class Object:
 
 class Fighter:
     #combat-related properties and methods (monster, player, npc).
-    def __init__(self, hp, defense_dice, defense_sides, power_dice, power_sides, xp, ev, acc, speed=None, speed_counter=0, heal_rate=50,
-                 heal_counter=0, death_function=None, effects=[], cast_effect=None, cast_roll=0, paralysis=False):
+    def __init__(self, hp, defense_dice=0, defense_sides=0, power_dice=0, power_sides=0, evasion_dice=0, evasion_sides=0, accuracy_dice=0, accuracy_sides=0, crit_dice=0, xp=0, speed=None, speed_counter=0, heal_rate=50, heal_counter=0, death_function=None, effects=[], cast_effect=None, cast_roll=0, paralysis=False):
         self.base_max_hp = hp
         self.hp = hp
         self.base_defense_dice = defense_dice
         self.base_defense_sides = defense_sides
         self.base_power_dice = power_dice
         self.base_power_sides = power_sides
+        self.base_evasion_dice = evasion_dice
+        self.base_evasion_sides = evasion_sides
+        self.base_accuracy_dice = accuracy_dice
+        self.base_accuracy_sides = accuracy_sides
+        self.crit_dice = crit_dice
         self.xp = xp
-        self.ev = ev
-        self.acc = acc
         self.speed = speed
         self.speed_counter = speed_counter
 
@@ -284,29 +286,33 @@ class Fighter:
 
     @property
     def power(self):  #return actual power, by summing up the bonuses from all equipped items
-        bonus_dice = (sum(equipment.power_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_power_dice))
+        #Add dice/sides from equipment
+        bonus_dice = (sum(equipment.power_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_power_dice)+(self.crit_dice))
         bonus_sides = (sum(equipment.power_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_power_sides))
 
-        #Need to integrate effects below
-        #sum(effect.power_effect for effect in self.effects))
+        #Check for crit bonus
+        bonus_dice = (sum(equipment.power_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_power_dice))
 
+        #Add dice/sides from effects
+        bonus_dice += (sum(effect.power_effect_dice for effect in self.effects))
+        bonus_sides += (sum(effect.power_effect_sides for effect in self.effects))
+
+        #Create list with dice and sides as it's two entries
         dice_sides = []
         dice_sides.append(bonus_dice)
         dice_sides.append(bonus_sides)
 
+        #Return the list
         return dice_sides
-
-
-
-        #perform roll of dice here
-
 
     @property
     def defense(self):  #return actual+ defense, by summing up the bonuses from all equipped items
         bonus_dice = (sum(equipment.defense_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_defense_dice))
         bonus_sides = (sum(equipment.defense_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_defense_sides))
 
-        #sum(effect.power_effect for effect in self.effects))
+        #Need to integrate effects below
+        bonus_dice += (sum(effect.defense_effect_dice for effect in self.effects))
+        bonus_sides += (sum(effect.defense_effect_sides for effect in self.effects))
 
         dice_sides = []
         dice_sides.append(bonus_dice)
@@ -314,15 +320,45 @@ class Fighter:
 
         return dice_sides
 
-
     @property
     def max_hp(self):  #return actual max_hp, by summing up the bonuses from all equipped items
+
+        #This stays unaffected
         bonus = sum(equipment.max_hp_bonus for equipment in get_all_equipped(self.owner))
+        #Add effect bonuses to max_hp
+        bonus += (sum(effect.max_hp_effect for effect in self.effects))
         return self.base_max_hp + bonus
 
 
-    # @property
-    #TODO: def ev(self): #return actual evasion
+    @property
+    def evasion(self): #return actual evasion
+        bonus_dice = (sum(equipment.evasion_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_evasion_dice))
+        bonus_sides = (sum(equipment.evasion_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_evasion_sides))
+
+        #Need to integrate effects below
+        bonus_dice += (sum(effect.evasion_effect_dice for effect in self.effects))
+        bonus_sides += (sum(effect.evasion_effect_sides for effect in self.effects))
+
+        dice_sides = []
+        dice_sides.append(bonus_dice)
+        dice_sides.append(bonus_sides)
+
+        return dice_sides
+
+    @property
+    def accuracy(self): #return actual accuracy
+        bonus_dice = (sum(equipment.accuracy_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_accuracy_dice))
+        bonus_sides = (sum(equipment.accuracy_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_accuracy_sides))
+
+        #Need to integrate effects below
+        bonus_dice += (sum(effect.accuracy_effect_dice for effect in self.effects))
+        bonus_sides += (sum(effect.accuracy_effect_sides for effect in self.effects))
+
+        dice_sides = []
+        dice_sides.append(bonus_dice)
+        dice_sides.append(bonus_sides)
+
+        return dice_sides
 
     def player_eat_food(self, Item):
         global hunger_level
@@ -407,42 +443,43 @@ class Fighter:
     def attack(self, target):
         #a simple formula for attack damage
 
-        ev_roll = libtcod.random_get_int(0, 0, target.fighter.ev)
-        acc_min = self.acc / 10
-        acc_roll = libtcod.random_get_int(0, acc_min, self.acc)
-        #Figure out the total difference between evasion and accuracy
-        quality_string = None
+        evasion = roll_for(target.fighter.evasion)
+        accuracy = roll_for(self.accuracy)
 
-        #roll for extra damage
-        #dam_roll = libtcod.random_get_int(0, 0, acc_roll)
-        #damage is power+ acc_roll - target.defense
-
-        damage = roll_for(self.power) - roll_for(target.fighter.defense)
-
-        if ev_roll <= acc_roll:
+        #If evasion is smaller or equal to accuracy
+        if evasion <= accuracy:
 
             #check for crit if player is the attacker
             if self.owner.name == 'player':
 
-                difference = acc_roll - ev_roll
+                difference = accuracy - evasion
 
                 if difference >= 10:
+
                     #color the floor with blood
-                    #TODO: Maybe this would look better with 1-3 painted tiles rather than just one in a + 1 range
                     libtcod.console_set_char_background(con, target.x, target.y, libtcod.darker_red, libtcod.BKGND_SET)
                     map[target.x][target.y].diff_color = libtcod.darker_red
                     message('You deal a devastating critical blow to the ' + str(target.name) + '!', libtcod.white)
 
-                    #Size of critical boost, kater will roll for this damage
+                    #Size of critical boost, later will roll for this damage
                     if difference >= 10:
-                        damage += damage * 3
+                        self.crit_dice=1
                     elif difference <= 15:
-                        damage += damage * 4
+                        self.crit_dice=2
                     elif difference <= 20:
-                        damage += damage * 5
+                        self.crit_dice=3
                     elif difference <= 25:
-                        damage += damage * 6
+                        self.crit_dice=4
 
+            #Call rolls for power and defense
+            power = roll_for(self.power)
+            defense = roll_for(target.fighter.defense)
+
+            #Set crit damage to 0 now that it has been calculated and stored in power variable
+            self.crit_dice=0
+
+            #Calculate damage
+            damage = power - defense
 
             # #Player messages and colors##
             if damage > 0 and self.owner.name == 'player':
@@ -465,10 +502,10 @@ class Fighter:
                 message(self.owner.name.capitalize() + ' hits you but it has no effect!', libtcod.grey)
                 self.roll_for_effect(target)
 
-        elif self.owner.name == 'player' and ev_roll > acc_roll:
+        elif self.owner.name == 'player' and evasion > accuracy:
             message('You missed the ' + target.name + '!', libtcod.white)
 
-        elif self.owner.name != 'player' and ev_roll > acc_roll:
+        elif self.owner.name != 'player' and evasion > accuracy:
             message('The ' + self.owner.name.capitalize() + ' missed you!', libtcod.white)
 
         quality_string = None
@@ -580,11 +617,15 @@ class Item:
 
 class Equipment:
     #an object that can be equipped, yielding bonuses. Automatically adds the Item component
-    def __init__(self, slot, power_bonus_dice=0, power_bonus_sides=0, defense_bonus_dice=0, defense_bonus_sides=0, max_hp_bonus=0):
+    def __init__(self, slot, power_bonus_dice=0, power_bonus_sides=0, defense_bonus_dice=0, defense_bonus_sides=0, evasion_bonus_dice=0, evasion_bonus_sides=0, accuracy_bonus_dice=0, accuracy_bonus_sides=0, max_hp_bonus=0):
         self.power_bonus_dice = power_bonus_dice
         self.power_bonus_sides = power_bonus_sides
         self.defense_bonus_dice = defense_bonus_dice
         self.defense_bonus_sides = defense_bonus_sides
+        self.evasion_bonus_dice = evasion_bonus_dice
+        self.evasion_bonus_sides = evasion_bonus_sides
+        self.accuracy_bonus_dice = accuracy_bonus_dice
+        self.accuracy_bonus_sides = accuracy_bonus_sides
         self.max_hp_bonus = max_hp_bonus
 
         self.slot = slot
@@ -615,7 +656,7 @@ class Equipment:
 
 class Effect:
     #an effect that can be applied to the character, yielding bonuses or nerfs
-    def __init__(self, effect_name=None, duration=0, turns_passed=0, base_duration=0, power_effect=0, defense_effect=0,
+    def __init__(self, effect_name=None, duration=0, turns_passed=0, base_duration=0, power_effect_dice=0, power_effect_sides=0, defense_effect_dice=0, defense_effect_sides=0, evasion_effect_dice=0, evasion_effect_sides=0, accuracy_effect_dice=0, accuracy_effect_sides=-0,
                  max_hp_effect=0, applied_times=1, confused=False, burning=False, damage_by_turn=None, paralyzed=None,
                  fatal_alert=False, mutation=False, m_loop=0, m_loop_turn=0, m_elec=False, m_elec_count=0,
                  m_elec_trigger=5, m_elec_damage=0):
@@ -623,8 +664,14 @@ class Effect:
         self.duration = duration
         self.turns_passed = turns_passed
         self.base_duration = base_duration
-        self.power_effect = power_effect
-        self.defense_effect = defense_effect
+        self.power_effect_dice = power_effect_dice
+        self.power_effect_sides = power_effect_sides
+        self.defense_effect_dice = defense_effect_dice
+        self.defense_effect_sides = defense_effect_sides
+        self.evasion_effect_dice = evasion_effect_dice
+        self.evasion_effect_sides = evasion_effect_sides
+        self.accuracy_effect_dice = accuracy_effect_dice
+        self.accuracy_effect_sides = accuracy_effect_sides
         self.max_hp_effect = max_hp_effect
         self.applied_times = applied_times
         self.confused = confused
@@ -924,7 +971,7 @@ def place_objects(room):
             choice = random_choice(monster_chances)
             if choice == 'Dog':
                 #create an dog
-                fighter_component = Fighter(hp=40, defense_dice=1, defense_sides=5, power_dice=1, power_sides=8, xp=40, ev=5, acc=5, speed=10,
+                fighter_component = Fighter(hp=40, defense_dice=1, defense_sides=5, power_dice=1, power_sides=8, evasion_dice=1, evasion_sides=6, accuracy_dice=2, accuracy_sides=4, xp=40, speed=10,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'd', 'Dog', libtcod.darker_orange, blocks=True, fighter=fighter_component,
@@ -1640,8 +1687,8 @@ def render_all():
 
     char_info = '\nLevel: ' + str(player.level) + '\nDungeon level: ' + str(dungeon_level) + '\nAttack: ' + str(
         player.fighter.power) + '\nDefense: ' + str(
-        player.fighter.defense) + '\nEvasion: ' + str(player.fighter.ev) + '\nAccuracy: ' + str(
-        player.fighter.acc) + '\nTurns: ' + total_turns() + '\n\nEffects: ' + get_player_effects() + '\n\nEquipped Items:' + iterate_through_list(
+        player.fighter.defense) + '\nEvasion: ' + str(player.fighter.evasion) + '\nAccuracy: ' + str(
+        player.fighter.accuracy) + '\nTurns: ' + total_turns() + '\n\nEffects: ' + get_player_effects() + '\n\nEquipped Items:' + iterate_through_list(
         get_all_equipped(player))
 
     libtcod.console_print_ex(panel2, 1, 26, libtcod.BKGND_NONE, libtcod.LEFT, char_info)
@@ -1900,8 +1947,8 @@ def handle_keys():
             # debug
             if key_char == '@':
                 player.fighter.max_hp = 1000
-                player.fighter.defense = 1000
-                player.fighter.power = 1000
+                player.fighter.base_defense_sides = 1000
+                player.fighter.base_power_sides = 1000
 
             #debug
             if key_char == '#':
@@ -2203,7 +2250,7 @@ def new_game():
 
     key = libtcod.Key()
     #create object representing player
-    fighter_component = Fighter(hp=100, defense_dice=2, defense_sides=2, power_dice=2, power_sides=2, xp=0, ev=5, acc=10, speed=10, death_function=player_death,
+    fighter_component = Fighter(hp=100, defense_dice=2, defense_sides=2, power_dice=2, power_sides=2, evasion_dice=2, evasion_sides=1, accuracy_dice=3, accuracy_sides=2, xp=0, speed=10, death_function=player_death,
                                 effects=[])
     player = Object(0, 0, '@', 'player', libtcod.silver, blocks=True, fighter=fighter_component)
     player.level = 1
@@ -2233,6 +2280,7 @@ def new_game():
 
     #player.fighter.add_effect(Effect('Paralyzed', duration=5, paralyzed=True, base_duration=5), 'Game developer')
     #player.fighter.add_effect(Effect('cruelly hurt', duration=5, damage_by_turn=10), 'Game developer')
+    player.fighter.add_effect(Effect('Defense buffed', duration=50, defense_effect_dice=2, defense_effect_sides=2), 'Game developer')
     game_state = 'playing'
 
 

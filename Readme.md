@@ -107,9 +107,12 @@ Damage player 10 hit points - '#'
 - Need to update effects to use dicts.
         
 
-- Bugs in character info box
-- Still needs accuracy and other @properties to be changed
-- Currently effects calculation is not integrated
+- Still some minor bugs to iron out, level up needs changing which will probably require adding strength, dex
+
+Strength - Increase power side, 
+Dexterity - Increase acc/ev
+
+
 
    
 #Alpha TODO:
@@ -117,9 +120,9 @@ Damage player 10 hit points - '#'
 For alpha release:
     
     - MAJOR: Implement numdice*numfaces rolling system a la sil for attack. 
-        (2 days - Will need to change attack, defense, ev, acc)
+        (DONE - Still need to update check_level_up and change old monster values)
     - Add more items/weapons
-        (2 days - After num*dice change, this will require a complete rework
+        (1 day - After num*dice change, this will require a complete rework
     - MAJOR: Turn system http://www.roguebasin.com/index.php?title=A_simple_turn_scheduling_system_--_Python_implementation
         (DONE - 1.5 HOURS)
     - Implement shift run
@@ -147,14 +150,18 @@ For alpha release:
     
     ALPHA UPDATE:
     19/08/14 (started countdown):    
-        TOTAL DAYS = 22.5 (23)
+        TOTAL DAYS LEFT = 22.5 (23)
         ALPHA RELEASE DATE = 11th September
+    
+    20/08/14 Finished speed, dice roll implementation, way ahead of schedule:    
+        TOTAL DAYS LEFT = 15.5 (16)
+        ALPHA RELEASE DATE = 5th September
         
 #Remaining major TODO (in rough order):
 
 - Make inventory a list in the fighter class.
 - Make monsters drop items in inventory based on a roll from inventory
-- Fix pathfinding
+- Fix pathfinding- look at example code in library.
 - Noise effect/Color variation in tiles; first time map is created they should be set
 - Shift-run (if next.x,y is not_blocked() and no fighter is in fov, take next step)
 - Add click messages to see page of messages, rather than delete them, 
@@ -197,6 +204,9 @@ For alpha release:
 
 #Done:
 
+- Added dice/faces random generation, integrated into attack, defense, evasion, accuracy.
+ 
+    Affected by effects, equipment, crit roll and base levels. 
 - Fixed player_rest() to print full health message instead of already healthy message
 - Changed player colour
 - Gave wall and floor tiles a character
