@@ -476,11 +476,6 @@ class BasicMonsterAI:
         monster = self.owner
         #Check for existing path
 
-        # TODO: Used to be an 'if monster.path == None:' line here, broke load functionality as wasn't sure
-        # how to load old paths and it appeared to python that an old path existed, this way it loads
-        # a new path either way.
-        # This has broken "move to last seen" functionality. Needs to be fixed.
-
         if monster.path == None:
             monster_move_or_attack(monster)
 
@@ -1242,7 +1237,7 @@ def make_map():
             rooms.append(new_room)
 
             # TODO: Get this to work, currently calls it's pick_up_function like eat_food does, have to
-            # press 'y' over and over after starting a new game as It appears to hang.
+            # Press 'y' over and over after starting a new game as It appears to hang.
 
             #roll_lever = libtcod.random_get_int(0, 0, 1)
             #if roll_lever == 1:
@@ -1751,8 +1746,6 @@ def player_move_or_attack(dx, dy):
         no_move=False
         if x == player.x and y == player.y:
             no_move=True
-        print x
-        print y
 
         target = None
         for obj in objects:
@@ -2165,6 +2158,8 @@ def new_game():
     player.level = 1
     #Create the list of game messages and their colors, starts empty
 
+
+
     game_msgs = []
     inventory = []
     player_effects = []
@@ -2354,7 +2349,7 @@ def next_level():
     make_map()  # create a fresh new level!
     initialize_fov()
 
-def check_level_up():  #TODO: Add cool mutations to fighter class like horns
+def check_level_up():  #TODO: Add cool mutations to fighter class like horns, speed boost,
     #see if a players expereince is enough to level up
     level_up_xp = LEVEL_UP_BASE + player.level * LEVEL_UP_FACTOR
     if player.fighter.xp >= level_up_xp:
