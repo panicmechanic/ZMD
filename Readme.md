@@ -93,11 +93,20 @@ Damage player 10 hit points - '#'
 - Poison is being appended more than once. Something in add_effect() or roll_for_effect(). Debug it.
 - Fix effect double append, highlighted lines both fire, although maybe not in the same run.
 - Geting an occasional "ValueError: list.remove(x): x not in list" error after check_run_effects().
-- Problem with warhammer splatter and lightning mutation making it not fire - give take_damage another variable, weapon. 
+- Problem with warhammer splatter and lightning mutation making it not fire - give take_damage another variable, weapon.
+ 
     If it is war hammer, and the damage will kill the monster, give it the splatter effect in a function.
 - Make bottom right box display info under mouse on mouse over
 - Give all monsters a speed and heal_rate
 - Give an @property value to speed, accuracy, evasion
+- Implement stealth by giving fighters a detection and stealth value 
+- Give fighters an awareness value equal to sleeping, wandering, aware. If monster is in fov and distance < 10
+ 
+    roll stealth/detection and raise awareness 1 level. While sleeping cannot wander.
+    
+    
+
+
 
 
    
@@ -111,6 +120,8 @@ For alpha release:
         (2 days - After num*dice change, this will require a complete rework
     - MAJOR: Turn system http://www.roguebasin.com/index.php?title=A_simple_turn_scheduling_system_--_Python_implementation
         (DONE - 1.5 HOURS)
+    - Implement shift run
+        (1 day - No idea where to even begin)
     - Fix current bugs: paralysis/poison duplication, paralyze taking a turn to 
         apply (move to different loop), bones/fountains cover items, warhammer 
         splatter not firing with elec.
@@ -139,6 +150,7 @@ For alpha release:
         
 #Remaining major TODO (in rough order):
 
+- Fix pathfinding
 - Noise effect/Color variation in tiles; first time map is created they should be set
 - Shift-run (if next.x,y is not_blocked() and no fighter is in fov, take next step)
 - Add click messages to see page of messages, rather than delete them, 
@@ -160,6 +172,7 @@ For alpha release:
 - Add ranged combat
 - Add more content (weapons/items/effects/monsters)
 - Add random generators for items and weapons
+- Check FPS
 - Improve monster pathfinding, will probably require path function. Also need to fix path to last seen.
 - Reduce evasion by 1 for every adjacent monster
 - Create a jelly_monster that splits when hit.
@@ -179,7 +192,9 @@ For alpha release:
 - Figure out how to get fatal effect warning to display on panel2, line 535.
 
 #Done:
-- 
+
+- Changed player colour
+- Gave wall and floor tiles a character
 - Added color player red when damaged
 - Implemented speed
 - Made critical hits a function of accuracy

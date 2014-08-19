@@ -77,7 +77,8 @@ LEVEL_UP_FACTOR = 200
 
 
 #FPS
-LIMIT_FPS = 20  #20 frames-per-second maximum
+LIMIT_FPS = 60  #20 frames-per-second maximum
+
 
 
 
@@ -783,7 +784,7 @@ def check_run_effects(obj):
                                 fired_times += 1
 
                                 #Set map.diff_color to darkest_grey. This order is important.
-                                map[obj.x][obj.y].diff_color = libtcod.darkest_grey
+                                map[obj.x][obj.y].diff_color = libtcod.darker_grey
 
 
 
@@ -1532,6 +1533,8 @@ def render_all():
 
         y += 1
 
+
+
     #show the player's stats
     level_up_xp = LEVEL_UP_BASE + player.level * LEVEL_UP_FACTOR
     render_bar(panel, 1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.red, libtcod.darker_crimson)
@@ -1624,13 +1627,11 @@ def display_damage(self):
             libtcod.console_put_char(con, self.x+count, self.y, str(i), libtcod.BKGND_SCREEN)
             count += 1
 
+    #If self is player and player took damage, display a char.
     if self == player and self.display_dmg != None:
         libtcod.console_set_default_foreground(con, libtcod.darker_red)
-        libtcod.console_set_char_background(con, self.x, self.y, libtcod.light_red, libtcod.BKGND_SET)
+        libtcod.console_set_char_background(con, self.x, self.y, libtcod.lightest_red, libtcod.BKGND_SET)
         libtcod.console_put_char(con, self.x, self.y, '*', libtcod.BKGND_SCREEN)
-
-
-
 
 def wait_for_spacekey():  #Make cast heal message appear without having to press the same key twice
     libtcod.console_flush()
@@ -2264,9 +2265,6 @@ def play_game():
         #handle paralysis
         if player_action == 'paralyzed' and game_state == 'playing':
             check_by_turn(player.fighter.speed)
-            for obj in objects:
-                if obj.ai:
-                    obj.ai.take_turn()
             check_run_effects(player)#May be the cause of poison/paralyzed interaction
 
 
