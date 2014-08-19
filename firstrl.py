@@ -1626,7 +1626,7 @@ def display_damage(self):
     #If self is player and player took damage, display a char.
     if self == player and self.display_dmg != None:
         libtcod.console_set_default_foreground(con, libtcod.darker_red)
-        libtcod.console_set_char_background(con, self.x, self.y, libtcod.lightest_red, libtcod.BKGND_SET)
+        libtcod.console_set_char_background(con, self.x, self.y, libtcod.gold, libtcod.BKGND_SET)
         libtcod.console_put_char(con, self.x, self.y, '*', libtcod.BKGND_SCREEN)
 
 def wait_for_spacekey():  #Make cast heal message appear without having to press the same key twice
@@ -1760,12 +1760,12 @@ def player_move_or_attack(dx, dy):
             outcome = 'moved'
             fov_recompute=True
 
-        elif is_blocked(x, y) and dx != 0:
+        elif is_blocked(x, y):
             message('You stumble into the wall..', libtcod.white)
             outcome = 'stumble'
 
 
-        elif is_blocked(x, y) and dx == 0:
+        elif is_blocked(x, y) and dx == 0 and dy == 0:
             message('You rest a turn.', libtcod.white)
             outcome = 'moved'
             fov_recompute=True
@@ -2156,7 +2156,7 @@ def new_game():
     #create object representing player
     fighter_component = Fighter(hp=100, defense=3, power=6, xp=0, ev=5, acc=10, speed=10, death_function=player_death,
                                 effects=[])
-    player = Object(0, 0, '@', 'player', libtcod.darkest_grey, blocks=True, fighter=fighter_component)
+    player = Object(0, 0, '@', 'player', libtcod.silver, blocks=True, fighter=fighter_component)
     player.level = 1
     #Create the list of game messages and their colors, starts empty
 
