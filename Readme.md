@@ -103,15 +103,16 @@ Damage player 10 hit points - '#'
 - Give fighters an awareness value equal to sleeping, wandering, aware. If monster is in fov and distance < 10
  
     roll stealth/detection and raise awareness 1 level. While sleeping cannot wander.
-- Apply @ property to defense and see if it works.
-- Need to update effects to use dicts.
-        
+      
 
-- Still some minor bugs to iron out, level up needs changing which will probably require adding strength, dex
+- Still some minor bugs to iron out to roll, level up needs changing which will probably require adding the following:
 
-Strength - Increase power side, 
-Dexterity - Increase acc/ev
-
+        Skills (set default speed to 100):
+    
+        Calisthenics (strength)  - Increase attack (power sides by 1), increase ranged range. 
+        Gymnastics (dexterity)   - Increase acc/ev, small boost to speed
+        Shadow training (stealth)- Improve stealth, improve speed
+        Meditation (will)        - Improve accuracy, perception checks, skill helps mutations
 
 
    
@@ -120,7 +121,7 @@ Dexterity - Increase acc/ev
 For alpha release:
     
     - MAJOR: Implement numdice*numfaces rolling system a la sil for attack. 
-        (DONE - Still need to update check_level_up and change old monster values)
+        (DONE - 1 DAY. Still need to update check_level_up and change old monster values)
     - Add more items/weapons
         (1 day - After num*dice change, this will require a complete rework
     - MAJOR: Turn system http://www.roguebasin.com/index.php?title=A_simple_turn_scheduling_system_--_Python_implementation
@@ -145,6 +146,8 @@ For alpha release:
         for each tile from attacker to target to paint an 'arrow' and display it once.
         Some internet time will be necessary to research.
         (3 days - Allow for 3 days to integrate this, research will give better estimates.
+    - Implement pathfinding fix using examples from library or do some research to find examples
+        (2 days - Expect this to be difficult)
     - Add simple win condition for alpha release purposes
         (2 days - Will need to create win_screen() on win.)
     
@@ -153,9 +156,10 @@ For alpha release:
         TOTAL DAYS LEFT = 22.5 (23)
         ALPHA RELEASE DATE = 11th September
     
-    20/08/14 Finished speed, dice roll implementation, way ahead of schedule:    
-        TOTAL DAYS LEFT = 15.5 (16)
-        ALPHA RELEASE DATE = 5th September
+    20/08/14 Finished speed, dice roll implementation, way ahead of schedule. But added pathfinding
+        to TODO, as it breaks enjoyment and needs fixing if it's to be enjoyable in any way:    
+        TOTAL DAYS LEFT = 17.5 (18)
+        ALPHA RELEASE DATE = 7th September
         
 #Remaining major TODO (in rough order):
 

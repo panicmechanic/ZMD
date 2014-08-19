@@ -290,9 +290,6 @@ class Fighter:
         bonus_dice = (sum(equipment.power_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_power_dice)+(self.crit_dice))
         bonus_sides = (sum(equipment.power_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_power_sides))
 
-        #Check for crit bonus
-        bonus_dice = (sum(equipment.power_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_power_dice))
-
         #Add dice/sides from effects
         bonus_dice += (sum(effect.power_effect_dice for effect in self.effects))
         bonus_sides += (sum(effect.power_effect_sides for effect in self.effects))
@@ -929,6 +926,7 @@ def create_room(room):
             map[x][y].block_sight = False
 
 
+
 def place_objects(room):
     #maximum number of monsters per room
     max_monsters = from_dungeon_level([[2, 1], [3, 4], [5, 6]])
@@ -971,7 +969,7 @@ def place_objects(room):
             choice = random_choice(monster_chances)
             if choice == 'Dog':
                 #create an dog
-                fighter_component = Fighter(hp=40, defense_dice=1, defense_sides=5, power_dice=1, power_sides=8, evasion_dice=1, evasion_sides=6, accuracy_dice=2, accuracy_sides=4, xp=40, speed=10,
+                fighter_component = Fighter(hp=40, defense_dice=1, defense_sides=5, power_dice=1, power_sides=8, evasion_dice=1, evasion_sides=4, accuracy_dice=2, accuracy_sides=4, xp=40, speed=10,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'd', 'Dog', libtcod.darker_orange, blocks=True, fighter=fighter_component,
@@ -1637,9 +1635,6 @@ def render_all():
                               (eff.duration - eff.turns_passed), eff.duration, libtcod.darker_green,
                               libtcod.darkest_green)
             total_effects += 1
-            print total_effects
-            for i in player.fighter.effects:
-                print i.effect_name
 
         if eff.effect_name == 'Paralyzed':
             render_bar_simple(panel, 1, 3 + total_effects, BAR_WIDTH, 'Paralyzed X ' + str(eff.applied_times),
@@ -2250,7 +2245,7 @@ def new_game():
 
     key = libtcod.Key()
     #create object representing player
-    fighter_component = Fighter(hp=100, defense_dice=2, defense_sides=2, power_dice=2, power_sides=2, evasion_dice=2, evasion_sides=1, accuracy_dice=3, accuracy_sides=2, xp=0, speed=10, death_function=player_death,
+    fighter_component = Fighter(hp=100, defense_dice=2, defense_sides=2, power_dice=1, power_sides=2, evasion_dice=2, evasion_sides=1, accuracy_dice=1, accuracy_sides=5, xp=0, speed=10, death_function=player_death,
                                 effects=[])
     player = Object(0, 0, '@', 'player', libtcod.silver, blocks=True, fighter=fighter_component)
     player.level = 1
@@ -2280,7 +2275,7 @@ def new_game():
 
     #player.fighter.add_effect(Effect('Paralyzed', duration=5, paralyzed=True, base_duration=5), 'Game developer')
     #player.fighter.add_effect(Effect('cruelly hurt', duration=5, damage_by_turn=10), 'Game developer')
-    player.fighter.add_effect(Effect('Defense buffed', duration=50, defense_effect_dice=2, defense_effect_sides=2), 'Game developer')
+    #player.fighter.add_effect(Effect('Defense buffed', duration=50, defense_effect_dice=2, defense_effect_sides=2), 'Game developer')
     game_state = 'playing'
 
 
@@ -2632,6 +2627,8 @@ def iterate_through_list(x):
     list1 = []
     for i in x:
         list1.append('\n ' + str(i.owner.name).capitalize())
+    #TODO: Use this line to print straight to panel2 with auto wrap rather than return a single string with \n's.
+    #libtcod.console_print_rect_ex(panel2, 0, 0, PANEL_2_WIDTH, 1, libtcod.BKGND_NONE, libtcod.LEFT, header)
     return ' '.join(list1)
 
 

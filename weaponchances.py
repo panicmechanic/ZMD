@@ -11,6 +11,17 @@ def from_dungeon_level(table):
             return value
     return 0
 
+def name_stat_gen(equipment_component):
+    name = []
+    if equipment_component.power_bonus_dice != None:
+        name.append('A:[' + str(equipment_component.power_bonus_dice) + ',' + str(equipment_component.power_bonus_sides) + ']')
+    #if equipment_component.defense_bonus != None:
+        #name.append('Def: ' + str(equipment_component.defense_bonus) + '/')
+    #if equipment_component.accuracy_bonus != None:
+       # name.append('Acc: ' + str(equipment_component.accuracy_bonus) + '/')
+    #if equipment_component.evasion_bonus != None:
+       # name.append('Ev: ' + str(equipment_component.evasion_bonus) + '/')
+    return ' '.join(name)
 
 def random_choice_index(chances):  # choose one option from list of chances, returning its index
     #the dice will land on some number between 1 and the sum of the chances
@@ -279,7 +290,7 @@ def create_item(x, y):
 
     elif choice == 'stone war hammer':
         equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=2)
-        item = Object(x, y, chr(24), 'Stone war hammer', libtcod.darker_grey, equipment=equipment_component, item=None,
+        item = Object(x, y, chr(24), 'Stone war hammer ' + name_stat_gen(equipment_component), libtcod.darker_grey, equipment=equipment_component, item=None,
                       always_visible=True)
 
     elif choice == 'bronze war hammer':
