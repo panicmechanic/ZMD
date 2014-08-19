@@ -97,8 +97,9 @@ Damage player 10 hit points - '#'
     If it is war hammer, and the damage will kill the monster, give it the splatter effect in a function.
 - Make bottom right box display info under mouse on mouse over
 - Give all monsters a speed and heal_rate
-- Fix hunger and resting since speed implementation
-- Add color player red when damaged
+- Give an @property value to speed, accuracy, evasion
+
+
    
 #Alpha TODO:
 
@@ -109,9 +110,7 @@ For alpha release:
     - Add more items/weapons
         (2 days - After num*dice change, this will require a complete rework
     - MAJOR: Turn system http://www.roguebasin.com/index.php?title=A_simple_turn_scheduling_system_--_Python_implementation
-        (3 days - Will probably require serious restructuring)
-    - MAJOR: Implement speed via angbands method here: http://journal.stuffwithstuff.com/2014/07/15/a-turn-based-game-loop/
-        (3 day - Probably not too bad as only adding a function here)
+        (DONE - 1.5 HOURS)
     - Fix current bugs: paralysis/poison duplication, paralyze taking a turn to 
         apply (move to different loop), bones/fountains cover items, warhammer 
         splatter not firing with elec.
@@ -180,6 +179,9 @@ For alpha release:
 - Figure out how to get fatal effect warning to display on panel2, line 535.
 
 #Done:
+- 
+- Added color player red when damaged
+- Implemented speed
 - Made critical hits a function of accuracy
 - Added borders and fixed character info to display iterative lists
 - Made msgs background black with new console "msgs"
