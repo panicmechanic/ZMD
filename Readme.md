@@ -93,8 +93,12 @@ Damage player 10 hit points - '#'
 - Poison is being appended more than once. Something in add_effect() or roll_for_effect(). Debug it.
 - Fix effect double append, highlighted lines both fire, although maybe not in the same run.
 - Geting an occasional "ValueError: list.remove(x): x not in list" error after check_run_effects().
-- Problem with warhammer splatter and lightning mutationmaknig it not fire
+- Problem with warhammer splatter and lightning mutation making it not fire - give take_damage another variable, weapon. 
+    If it is war hammer, and the damage will kill the monster, give it the splatter effect in a function.
 - Make bottom right box display info under mouse on mouse over
+- Give all monsters a speed and heal_rate
+- Fix hunger and resting since speed implementation
+- Add color player red when damaged
    
 #Alpha TODO:
 
@@ -107,7 +111,7 @@ For alpha release:
     - MAJOR: Turn system http://www.roguebasin.com/index.php?title=A_simple_turn_scheduling_system_--_Python_implementation
         (3 days - Will probably require serious restructuring)
     - MAJOR: Implement speed via angbands method here: http://journal.stuffwithstuff.com/2014/07/15/a-turn-based-game-loop/
-        (1 day - Probably not too bad as only adding a function here)
+        (3 day - Probably not too bad as only adding a function here)
     - Fix current bugs: paralysis/poison duplication, paralyze taking a turn to 
         apply (move to different loop), bones/fountains cover items, warhammer 
         splatter not firing with elec.
@@ -131,8 +135,8 @@ For alpha release:
     
     ALPHA UPDATE:
     19/08/14 (started countdown):    
-        TOTAL DAYS = 20.5 (21)
-        ALPHA RELEASE DATE = 9th September
+        TOTAL DAYS = 22.5 (23)
+        ALPHA RELEASE DATE = 11th September
         
 #Remaining major TODO (in rough order):
 
@@ -213,6 +217,6 @@ For alpha release:
 - A see all map debug key
 - Created singular special room function, but is not seperated from the map because v+h_tunnel does not check for intersection
 - Implemented evasion! Took like 5 minutes.
-- Added accuracy roll, a min/max system.
+- Added accuracy roll, a min/max system6.
 - Added a new GUI to the right, displays monster.fighter hp bars when in FOV
 - Added character info box to panel2, discarded irrelevant/duplicated information like xp.

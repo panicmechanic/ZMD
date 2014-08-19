@@ -9,7 +9,7 @@ from weaponchances import create_item
 #BORDER VARIABLES
 
 BORDER_CORNER = chr(15)
-BORDER_FILL = '*'
+BORDER_FILL = '+'
 BORDER_COLOR = libtcod.gold
 BORDER_BACKGROUND = libtcod.darkest_red
 
@@ -64,10 +64,12 @@ CONFUSE_NUM_TURNS = 10
 CONFUSE_RANGE = 8
 FIREBALL_RADIUS = 3
 FIREBALL_DAMAGE = 25
-heal_rate = 1
+HEAL_RATE = 1
 
 #Food properties
-HUNGER_RATE = 4
+HUNGER_RATE = 1
+HUNGER_TOTAL = 8000
+HUNGER_WARNING = 500
 
 #Player parameters
 LEVEL_UP_BASE = 200
@@ -259,7 +261,8 @@ class Object:
 
 class Fighter:
     #combat-related properties and methods (monster, player, npc).
-    def __init__(self, hp, defense, power, xp, ev, acc, death_function=None, effects=[], cast_effect=None, cast_roll=0, paralysis=False):
+    def __init__(self, hp, defense, power, xp, ev, acc, speed=None, speed_counter=0, heal_rate=50,
+                 heal_counter=0, death_function=None, effects=[], cast_effect=None, cast_roll=0, paralysis=False):
         self.base_max_hp = hp
         self.hp = hp
         self.base_defense = defense
@@ -267,6 +270,12 @@ class Fighter:
         self.xp = xp
         self.ev = ev
         self.acc = acc
+        self.speed = speed
+        self.speed_counter = speed_counter
+
+        #Standard of 50 means it will heal at the same rate as the player
+        self.heal_rate = heal_rate
+        self.heal_counter = heal_counter
         self.death_function = death_function
         self.effects = effects
         self.cast_effect = cast_effect
@@ -297,12 +306,12 @@ class Fighter:
     def player_eat_food(self, Item):
         global hunger_level
 
-        if hunger_level >= 760:
+        if hunger_level >= HUNGER_TOTAL-HUNGER_WARNING:
             message('You are already full!', libtcod.white)
         else:
             message('Mmm, that was delicious!', libtcod.light_green)
-            if hunger_level + Item.food_value > 800:
-                hunger_level = 800
+            if hunger_level + Item.food_value > HUNGER_TOTAL:
+                hunger_level = HUNGER_TOTAL
             else:
                 hunger_level += Item.food_value
 
@@ -753,27 +762,26 @@ def check_run_effects(obj):
 
 
 
-                                #Set map.diff_color to darkest_grey.
-                                map[obj.x][obj.y].diff_color = libtcod.darkest_grey
+
 
                                 #Tell render_all() to run elec flash routine
                                 map[obj.x][obj.y].color_flash = libtcod.light_blue
 
                                 message('You feel a tingle.. Press space to continue', libtcod.white)
-
+                                render_all()#may be unnecessary
                                 #Update msgs
                                 update_msgs()
                                 #And wait for space key to cotinue
                                 wait_for_spacekey()
-
-
-
 
                                 message('A bolt of lightning hits the ' + str(obj.name) + ' for ' + str(eff.m_elec_damage) + ' damage!', libtcod.white)
 
                                 obj.fighter.take_damage(eff.m_elec_damage)
                                 eff.m_elec_count = 0
                                 fired_times += 1
+
+                                #Set map.diff_color to darkest_grey. This order is important.
+                                map[obj.x][obj.y].diff_color = libtcod.darkest_grey
 
 
 
@@ -885,7 +893,7 @@ def place_objects(room):
             choice = random_choice(monster_chances)
             if choice == 'Dog':
                 #create an dog
-                fighter_component = Fighter(hp=40, defense=1, power=5, xp=400, ev=5, acc=5, death_function=monster_death)
+                fighter_component = Fighter(hp=40, defense=1, power=5, xp=400, ev=5, acc=5, speed=7, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'd', 'Dog', libtcod.darker_orange, blocks=True, fighter=fighter_component,
                                  ai=ai_component, description='A large, brown muscular looking dog. His eyes glow red.')
@@ -902,7 +910,7 @@ def place_objects(room):
 
             elif choice == 'Imp':
                 #create an Imp
-                fighter_component = Fighter(hp=20, defense=10, power=6, xp=50, ev=8, acc=9, death_function=monster_death)
+                fighter_component = Fighter(hp=20, defense=10, power=6, xp=50, ev=8, acc=9, speed=5, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'i', 'Imp', libtcod.darker_green, blocks=True, fighter=fighter_component,
                                  ai=ai_component, description='A green Imp, skilled in defensive fighting.')
@@ -1418,11 +1426,8 @@ def render_all():
 
     #Special damage_draw range count
     for object in objects:
-        #Don't display damage the player takes, could also make the player flash red when
-            #he takes damage
-        if object is not player:
-            #Run display damage to set chars and colours for the floor
-            display_damage(object)
+
+        display_damage(object)
 
     #blit the contents of "con" to root console and present it
     libtcod.console_blit(con, 0, 0, MAP_WIDTH, MAP_HEIGHT, 0, 0, 0)
@@ -1454,14 +1459,14 @@ def render_all():
 
         ##MSGS VERTICAL BORDERS##
         #Do the left side for messages
-        libtcod.console_put_char(msgs, 0, y_num, BORDER_FILL, libtcod.BKGND_NONE)
+        libtcod.console_put_char(msgs, 0, y_num, BORDER_FILL, libtcod.BKGND_SCREEN)
 
         #Do the right side for messages
-        libtcod.console_put_char(msgs, MSG_STOP-1, y_num, BORDER_FILL , libtcod.BKGND_NONE)
+        libtcod.console_put_char(msgs, MSG_STOP-1, y_num, BORDER_FILL , libtcod.BKGND_SCREEN)
 
         ##HEALTH/POIS BARS VERTICAL BORDERS##
         #Do the left side for health bars
-        libtcod.console_put_char(panel, 0, y_num, BORDER_FILL, libtcod.BKGND_NONE)
+        libtcod.console_put_char(panel, 0, y_num, BORDER_FILL, libtcod.BKGND_SCREEN)
 
         #Right side already done
 
@@ -1470,42 +1475,44 @@ def render_all():
 
         ##PANEL2 VERTICAL BORDERS##
         #Do the left side for messages
-        libtcod.console_put_char(panel2, 0, y_num, BORDER_FILL, libtcod.BKGND_NONE)
+        libtcod.console_put_char(panel2, 0, y_num, BORDER_FILL, libtcod.BKGND_SCREEN)
 
 
         #Do the right side for messages
-        libtcod.console_put_char(panel2, PANEL2_WIDTH-1, y_num, BORDER_FILL, libtcod.BKGND_NONE)
+        libtcod.console_put_char(panel2, PANEL2_WIDTH-1, y_num, BORDER_FILL, libtcod.BKGND_SCREEN)
 
     #Set border for msgs
     border = calc_border(MSG_STOP)
 
     #Top and bottom border bar for msgs
     #Top
-    libtcod.console_print_ex(msgs, 0, 0, libtcod.BKGND_NONE, libtcod.LEFT, border)
+    libtcod.console_print_ex(msgs, 0, 0, libtcod.BKGND_SCREEN, libtcod.LEFT, border)
     #Bottom
-    libtcod.console_print_ex(msgs, 0, MSG_HEIGHT, libtcod.BKGND_NONE, libtcod.LEFT, border)
+    libtcod.console_print_ex(msgs, 0, MSG_HEIGHT, libtcod.BKGND_SCREEN, libtcod.LEFT, border)
 
     #Set border for panel
     border = calc_border(MSG_X+1)
 
     #Top and bottom border bar for panel (health bars)
     #Top
-    libtcod.console_print_ex(panel, 0, 0, libtcod.BKGND_NONE, libtcod.LEFT, border)
+    libtcod.console_print_ex(panel, 0, 0, libtcod.BKGND_SCREEN, libtcod.LEFT, border)
     #Bottom
-    libtcod.console_print_ex(panel, 0, MSG_HEIGHT, libtcod.BKGND_NONE, libtcod.LEFT, border)
+    libtcod.console_print_ex(panel, 0, MSG_HEIGHT, libtcod.BKGND_SCREEN, libtcod.LEFT, border)
 
     #Set border for panel2
     border = calc_border(PANEL2_WIDTH)
 
     #Top and bottom border bar for panel2
     #Top
-    libtcod.console_print_ex(panel2, 0, 0, libtcod.BKGND_NONE, libtcod.LEFT, border)
+    libtcod.console_print_ex(panel2, 0, 0, libtcod.BKGND_SCREEN, libtcod.LEFT, border)
     #Bottom
-    libtcod.console_print_ex(panel2, 0, MAP_HEIGHT-1, libtcod.BKGND_NONE, libtcod.LEFT, border)
+    libtcod.console_print_ex(panel2, 0, MAP_HEIGHT-1, libtcod.BKGND_SCREEN, libtcod.LEFT, border)
     #Middle
-    libtcod.console_print_ex(panel2, 0, 23, libtcod.BKGND_NONE, libtcod.LEFT, border)
+    libtcod.console_print_ex(panel2, 0, 23, libtcod.BKGND_SCREEN, libtcod.LEFT, border)
 
+    ###############
     ##END BORDERS##
+    ###############
 
     #print the game messages, one line at a time
     y = 1
@@ -1520,7 +1527,7 @@ def render_all():
     render_bar(panel, 1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.red, libtcod.darker_crimson)
     render_bar(panel, 1, 2, BAR_WIDTH, 'XP', player.fighter.xp, level_up_xp, libtcod.light_blue,
                libtcod.darkest_blue)
-    render_bar_simple(panel, 1, 3, BAR_WIDTH, str(hunger()), hunger_level, 800, libtcod.orange,
+    render_bar_simple(panel, 1, 3, BAR_WIDTH, str(hunger()), hunger_level, HUNGER_TOTAL, libtcod.orange,
                libtcod.darker_orange)
 
     #Check for total number of effects for gui
@@ -1579,7 +1586,7 @@ def render_all():
 
     char_info = '\nLevel: ' + str(player.level) + '\nDungeon level: ' + str(dungeon_level) + '\nAttack: ' + str(player.fighter.power) + '\nDefense: ' + str(
         player.fighter.defense) + '\nEvasion: ' + str(player.fighter.ev) + '\nAccuracy: ' + str(
-        player.fighter.acc) + '\n\nEffects: ' + get_player_effects() + '\n\nEquipped Items:' + iterate_through_list(
+        player.fighter.acc) + '\nTurns: ' + total_turns() + '\n\nEffects: ' + get_player_effects() + '\n\nEquipped Items:' + iterate_through_list(
         get_all_equipped(player))
 
     libtcod.console_print_ex(panel2, 1, 26, libtcod.BKGND_NONE, libtcod.LEFT, char_info)
@@ -1590,7 +1597,7 @@ def render_all():
 
 def display_damage(self):
     #If object has been given a damage value by take_damage()
-    if self.display_dmg != None:
+    if self.display_dmg != None and self != player:
 
         #DAMAGE PRINT#
 
@@ -1602,23 +1609,16 @@ def display_damage(self):
         #For each char entry in list1, set a foreground colour, the character for that tile.
             #also increase count to reflect change
         for i in list1:
-            if self.display_dmg < 3:
-                libtcod.console_set_default_foreground(con, libtcod.orange)
-            elif self.display_dmg < 5:
-                libtcod.console_set_default_foreground(con, libtcod.dark_orange)
-            elif self.display_dmg < 7:
-                libtcod.console_set_default_foreground(con, libtcod.darker_orange)
-            elif self.display_dmg < 9:
-                libtcod.console_set_default_foreground(con, libtcod.dark_red)
-            elif self.display_dmg < 12:
-                libtcod.console_set_default_foreground(con, libtcod.darker_red)
-            elif self.display_dmg < 15:
-                libtcod.console_set_default_foreground(con, libtcod.red)
-            elif self.display_dmg >= 16:
-                libtcod.console_set_default_foreground(con, libtcod.yellow)
+            libtcod.console_set_default_foreground(con, libtcod.white)
 
-            libtcod.console_put_char(con, self.x+count, self.y, str(i), libtcod.BKGND_NONE)
+            libtcod.console_put_char(con, self.x+count, self.y, str(i), libtcod.BKGND_SCREEN)
             count += 1
+
+    if self == player and self.display_dmg != None:
+        libtcod.console_set_default_foreground(con, libtcod.darker_red)
+        libtcod.console_set_char_background(con, self.x, self.y, libtcod.light_red, libtcod.BKGND_SET)
+        libtcod.console_put_char(con, self.x, self.y, '*', libtcod.BKGND_SCREEN)
+
 
 
 
@@ -1892,12 +1892,13 @@ def player_rest():
     carry_on = True
     while carry_on == True:
         if player.fighter.hp <= player.fighter.max_hp:
+
             for obj in objects:
                 if obj.fighter and libtcod.map_is_in_fov(fov_map, obj.x, obj.y) and obj.name != 'player':
                     carry_on = False
                     message('That ' + obj.name + ' is too close for you to rest!', libtcod.red)
 
-        if hunger_level <= 50:
+        if hunger_level <= HUNGER_WARNING:
             carry_on = False
             message('You are too hungry to rest! Eat some food.', libtcod.red)
 
@@ -1906,12 +1907,8 @@ def player_rest():
             message('You cannot rest while fatally ' + FATAL_NAME + '!')
 
         if carry_on == True:
-            check_by_turn()
-            #TODO: this will not work unless it runs through every fighter in objects.
+            check_by_turn(10)
             check_run_effects(player)
-            for object in objects:
-                if object.ai:
-                    object.ai.take_turn()
 
         if player.fighter.hp == player.fighter.max_hp:
             carry_on=False
@@ -2055,16 +2052,7 @@ def monster_death(monster):
     equipped = get_all_equipped(player)
     for i in equipped:
         if i.owner.char == chr(24):
-            elec_check = False
-            for eff in player.fighter.effects:
-                if eff.m_elec == True:
-                    elec_check = True
-
-
-                if elec_check == True and eff.m_elec_count == eff.m_elec_trigger/eff.applied_times:
-                    pass
-
-            #blow strength
+                        #blow strength
 
             message('The ' + str(monster.name) + ' explodes under the ferocious blow of your ' + str(i.owner.name) + '!', libtcod.white)
             #Use blow strength as a max number of gibs
@@ -2154,11 +2142,11 @@ def calc_border(x):
     return border1
 
 def new_game():
-    global player, inventory, game_msgs, game_state, dungeon_level, turn_increment, heal_rate, turn_5, hunger_level
+    global player, inventory, game_msgs, game_state, dungeon_level, turn_increment, turn_5, hunger_level
 
     key = libtcod.Key()
     #create object representing player
-    fighter_component = Fighter(hp=100, defense=3, power=6, xp=0, ev=5, acc=10, death_function=player_death,
+    fighter_component = Fighter(hp=100, defense=3, power=6, xp=0, ev=5, acc=10, speed=10, death_function=player_death,
                                 effects=[])
     player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter_component)
     player.level = 1
@@ -2174,7 +2162,7 @@ def new_game():
     #The number of sets of 5 turns that have occured, and been reset
     turn_5 = 0
     #hunger rate
-    hunger_level = 800
+    hunger_level = HUNGER_TOTAL
     #generate map
     make_map()
     initialize_fov()
@@ -2254,6 +2242,7 @@ def play_game():
 
         check_level_up()
 
+        #this is where the re-write for speed needs to start
 
         #handles keys and exit game if needed
         player_action = handle_keys()
@@ -2264,7 +2253,7 @@ def play_game():
 
         #handle paralysis
         if player_action == 'paralyzed' and game_state == 'playing':
-            check_by_turn()
+            check_by_turn(player.fighter.speed)
             for obj in objects:
                 if obj.ai:
                     obj.ai.take_turn()
@@ -2272,10 +2261,7 @@ def play_game():
 
 
         if player_action == 'moved' and game_state == 'playing':
-            check_by_turn()
-            for obj in objects:
-                if obj.ai:
-                    obj.ai.take_turn()
+            check_by_turn(player.fighter.speed)
             check_run_effects(player)
 
 def main_menu():
@@ -2431,26 +2417,61 @@ def from_dungeon_level(table):
     return 0
 
 
-def check_by_turn():
+#Handles turns/speed/heal
+def check_by_turn(speed):
     global heal_rate, turn_increment, turn_5, hunger_level
-    turn_increment += 1
+    for i in range(0, speed, 1):
+        turn_increment += 1
 
-    #heal player if turn_increment is == 5
-    if turn_increment == 5:
-        player.fighter.heal(heal_rate)
-
-
-    #Take care of the hunger variables here, may be better in their own function
-    if turn_increment == 5 and hunger_level <= 800:
         hunger_level -= HUNGER_RATE
-    elif hunger_level <= 0:
+
+
+
+
+
+
+        #Iterate through objects list
+        for obj in objects:
+
+            #If the object is a fighter with a speed value
+            if obj.fighter and obj.fighter.speed != None:
+
+                #Increment the speed counter by 1
+                obj.fighter.speed_counter+=1
+
+                #Increment the heal rate by 1
+                obj.fighter.heal_counter+=1
+
+                #If the heal_counter == the heal_rate, heal by 1/100th of fighters hp
+                if obj.fighter.heal_counter == obj.fighter.heal_rate:
+                    heal = obj.fighter.max_hp/100
+                    obj.fighter.heal(heal)
+                    #Reset counter to 0
+                    obj.fighter.heal_counter=0
+
+
+                #If the speed value is equal to the speed counter
+                if obj.fighter.speed_counter == obj.fighter.speed:
+
+                    #Below are conditions for the turns mechanisms to fire an object
+
+                    #If the object has an AI
+                    if obj.ai:
+                        obj.ai.take_turn()
+
+                    #Reset speed counter
+                    obj.fighter.speed_counter=0
+
+        #reset turn incrememnt to 0 if it is 5, at the end of the function
+        if turn_increment == 5:
+            turn_increment -= 5
+            turn_5 += 1
+
+    if hunger_level <= 0:
+
         message('You are starving!', libtcod.light_red)
         player.fighter.take_damage(2)
-
-    #reset turn incrememnt to 0 if it is 5, at the end of the function
-    if turn_increment == 5:
-        turn_increment -= 5
-        turn_5 += 1
+        warning_count = 0
 
 
 def total_turns():
@@ -2527,9 +2548,9 @@ def add_bones(x, y):
             item.send_to_back()
 
 
-##############################
-#INITIALISATION AND MAIN LOOP#
-##############################
+################
+#INITIALISATION#
+################
 libtcod.console_set_custom_font("terminal8x12_gs_ro.png", libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_ASCII_INROW)
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'python/First RL', False)
 libtcod.sys_set_fps(LIMIT_FPS)
