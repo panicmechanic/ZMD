@@ -79,18 +79,18 @@ LEVEL_UP_FACTOR = 200
 LIMIT_FPS = 60  #60 frames-per-second maximum
 
 #Darkest wall can be when not in FOV
-color_set_wall_dark = libtcod.Color(30, 50, 55)
+color_set_wall_dark = libtcod.darkest_grey
 #Lightest wall can be when not in FOV, bottom for lerp
-color_dark_wall = libtcod.Color(50, 70, 75)
+color_dark_wall = libtcod.darker_grey
 #Top for lerp
-color_light_wall = libtcod.Color(110, 130, 135)
+color_light_wall = libtcod.grey
 
 #Darkest wall can be when not in FOV
-color_char_set_dark_wall = libtcod.Color(10, 40, 45)
-#Lightest
-color_char_dark_wall = libtcod.Color(10, 40, 45)
+color_char_set_dark_wall = libtcod.darkest_pink
+#Lightest, unused
+color_char_dark_wall = libtcod.dark_grey
 #Top for lerp
-color_char_light_wall = libtcod.Color(60, 90, 95)
+color_char_light_wall = libtcod.light_yellow
 
 
 color_set_ground_dark = libtcod.Color(50, 60, 40)
@@ -1569,12 +1569,13 @@ def render_all():
                         #Set base and light for torch noise lerp at end
                         base = color_dark_wall
                         light = color_light_wall
+                        base_char = color_char_set_dark_wall
+                        light_char = color_char_dark_wall
 
                     #Is ground, if map.diff_color is not None, render the color instead
                     elif map[x][y].diff_color is not None:
                         libtcod.console_set_char_background(con, x, y, map[x][y].diff_color, libtcod.BKGND_SET)
-                        base = color_dark_ground
-                        light = color_light_ground
+
 
                         #If flash is true, render it once, then set to false, this shouldn't work as wait_for_spacekey()
                         #uses render_all() in its while loop. Problem lies elsewhere I think.
@@ -1590,10 +1591,12 @@ def render_all():
                     #Else it is floor and has no diff_color value and should be set to the default color
                     else:
 
-                        libtcod.console_set_default_foreground(con, color_char_light_ground)
+                        libtcod.console_set_default_foreground(con, libtcod.gold)
                         libtcod.console_put_char(con, x, y, FLOOR_CHAR, libtcod.BKGND_SCREEN)
                         base = color_dark_ground
                         light = color_light_ground
+                        base_char = color_char_set_dark_wall
+                        light_char = color_char_light_wall
 
                     #############
                     #TORCH NOISE#
@@ -1624,10 +1627,11 @@ def render_all():
                         if map[x][y].diff_color is not None:
                             #TODO: Make torch light change have an alpha, to make coloring easier.
                             light = libtcod.color_lerp(map[x][y].diff_color, light, l)
+
                         else:
                             light = libtcod.color_lerp(map[x][y].color_set, light, l)
 
-                        light_char = libtcod.color_lerp(map[x][y].color_fore, light, l)
+                        light_char = libtcod.color_lerp(map[x][y].color_fore, color_char_light_wall, l)
 
                     #Lerp tile in FOV's background
                     libtcod.console_set_char_background(con, x, y, light, libtcod.BKGND_SET)
