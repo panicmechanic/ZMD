@@ -38,6 +38,8 @@ Move with the numpad or arrow keys
 
 Rest a turn - Numpad 5
 
+Sprint - Alt + any directional key
+
 AutoRest - 'r'
 
 Inventory - 'i'
@@ -124,8 +126,7 @@ Damage player 10 hit points - '#'
 
     set the map tile to unpassable in new_game()
 - Torch colours and back/fore colours are still not displayed right, check all values.
-- Figure out how to make color_flash work
-- Add description to box with auto wrap
+- Figure out how to make color_flash work- Add description to box with auto wrap
 - Give description window and character/level up window borders.
     
 
@@ -140,14 +141,14 @@ For alpha release:
     - MAJOR: Turn system http://www.roguebasin.com/index.php?title=A_simple_turn_scheduling_system_--_Python_implementation
         (DONE - 1.5 HOURS)
     - Implement shift run
-        (1 day - No idea where to even begin)
+        (DONE - Not too bad, needs more conditions)
     - Fix current bugs: paralysis/poison duplication, paralyze taking a turn to 
         apply (move to different loop), warhammer slatter not firing with elec.
         (2 days - One for each day as these have been difficult to pin down)
     - Move monster gen to new file and add enough monsters for 10-15 levels
         (1 day - Simple enough)
     - Add 2 more mutations
-        (2 days - 1 for each as still no ideas, look at sil's abilities for inspiration)
+        (2 days - 1 for each as still no ''ideas, look at sil's abilities for inspiration)
     - Create 'forget map' effect
         (0.5 days - Seems simple enough)
     - Create 'blind' effect
@@ -158,10 +159,12 @@ For alpha release:
         for each tile from attacker to target to paint an 'arrow' and display it once.
         Some internet time will be necessary to research.
         (3 days - Allow for 3 days to integrate this, research will give better estimates.
-    - Implement pathfinding fix using examples from library or do some research to find examples
-        (DONE - Still haven't created pathing function, that will be next afer fixing current bug. Check forums/examples)
+    - Implement pathfinding fix
+        (DONE - pathing function next after fixing new pathing bug; monsters moving down tunnels)
     - Add simple win condition for alpha release purposes
         (2 days - Will need to create win_screen() on win.)
+    - Add in new char skills out lined above
+        (1 day - Should be easy)
     
     ALPHA UPDATE:
     19/08/14 (started countdown):    
@@ -174,13 +177,15 @@ For alpha release:
         TOTAL DAYS LEFT = 16.5 (17)
         ALPHA RELEASE DATE = 6th September
         
-    20/08/14 Fixed pathfinding, new path bug in minors. Added lerp to tiles, wasn't in TODO but vastly 
-                improves aesthetics.    
-        TOTAL DAYS LEFT = 1.5 (14)
-        ALPHA RELEASE DATE = 3rd September
+    20/08/14 Fixed pathfinding. Added lerp to tiles, wasn't in TODO but vastly improves aesthetics. 
+                Added shift run (now left alt run), most of these things have been easier than expected.
+                New TODO item; adding character skills
+        TOTAL DAYS LEFT = 12.5 (13)
+        ALPHA RELEASE DATE = 2nd September
         
 #Remaining major TODO (in rough order):
 
+- Shift_run, needs more conditions to stop, like entering a room
 - Make inventory a list in the fighter class so monsters can have them.
 - Make monsters drop items in inventory based on a roll from inventory
 - Fix pathfinding- look at example code in library.
@@ -226,10 +231,11 @@ For alpha release:
 
 #Done:
 
+- Added shift_run
 - Lerping updated, Only accepts a range of a single color at the moment, rather than two colors. Could be neater.
-- Added wall/foor char lerp
+- Added wall/foor character foreground lerp
 - Fixed monster color flash tiles outside fov by removing object.clear() call in main loop after display_dmg
-- Added lerp to wall and floor color on init
+- Added background color lerp to wall and floor color on init 
 - Implemented flicker
 - Added perlin noise to floor with non_working flicker
 - Fixed monster pathfinding by setting current tile to blocked after moved 

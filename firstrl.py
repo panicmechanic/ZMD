@@ -226,7 +226,6 @@ class Object:
 
             path_x, path_y = libtcod.path_get(self.path, 0)
 
-
             #normalise it to 1 length (preserving direction), then round it and
             #convert to integer so the movement is restricted to the map grid
             dx = path_x - self.x
@@ -2017,7 +2016,7 @@ def player_move_or_attack(dx, dy):
             player.move(dx, dy)
             fov_recompute = True
             outcome = 'moved'
-            fov_recompute = True
+
 
     return outcome
 
@@ -2034,6 +2033,35 @@ def handle_keys():
         return 'exit'  #Exit game
 
     if game_state == 'playing':
+
+        #Shift run keys:
+
+        if key.vk == libtcod.KEY_UP and key.lalt or key.vk == libtcod.KEY_KP8  and key.lalt:
+            shift_run(player, 0, -1)
+
+        elif key.vk == libtcod.KEY_DOWN and key.lalt or key.vk == libtcod.KEY_KP2 and key.lalt:
+            shift_run(player, 0, 1)
+
+        elif key.vk == libtcod.KEY_LEFT and key.lalt or key.vk == libtcod.KEY_KP4 and key.lalt:
+            shift_run(player, -1, 0)
+
+        elif key.vk == libtcod.KEY_RIGHT and key.lalt or key.vk == libtcod.KEY_KP6 and key.lalt:
+            shift_run(player, 1, 0)
+
+        elif key.vk == libtcod.KEY_HOME and key.lalt or key.vk == libtcod.KEY_KP7 and key.lalt:
+            shift_run(player, -1, -1)
+
+        elif key.vk == libtcod.KEY_PAGEUP and key.lalt or key.vk == libtcod.KEY_KP9 and key.lalt:
+            shift_run(player, 1, -1)
+
+        elif key.vk == libtcod.KEY_END and key.lalt or key.vk == libtcod.KEY_KP1 and key.lalt:
+            shift_run(player, -1, 1)
+
+        elif key.vk == libtcod.KEY_PAGEDOWN and key.lalt or key.vk == libtcod.KEY_KP3 and key.lalt:
+            shift_run(player, 1, 1)
+
+        elif key.vk == libtcod.KEY_KP5 and key.lalt:
+            player_rest()
 
 
         #movement keys
@@ -2065,6 +2093,9 @@ def handle_keys():
             pass  #do nothing ie wait for the monster to come to you
             outcome = player_move_or_attack(0, 0)
             return outcome
+
+
+        #if key.vk == libtcod.KEY_ENTER and key.lalt:
 
         else:
             #test for other keys
@@ -2165,7 +2196,7 @@ def player_rest():
             break
 
         if carry_on == True:
-            check_by_turn(10)
+            check_by_turn(player.fighter.speed)
             check_run_effects(player)
 
         if player.fighter.hp == (player.fighter.max_hp / 2) - 1:
@@ -2538,7 +2569,34 @@ def play_game():
             check_by_turn(player.fighter.speed)
             check_run_effects(player)
 
-#def shift_run(x,y):
+def shift_run(object, x, y):
+    global fov_recompute
+    print 'Running shift run..'
+    fov_danger = False
+    count = 0
+    while fov_danger == False:
+        print 'Is not blocked'
+        if count >= 5:
+            object.move(x, y)
+            check_by_turn(player.fighter.speed)
+
+
+        if is_blocked(object.x + x, object.y + y):
+            fov_danger=True
+            message('You cannot move any further.')
+
+        for obj in objects:
+            if libtcod.map_is_in_fov(fov_map, obj.x, obj.y) and obj.name != 'player' and obj.fighter and obj.fighter.hp > 0:
+                message('You see a ' + str(obj.name) + '.')
+                fov_danger=True
+
+        if count >= 5:
+            fov_recompute=True
+            render_all()
+
+        count += 1
+
+
 
 
 def main_menu():
