@@ -54,7 +54,7 @@ PANEL_WIDTH = SCREEN_WIDTH - PANEL2_WIDTH
 #FOV
 FOV_ALGO = 0  #Default FOV algorithm
 FOV_LIGHT_WALLS = True  #Light walls or not
-TORCH_RADIUS = 25
+
 
 #Item parameters
 HEAL_AMOUNT = 40
@@ -76,16 +76,24 @@ CURRENT_ATTACK = None
 LEVEL_UP_BASE = 200
 LEVEL_UP_FACTOR = 200
 
-
 #FPS
 LIMIT_FPS = 100  #60 frames-per-second maximum
 
 color_dark_wall = libtcod.Color(120, 90, 55)
 color_light_wall = libtcod.Color(150, 120, 85)
-color_dark_ground = libtcod.Color(100, 100, 100)
+color_dark_ground = libtcod.Color(60, 60, 60)
 color_light_ground = libtcod.Color(130, 130, 130)
 WALL_CHAR = '#'
 FLOOR_CHAR = '.'
+
+TORCH_RADIUS = 20
+SQUARED_TORCH_RADIUS = TORCH_RADIUS * TORCH_RADIUS
+FOV_NOISE = None
+FOV_TORCHX = 0.0
+FOV_INIT = False
+FOV_ALGO_NUM = 1
+NOISE = libtcod.noise_new(3)
+
 
 
 class Tile:
@@ -192,9 +200,9 @@ class Object:
         #Compute path to player
         libtcod.path_compute(self.path, self.x, self.y, target_x, target_y)
 
+
         #vector from this object to the target, and distance
         if not libtcod.path_is_empty(self.path):
-
 
             path_x, path_y = libtcod.path_get(self.path, 0)
 
@@ -204,7 +212,7 @@ class Object:
             dy = path_y - self.y
 
         else:
-
+            print 'Path is empty'
             dx = target_x - self.x
             dy = target_y - self.y
             distance = math.sqrt(dx ** 2 + dy ** 2)
@@ -220,7 +228,7 @@ class Object:
         return math.sqrt(dx ** 2 + dy ** 2)
 
     def distance_from(self, x, y):
-        # return the distance to another object
+        # return the distance to another x,y coordinates
         dx = x - self.x
         dy = y - self.y
         return math.sqrt(dx ** 2 + dy ** 2)
@@ -700,10 +708,14 @@ def monster_move_or_attack(monster):
         elif monster.distance_to(player) >= 2:
             #compute how to reach the player
             # TODO: Insert an if statement to check for a blocked tile, pick an adjacent one and move into it instead
-            # or have other monsters be seen as a blocked tile? may need to write path function for this.
 
-            #and move one tile towards them
+            #Set old map tile to pathable
+            libtcod.map_set_properties(fov_map, monster.x, monster.y, True, True)
+
             monster.move_towards(player.x, player.y)
+
+            #Set new map tile to not pathable
+            libtcod.map_set_properties(fov_map, monster.x, monster.y, True, False)
             check_run_effects(monster)
 
         #close enough, attack! (if the player is still alive.)
@@ -712,16 +724,25 @@ def monster_move_or_attack(monster):
 
     else:
         #the player cannot see the monster
-
-
         #if we have an old path, follow it
+
         #If path is not empty and the distance to the player is greater than 2
         if monster.path is not None and not libtcod.path_is_empty(monster.path):
 
             nextx, nexty = libtcod.path_walk(monster.path, True)
-            dx = nextx - monster.x
-            dy = nexty - monster.y
-            monster.move(dx, dy)
+            if nextx or nexty is not None:
+                dx = nextx - monster.x
+                dy = nexty - monster.y
+                #Set old map tile to pathable
+                libtcod.map_set_properties(fov_map, monster.x, monster.y, True, True)
+
+                monster.move(dx, dy)
+
+                #Set new map tile to not pathable
+                libtcod.map_set_properties(fov_map, monster.x, monster.y, True, False)
+
+            else:
+                pass
 
         #stop boar and baby boars and pygmys from wandering
         elif not monster.char == 'B' or monster.char == 'b' or monster.char == 'p':
@@ -1452,6 +1473,7 @@ def render_all():
     global objects
     global turn
     global hunger_level
+    global FOV_TORCHX, noise, FOV_PX, FOV_PY
 
     if fov_recompute:
         libtcod.console_clear(con)
@@ -1483,17 +1505,19 @@ def render_all():
                         libtcod.console_set_char_background(con, x, y, color_light_wall, libtcod.BKGND_SET)
                         libtcod.console_set_default_foreground(con, libtcod.Color(180, 150, 115))
                         libtcod.console_put_char(con, x, y, WALL_CHAR, libtcod.BKGND_SCREEN)
+                        base = color_dark_wall
+                        light = color_light_wall
 
                     #Is ground, if map.diff_color is not None, render the color instead
                     elif map[x][y].diff_color is not None:
                         libtcod.console_set_char_background(con, x, y, map[x][y].diff_color, libtcod.BKGND_SET)
-
+                        base = color_dark_ground
+                        light = color_light_ground
 
                         #If flash is true, render it once, then set to false, this shouldn't work as wait_for_spacekey()
                         #uses render_all() in its while loop. Problem lies elsewhere I think.
                     elif map[x][y].color_flash is not None:
 
-                        #Make the color blue flash for one render
                         #Make the color blue flash for one render
                         libtcod.console_set_char_background(con, x, y, map[x][y].color_flash, libtcod.BKGND_SET)
 
@@ -1506,11 +1530,43 @@ def render_all():
                         libtcod.console_set_char_background(con, x, y, color_light_ground, libtcod.BKGND_SET)
                         libtcod.console_set_default_foreground(con, libtcod.Color(150, 150, 150))
                         libtcod.console_put_char(con, x, y, FLOOR_CHAR, libtcod.BKGND_SCREEN)
+                        base = color_dark_ground
+                        light = color_light_ground
 
+                    #############
+                    #TORCH NOISE#
+                    #############
+
+                    # slightly change the perlin noise parameter
+                    FOV_TORCHX += 0.2
+                    # randomize the light position between -1.5 and 1.5
+                    tdx = [FOV_TORCHX + 200.0]
+                    dx = libtcod.noise_get(NOISE, tdx, libtcod.NOISE_SIMPLEX) * 1.5
+                    tdx[0] += 30.0
+                    dy = libtcod.noise_get(NOISE, tdx, libtcod.NOISE_SIMPLEX) * 1.5
+                    di = 0.2 * libtcod.noise_get(NOISE, [FOV_TORCHX], libtcod.NOISE_SIMPLEX)
+
+                    # cell distance to torch (squared)
+                    r = float(x - player.x + dx) * (x - player.x + dx) + (y - player.y + dy) * (y - player.y + dy)
+
+                    #Used to use calculated variable r, now uses distance_from()
+                    if player.distance_from(x, y) < SQUARED_TORCH_RADIUS:
+                        #Needs to use r as for some reason distance_from doesn't work
+                        l = (SQUARED_TORCH_RADIUS - r) / SQUARED_TORCH_RADIUS + di
+                        if l < 0.0:
+                            l = 0.0
+                        elif l > 1.0:
+                            l = 1.0
+
+                        light = libtcod.color_lerp(base, light, l)
+                    libtcod.console_set_char_background(con, x, y, light, libtcod.BKGND_SET)
 
 
                     #Since it's visible, set it to explored
                     map[x][y].explored = True
+
+        FOV_NOISE = libtcod.noise_new(1, 1.0, 1.0)
+
 
 
     #draw all objects in list, except the player, want it to always appear on top, so we draw it later
@@ -1882,6 +1938,7 @@ def handle_keys():
 
     if game_state == 'playing':
 
+
         #movement keys
         if key.vk == libtcod.KEY_UP or key.vk == libtcod.KEY_KP8:
             outcome = player_move_or_attack(0, -1)
@@ -2145,7 +2202,7 @@ def monster_death(monster):
     #transform it into a nasty corpse! it doesn't block, can't be attacked and doesn't move.
 
     #Explode it if was killed by war hammer
-
+    libtcod.map_set_properties(fov_map, monster.x, monster.y, True, True)
     equipped = get_all_equipped(player)
     for i in equipped:
         if i.owner.char == chr(24):
@@ -2348,6 +2405,8 @@ def play_game():
         #handles keys and exit game if needed
         player_action = handle_keys()
 
+
+
         if player_action == 'exit':
             save_game()
             break
@@ -2360,6 +2419,8 @@ def play_game():
         if player_action == 'moved' and game_state == 'playing':
             check_by_turn(player.fighter.speed)
             check_run_effects(player)
+
+
 
 
 def main_menu():
@@ -2569,7 +2630,7 @@ def check_by_turn(speed):
                     #Reset speed counter
                     obj.fighter.speed_counter = 0
 
-        #reset turn incrememnt to 0 if it is 5, at the end of the function
+        #reset turn increment to 0 if it is 5, at the end of the function
         if turn_increment == 5:
             turn_increment -= 5
             turn_5 += 1
