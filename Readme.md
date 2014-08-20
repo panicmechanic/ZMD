@@ -215,6 +215,7 @@ For alpha release:
 
 #Done:
 
+- Implemented flicker
 - Added perlin noise to floor with non_working flicker
 - Fixed monster pathfinding by setting current tile to blocked after moved 
 - Added dice/faces random generation, integrated into attack, defense, evasion, accuracy.

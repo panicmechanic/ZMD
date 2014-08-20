@@ -1483,7 +1483,7 @@ def render_all():
     global objects
     global turn
     global hunger_level
-    global FOV_TORCHX, noise, FOV_PX, FOV_PY, FOV_NOISE
+    global FOV_TORCHX, noise, FOV_PX, FOV_PY, FOV_NOISE, NOISE
 
     if fov_recompute:
         libtcod.console_clear(con)
@@ -1513,7 +1513,7 @@ def render_all():
                     #it's visible
                     if wall:
 
-                        libtcod.console_set_default_foreground(con, libtcod.Color(60, 90, 95))
+                        libtcod.console_set_default_foreground(con, libtcod.Color(80, 110, 115))
                         libtcod.console_put_char(con, x, y, WALL_CHAR, libtcod.BKGND_SCREEN)
                         base = color_dark_wall
                         light = color_light_wall
@@ -1572,11 +1572,14 @@ def render_all():
 
                     libtcod.console_set_char_background(con, x, y, light, libtcod.BKGND_SET)
 
+                    #May improve flicker
+                    NOISE = libtcod.noise_new(1, 1.0, 1.0)
+
 
                     #Since it's visible, set it to explored
                     map[x][y].explored = True
 
-        #Supposed to cause flicker, but I think would need to be run contniuously
+        #Supposed to cause flicker, but does nothing.
         FOV_NOISE = libtcod.noise_new(1, 1.0, 1.0)
 
 
@@ -2494,13 +2497,14 @@ def save_game():
     file['hunger_level'] = hunger_level
     file['turn_increment'] = turn_increment
     file['turn_5'] = turn_5
+    file['refresh_count'] = refresh_count
 
     file.close
 
 
 def load_game():
     #open the previously saved shelve and load the game data
-    global map, objects, player, inventory, game_msgs, game_state, stairs, dungeon_level, hunger_level, turn_increment, turn_5
+    global map, objects, player, inventory, game_msgs, game_state, stairs, dungeon_level, hunger_level, turn_increment, turn_5, refresh_count
 
     file = shelve.open('savegame', 'r')
     map = file['map']
@@ -2514,10 +2518,12 @@ def load_game():
     hunger_level = file['hunger_level']
     turn_increment = file['turn_increment']
     turn_5 = file['turn_5']
+    refresh_count = file['refresh_count']
 
     file.close()
 
     initialize_fov()
+
 
     #If the object used to have a path, make it None
     for object in objects:
