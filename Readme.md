@@ -128,6 +128,11 @@ Damage player 10 hit points - '#'
 - Torch colours and back/fore colours are still not displayed right, check all values.
 - Figure out how to make color_flash work- Add description to box with auto wrap
 - Give description window and character/level up window borders.
+- Add variables to tiles at the entrances and exits to tunnels, and on entering 
+    
+    new rooms, and if map[x][y].run_block == True stop the shift_run. Will need to change
+    the make_map function.
+- I think go_to_last_seen functionality is broken.    
     
 
 #Alpha TODO:
@@ -135,7 +140,8 @@ Damage player 10 hit points - '#'
 For alpha release:
     
     - MAJOR: Implement numdice*numfaces rolling system a la sil for attack. 
-        (DONE - 1 DAY. Still need to update check_level_up and change old monster values)
+        (DONE - 1 DAY. Still need to update check_level_up and change old monster values
+            and add skills)
     - Add more items/weapons, implement 4 skills above
         (1 day - After num*dice change, this will require a complete rework
     - MAJOR: Turn system http://www.roguebasin.com/index.php?title=A_simple_turn_scheduling_system_--_Python_implementation
@@ -163,8 +169,6 @@ For alpha release:
         (DONE - pathing function next after fixing new pathing bug; monsters moving down tunnels)
     - Add simple win condition for alpha release purposes
         (2 days - Will need to create win_screen() on win.)
-    - Add in new char skills out lined above
-        (1 day - Should be easy)
     
     ALPHA UPDATE:
     19/08/14 (started countdown):    
@@ -178,10 +182,9 @@ For alpha release:
         ALPHA RELEASE DATE = 6th September
         
     20/08/14 Fixed pathfinding. Added lerp to tiles, wasn't in TODO but vastly improves aesthetics. 
-                Added shift run (now left alt run), most of these things have been easier than expected.
-                New TODO item; adding character skills
+                Added shift run (now left alt run), most tasks have been easier than expected.                
         TOTAL DAYS LEFT = 12.5 (13)
-        ALPHA RELEASE DATE = 2nd September
+        ALPHA RELEASE DATE = 3rd September
         
 #Remaining major TODO (in rough order):
 
@@ -189,6 +192,7 @@ For alpha release:
 - Make inventory a list in the fighter class so monsters can have them.
 - Make monsters drop items in inventory based on a roll from inventory
 - Fix pathfinding- look at example code in library.
+- Describe item in inventory feature
 - Noise effect/Color variation in tiles; first time map is created they should be set
 - Shift-run (if next.x,y is not_blocked() and no fighter is in fov, take next step)
 - Add click messages to see page of messages, rather than delete them, 

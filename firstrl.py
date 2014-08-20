@@ -221,7 +221,7 @@ class Object:
         #Compute path to player
         libtcod.path_compute(self.path, self.x, self.y, target_x, target_y)
 
-                #vector from this object to the target, and distance
+        #vector from this object to the target, and distance
         if not libtcod.path_is_empty(self.path):
 
             path_x, path_y = libtcod.path_get(self.path, 0)
@@ -769,7 +769,7 @@ def monster_move_or_attack(monster):
                 libtcod.map_set_properties(fov_map, monster.x, monster.y, True, False)
 
             else:
-                print 'pass'
+                print 'no nextx or next line 770'
 
         #stop boar and baby boars and pygmys from wandering
         elif not monster.char == 'B' or monster.char == 'b' or monster.char == 'p':
@@ -2571,29 +2571,39 @@ def play_game():
 
 def shift_run(object, x, y):
     global fov_recompute
-    print 'Running shift run..'
+
+    #Set a variable to check for in the whiel loop
     fov_danger = False
+    #Create a count
     count = 0
     while fov_danger == False:
-        print 'Is not blocked'
+
+        #Trigger movement
         if count >= 5:
+            #Move player
             object.move(x, y)
+            #Loop for the players speed for his move
             check_by_turn(player.fighter.speed)
 
-
+        #If is blocked, stop the run
         if is_blocked(object.x + x, object.y + y):
+            #Set while variable to True to break the loop, should probably be a break
             fov_danger=True
             message('You cannot move any further.')
 
+        #Check for monsters inside the players fov.
         for obj in objects:
             if libtcod.map_is_in_fov(fov_map, obj.x, obj.y) and obj.name != 'player' and obj.fighter and obj.fighter.hp > 0:
                 message('You see a ' + str(obj.name) + '.')
                 fov_danger=True
 
+        #If count is 5
         if count >= 5:
+            #render the fov once
             fov_recompute=True
             render_all()
 
+        #Increment the count
         count += 1
 
 
