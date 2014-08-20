@@ -124,6 +124,9 @@ Damage player 10 hit points - '#'
 
     set the map tile to unpassable in new_game()
 - Torch colours and back/fore colours are still not displayed right, check all values.
+- Figure out how to make color_flash work
+- Add description to box with auto wrap
+- Give description window and character/level up window borders.
     
 
 #Alpha TODO:
@@ -223,6 +226,7 @@ For alpha release:
 
 #Done:
 
+- Lerping updated, Only accepts a range of a single color at the moment, rather than two colors. Could be neater.
 - Added wall/foor char lerp
 - Fixed monster color flash tiles outside fov by removing object.clear() call in main loop after display_dmg
 - Added lerp to wall and floor color on init

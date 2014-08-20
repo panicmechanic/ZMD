@@ -94,12 +94,12 @@ color_char_light_wall = libtcod.lightest_grey
 
 
 color_set_ground_dark = libtcod.Color(50, 60, 40)
-color_dark_ground = libtcod.Color(80, 70, 50)
-color_light_ground = libtcod.Color(180, 170, 50)
+color_dark_ground = libtcod.Color(80, 90, 70)
+color_light_ground = libtcod.Color(150, 160, 140)
 
 color_char_set_dark_ground = libtcod.Color(20, 30, 10)
-color_char_dark_ground = libtcod.Color(80, 80, 80)
-color_char_light_ground = libtcod.Color(140, 140, 140)
+color_char_dark_ground = libtcod.Color(70, 80, 60)
+color_char_light_ground = libtcod.Color(100, 110, 90)
 
 
 WALL_CHAR = '#'
@@ -1244,6 +1244,23 @@ def render_bar_simple(panel, x, y, total_width, name, value, maximum, bar_color,
     libtcod.console_print_ex(panel, x + total_width / 2, y, libtcod.BKGND_NONE, libtcod.CENTER,
                              name)
 
+def return_description_under_mouse():
+    global mouse
+
+    #return a string with the names of all objects under the mouse
+    (x, y) = (mouse.cx, mouse.cy)
+
+    #create a list with the names of all objects at the mouse's coordinates and in FOV
+    name_description = []
+    for obj in objects:
+        if obj.x == x and obj.y == y and libtcod.map_is_in_fov(fov_map, obj.x, obj.y):
+            name_description.append(str(obj.name)+':\n')
+            name_description.append(str(obj.description))
+
+    result = ' '.join(name_description)
+
+    return result
+
 
 def get_names_under_mouse():
     global mouse
@@ -1723,7 +1740,7 @@ def render_all():
     libtcod.console_print_ex(msgs, 0, MSG_HEIGHT, libtcod.BKGND_SCREEN, libtcod.LEFT, border)
 
     #Set border for panel
-    border = calc_border(MSG_X + 1)
+    border = calc_border(SCREEN_WIDTH)
 
     #Top and bottom border bar for panel (health bars)
     #Top
@@ -1753,8 +1770,6 @@ def render_all():
         libtcod.console_print_ex(msgs, 1, y, libtcod.BKGND_NONE, libtcod.LEFT, line)
 
         y += 1
-
-
 
     #show the player's stats
     level_up_xp = LEVEL_UP_BASE + player.level * LEVEL_UP_FACTOR
@@ -1791,7 +1806,7 @@ def render_all():
 
     #display names of objects under the mouse
     libtcod.console_set_default_foreground(panel, libtcod.light_gray)
-    libtcod.console_print_ex(panel, 1, 0, libtcod.BKGND_NONE, libtcod.LEFT, get_names_under_mouse())
+    libtcod.console_print_ex(panel, MSG_STOP+BAR_WIDTH+1, 1, libtcod.BKGND_NONE, libtcod.LEFT, return_description_under_mouse())
 
     #blit the contents of "panel" to the root console
     libtcod.console_blit(panel, 0, 0, SCREEN_WIDTH, PANEL_HEIGHT, 0, 0, PANEL_Y)
@@ -2485,7 +2500,7 @@ def play_game():
 
         for object in objects:
             if object.display_dmg != None:
-                time.sleep(0.1)
+                libtcod.sys_sleep_milli(50)
                 fov_recompute = True
                 object.display_dmg = None
 
@@ -2506,7 +2521,7 @@ def play_game():
 
                 fov_recompute=True
                 render_all()
-                libtcod.console_flush()
+
                 refresh_count = 0
 
 
@@ -2523,6 +2538,7 @@ def play_game():
             check_by_turn(player.fighter.speed)
             check_run_effects(player)
 
+#def shift_run(x,y):
 
 
 def main_menu():
