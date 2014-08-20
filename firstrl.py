@@ -78,18 +78,34 @@ LEVEL_UP_FACTOR = 200
 #FPS
 LIMIT_FPS = 60  #60 frames-per-second maximum
 
+#Darkest wall can be when not in FOV
 color_set_wall_dark = libtcod.Color(30, 50, 55)
+#Lightest wall can be when not in FOV, bottom for lerp
 color_dark_wall = libtcod.Color(50, 70, 75)
+#Top for lerp
 color_light_wall = libtcod.Color(110, 130, 135)
 
-color_set_ground_dark = libtcod.Color(40, 50, 30)
+#Darkest wall can be when not in FOV
+color_char_set_dark_wall = libtcod.Color(10, 40, 45)
+#Lightest
+color_char_dark_wall = libtcod.Color(10, 40, 45)
+#Top for lerp
+color_char_light_wall = libtcod.Color(60, 90, 95)
+
+
+color_set_ground_dark = libtcod.Color(50, 60, 40)
 color_dark_ground = libtcod.Color(80, 70, 50)
 color_light_ground = libtcod.Color(180, 170, 50)
+
+color_char_set_dark_ground = libtcod.Color(20, 30, 10)
+color_char_dark_ground = libtcod.Color(80, 80, 80)
+color_char_light_ground = libtcod.Color(140, 140, 140)
+
 
 WALL_CHAR = '#'
 FLOOR_CHAR = '.'
 
-TORCH_RADIUS = 5
+TORCH_RADIUS = 8
 SQUARED_TORCH_RADIUS = TORCH_RADIUS * TORCH_RADIUS
 FOV_NOISE = None
 FOV_TORCHX = 0.0
@@ -101,12 +117,13 @@ NOISE = libtcod.noise_new(1)
 
 class Tile:
     # a tile of the map, and its properties
-    def __init__(self, blocked, block_sight=None, diff_color=None, color_flash=None, color_set=None):
+    def __init__(self, blocked, block_sight=None, diff_color=None, color_flash=None, color_set=None, color_fore=None):
         self.blocked = blocked
         self.diff_color = diff_color
 
         self.color_flash = color_flash
         self.color_set = color_set
+        self.color_fore = color_fore
 
         #all tiles start unexplored
         self.explored = False
@@ -1002,7 +1019,7 @@ def place_objects(room):
             choice = random_choice(monster_chances)
             if choice == 'Dog':
                 #create an dog
-                fighter_component = Fighter(hp=40, defense_dice=1, defense_sides=5, power_dice=1, power_sides=8, evasion_dice=1, evasion_sides=4, accuracy_dice=2, accuracy_sides=4, xp=40, speed=10,
+                fighter_component = Fighter(hp=10, defense_dice=1, defense_sides=5, power_dice=1, power_sides=8, evasion_dice=1, evasion_sides=4, accuracy_dice=2, accuracy_sides=4, xp=40, speed=10,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'd', 'Dog', libtcod.darker_orange, blocks=True, fighter=fighter_component,
@@ -1012,7 +1029,7 @@ def place_objects(room):
                 #create a Snake
                 effect_component = Effect('poisoned', duration=5, damage_by_turn=2, base_duration=5)
                 effect_roll = 20
-                fighter_component = Fighter(hp=35, defense=2, power=5, xp=100, ev=10, acc=10, speed=10,
+                fighter_component = Fighter(hp=8, defense=2, power=5, xp=100, ev=10, acc=10, speed=10,
                                             cast_effect=effect_component, cast_roll=effect_roll,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
@@ -1022,7 +1039,7 @@ def place_objects(room):
 
             elif choice == 'Imp':
                 #create an Imp
-                fighter_component = Fighter(hp=20, defense=10, power=7, xp=50, ev=8, acc=9, speed=9,
+                fighter_component = Fighter(hp=5, defense=10, power=7, xp=50, ev=8, acc=9, speed=9,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'i', 'Imp', libtcod.darker_green, blocks=True, fighter=fighter_component,
@@ -1135,8 +1152,6 @@ def place_objects(room):
         weaponchances.cast_fireball = cast_fireball
         weaponchances.message = message
 
-        add_bones(x, y)
-
         if not is_blocked(x, y):
             #only place it if the tile is not blocked
 
@@ -1152,6 +1167,9 @@ def place_objects(room):
 
             if not is_blocked(x, y):
                 weaponchances.add_food_and_scrolls(x, y)
+
+            if not is_blocked(x, y):
+                add_bones(x, y)
 
 
 
@@ -1472,11 +1490,6 @@ def inventory_menu(
     if index is None or len(inventory) == 0: return None
     return inventory[index].item
 
-
-#healing_potion = 0
-#for 'healing potion' in inventory:
-#	healing_potion += 1
-
 def msgbox(text, width=50):
     menu(text, [], width)  #use menu() as a sort of "message box"
 
@@ -1501,40 +1514,59 @@ def render_all():
             for x in range(MAP_WIDTH):
                 visible = libtcod.map_is_in_fov(fov_map, x, y)
                 wall = map[x][y].block_sight
+
                 #If the tile has not yet had its color_set value set, set it using perlin noise.
                 if map[x][y].color_set == None:
+
                     if wall == True:
                         base = color_set_wall_dark
                         light = color_dark_wall
+                        base_char = color_char_set_dark_wall
+                        light_char = color_char_dark_wall
+
                     elif wall == False:
                         base = color_dark_ground
                         light = color_set_ground_dark
+                        base_char = color_char_set_dark_ground
+                        light_char = color_char_dark_ground
 
                     l = libtcod.random_get_float(0, 0, 1.0)
 
                     light = libtcod.color_lerp(base, light, l)
+                    light_char = libtcod.color_lerp(base_char, light_char, l)
+
 
                     map[x][y].color_set = light
+                    map[x][y].color_fore = light_char
 
 
                 if not visible:
                     #if it's not explored right now, the player can only see it if it's explored
                     if map[x][y].explored:
                         if wall:
+                            #Use lerped and stored variable for this tiles background color
                             libtcod.console_set_char_background(con, x, y, map[x][y].color_set, libtcod.BKGND_SET)
-                            libtcod.console_set_default_foreground(con, libtcod.Color(30, 60, 65))
+                            #Use lerped and stored variable for this tiles foreground color
+                            libtcod.console_set_default_foreground(con, map[x][y].color_fore)
+                            #Set character
                             libtcod.console_put_char(con, x, y, WALL_CHAR, libtcod.BKGND_SCREEN)
                         else:
+                            #Use lerped and stored variable for this tiles background color
                             libtcod.console_set_char_background(con, x, y, map[x][y].color_set, libtcod.BKGND_SET)
-                            libtcod.console_set_default_foreground(con, libtcod.Color(80, 80, 80))
+                            #Use lerped and stored variable for this tiles foreground color
+                            libtcod.console_set_default_foreground(con, map[x][y].color_fore)
+                            #Set character
                             libtcod.console_put_char(con, x, y, FLOOR_CHAR, libtcod.BKGND_SCREEN)
                 else:
 
                     #it's visible
                     if wall:
 
-                        libtcod.console_set_default_foreground(con, libtcod.Color(80, 110, 115))
+                        #Use lerped and stored variable for this tiles foreground color
+                        libtcod.console_set_default_foreground(con, map[x][y].color_fore)
                         libtcod.console_put_char(con, x, y, WALL_CHAR, libtcod.BKGND_SCREEN)
+
+                        #Set base and light for torch noise lerp at end
                         base = color_dark_wall
                         light = color_light_wall
 
@@ -1558,7 +1590,7 @@ def render_all():
                     #Else it is floor and has no diff_color value and should be set to the default color
                     else:
 
-                        libtcod.console_set_default_foreground(con, libtcod.Color(140, 140, 140))
+                        libtcod.console_set_default_foreground(con, color_char_light_ground)
                         libtcod.console_put_char(con, x, y, FLOOR_CHAR, libtcod.BKGND_SCREEN)
                         base = color_dark_ground
                         light = color_light_ground
@@ -1569,6 +1601,7 @@ def render_all():
 
                     # slightly change the perlin noise parameter
                     FOV_TORCHX += 0.2
+
                     # randomize the light position between -1.5 and 1.5
                     tdx = [FOV_TORCHX + 20.0]
                     dx = libtcod.noise_get(NOISE, tdx, libtcod.NOISE_SIMPLEX) * 1.5
@@ -1588,13 +1621,21 @@ def render_all():
                         elif l > 1.0:
                             l = 1.0
 
-                        light = libtcod.color_lerp(map[x][y].color_set, light, l)
+                        if map[x][y].diff_color is not None:
+                            #TODO: Make torch light change have an alpha, to make coloring easier.
+                            light = libtcod.color_lerp(map[x][y].diff_color, light, l)
+                        else:
+                            light = libtcod.color_lerp(map[x][y].color_set, light, l)
 
+                        light_char = libtcod.color_lerp(map[x][y].color_fore, light, l)
+
+                    #Lerp tile in FOV's background
                     libtcod.console_set_char_background(con, x, y, light, libtcod.BKGND_SET)
+                    #Lerp tile in FOV foreground
+                    libtcod.console_set_char_foreground(con, x, y, light_char)
 
                     #May improve flicker
                     NOISE = libtcod.noise_new(1, 1.0, 1.0)
-
 
                     #Since it's visible, set it to explored
                     map[x][y].explored = True
@@ -1607,7 +1648,6 @@ def render_all():
 
     #draw all objects in list, except the player, want it to always appear on top, so we draw it later
     for object in objects:
-
         if object != player:
             object.draw()
 
@@ -2254,6 +2294,8 @@ def monster_death(monster):
             #Use blow strength as a max number of gibs
             rand_num_gibs = libtcod.random_get_int(0, 1, 7)
             for num in range(0, rand_num_gibs, 1):
+                l = libtcod.random_get_float(0, 0, 1.0)
+                color = libtcod.color_lerp(libtcod.darkest_red, libtcod.dark_red, l)
                 #choose random spot for gibs
                 x = libtcod.random_get_int(0, monster.x + 1, monster.x - 1)
                 y = libtcod.random_get_int(0, monster.y + 1, monster.y - 1)
@@ -2440,8 +2482,6 @@ def play_game():
                 time.sleep(0.1)
                 fov_recompute = True
                 object.display_dmg = None
-
-            object.clear()
 
         check_level_up()
 

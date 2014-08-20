@@ -123,6 +123,7 @@ Damage player 10 hit points - '#'
 - An elegant solution to the pathing problem would be to fix blocks=True to automagically 
 
     set the map tile to unpassable in new_game()
+    
 
 #Alpha TODO:
 
@@ -217,6 +218,8 @@ For alpha release:
 
 #Done:
 
+- Fixed monster color flash tiles outside fov by removing object.clear() call in main loop after display_dmg
+- Added lerp to wall and floor color on init
 - Implemented flicker
 - Added perlin noise to floor with non_working flicker
 - Fixed monster pathfinding by setting current tile to blocked after moved 
