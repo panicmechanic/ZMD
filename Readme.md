@@ -114,7 +114,10 @@ Damage player 10 hit points - '#'
         Calisthenics (strength)  - Increase attack (power sides by 1), increase ranged range. 
         Gymnastics (dexterity)   - Increase acc/ev, small boost to speed
         Shadow training (stealth)- Improve stealth, improve speed
-        Meditation (will)        - Improve accuracy, perception checks, skill helps mutations      
+        Meditation (will)        - Improve accuracy, perception checks, skill helps mutations
+              
+- Fix pathing to walk as close as possible if in fov and path is blocked.
+- Make torch change wall foreground color too.
 
 #Alpha TODO:
 
@@ -129,9 +132,9 @@ For alpha release:
     - Implement shift run
         (1 day - No idea where to even begin)
     - Fix current bugs: paralysis/poison duplication, paralyze taking a turn to 
-        apply (move to different loop), bones/fountains cover items, warhammer 
+        apply (move to different loop), warhammer 
         splatter not firing with elec.
-        (3 days - One for each day as these have been difficult to pin down)
+        (2 days - One for each day as these have been difficult to pin down)
     - Move monster gen to new file and add enough monsters for 10-15 levels
         (1 day - Simple enough)
     - Add 2 more mutations
@@ -157,9 +160,10 @@ For alpha release:
         ALPHA RELEASE DATE = 11th September
     
     20/08/14 Finished speed, dice roll implementation, way ahead of schedule. But added pathfinding
-        to TODO, as it breaks enjoyment and needs fixing if it's to be enjoyable in any way:    
-        TOTAL DAYS LEFT = 17.5 (18)
-        ALPHA RELEASE DATE = 7th September
+        to TODO, as it breaks enjoyment and needs fixing if it's to be enjoyable in any way.
+        Also fixed bones/fountains covering items and made both always_visible:    
+        TOTAL DAYS LEFT = 16.5 (17)
+        ALPHA RELEASE DATE = 6th September
         
 #Remaining major TODO (in rough order):
 
@@ -208,6 +212,8 @@ For alpha release:
 
 #Done:
 
+- Added perlin noise to floor with non_working flicker
+- Fixed monster pathfinding by setting current tile to blocked after moved 
 - Added dice/faces random generation, integrated into attack, defense, evasion, accuracy.
  
     Affected by effects, equipment, crit roll and base levels. 

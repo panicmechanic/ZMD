@@ -79,10 +79,10 @@ LEVEL_UP_FACTOR = 200
 #FPS
 LIMIT_FPS = 100  #60 frames-per-second maximum
 
-color_dark_wall = libtcod.Color(120, 90, 55)
-color_light_wall = libtcod.Color(150, 120, 85)
-color_dark_ground = libtcod.Color(60, 60, 60)
-color_light_ground = libtcod.Color(130, 130, 130)
+color_dark_wall = libtcod.Color(100, 70, 35)
+color_light_wall = libtcod.Color(170, 140, 105)
+color_dark_ground = libtcod.Color(140, 120, 30)
+color_light_ground = libtcod.Color(200, 180, 100)
 WALL_CHAR = '#'
 FLOOR_CHAR = '.'
 
@@ -200,11 +200,11 @@ class Object:
         #Compute path to player
         libtcod.path_compute(self.path, self.x, self.y, target_x, target_y)
 
-
-        #vector from this object to the target, and distance
+                #vector from this object to the target, and distance
         if not libtcod.path_is_empty(self.path):
 
             path_x, path_y = libtcod.path_get(self.path, 0)
+
 
             #normalise it to 1 length (preserving direction), then round it and
             #convert to integer so the movement is restricted to the map grid
@@ -716,11 +716,18 @@ def monster_move_or_attack(monster):
 
             #Set new map tile to not pathable
             libtcod.map_set_properties(fov_map, monster.x, monster.y, True, False)
+
             check_run_effects(monster)
 
         #close enough, attack! (if the player is still alive.)
         elif player.fighter.hp > 0:
             monster.fighter.attack(player)
+
+            check_run_effects(monster)
+
+    #TODO: Insert following line and find a way to path to the last free tile in path
+    #elif libtcod.map_is_in_fov(fov_map, monster.x, monster.y) and self.path is not None:
+
 
     else:
         #the player cannot see the monster
@@ -742,7 +749,7 @@ def monster_move_or_attack(monster):
                 libtcod.map_set_properties(fov_map, monster.x, monster.y, True, False)
 
             else:
-                pass
+                print 'pass'
 
         #stop boar and baby boars and pygmys from wandering
         elif not monster.char == 'B' or monster.char == 'b' or monster.char == 'p':
@@ -764,6 +771,7 @@ def monster_move_or_attack(monster):
                 monster.move(0, -1)
             else:
                 monster.move(1, -1)
+
         else:
             return 'cancelled'
 
@@ -1123,6 +1131,8 @@ def place_objects(room):
         weaponchances.cast_fireball = cast_fireball
         weaponchances.message = message
 
+        add_bones(x, y)
+
         if not is_blocked(x, y):
             #only place it if the tile is not blocked
 
@@ -1139,7 +1149,7 @@ def place_objects(room):
             if not is_blocked(x, y):
                 weaponchances.add_food_and_scrolls(x, y)
 
-        add_bones(x, y)
+
 
 
 def place_special_rooms():  #TODO: Redo the dungeon generation to allow for special rooms, or ensure v_tun and h_tun will not intersect special room
@@ -1164,13 +1174,14 @@ def place_special_rooms():  #TODO: Redo the dungeon generation to allow for spec
         for x in range(9):
             decy -= 2
 
-            decoration = Object(decx, decy, chr(159), 'Fountain', libtcod.lighter_blue, blocks=False, decorative=True)
+            decoration = Object(decx, decy, chr(159), 'Fountain', libtcod.lighter_blue, blocks=True, decorative=True, always_visible=True)
+
             objects.append(decoration)
         decx = new_x + 2
         decy = new_y + 10
         for x in range(9):
             decy -= 2
-            decoration = Object(decx, decy, chr(159), 'Fountain', libtcod.lighter_blue, blocks=False, decorative=True)
+            decoration = Object(decx, decy, chr(159), 'Fountain', libtcod.lighter_blue, blocks=True, decorative=True, always_visible=True)
             objects.append(decoration)
 
 
@@ -1473,7 +1484,7 @@ def render_all():
     global objects
     global turn
     global hunger_level
-    global FOV_TORCHX, noise, FOV_PX, FOV_PY
+    global FOV_TORCHX, noise, FOV_PX, FOV_PY, FOV_NOISE
 
     if fov_recompute:
         libtcod.console_clear(con)
@@ -1492,7 +1503,7 @@ def render_all():
                     if map[x][y].explored:
                         if wall:
                             libtcod.console_set_char_background(con, x, y, color_dark_wall, libtcod.BKGND_SET)
-                            libtcod.console_set_default_foreground(con, libtcod.Color(130, 100, 65))
+                            libtcod.console_set_default_foreground(con, libtcod.Color(90, 40, 15))
                             libtcod.console_put_char(con, x, y, WALL_CHAR, libtcod.BKGND_SCREEN)
                         else:
                             libtcod.console_set_char_background(con, x, y, color_dark_ground, libtcod.BKGND_SET)
@@ -1503,7 +1514,7 @@ def render_all():
                     #it's visible
                     if wall:
                         libtcod.console_set_char_background(con, x, y, color_light_wall, libtcod.BKGND_SET)
-                        libtcod.console_set_default_foreground(con, libtcod.Color(180, 150, 115))
+                        libtcod.console_set_default_foreground(con, libtcod.Color(130, 80, 55))
                         libtcod.console_put_char(con, x, y, WALL_CHAR, libtcod.BKGND_SCREEN)
                         base = color_dark_wall
                         light = color_light_wall
@@ -1528,7 +1539,7 @@ def render_all():
                     #Else it has no diff_color value and should be set to the default color
                     else:
                         libtcod.console_set_char_background(con, x, y, color_light_ground, libtcod.BKGND_SET)
-                        libtcod.console_set_default_foreground(con, libtcod.Color(150, 150, 150))
+                        libtcod.console_set_default_foreground(con, libtcod.Color(140, 140, 140))
                         libtcod.console_put_char(con, x, y, FLOOR_CHAR, libtcod.BKGND_SCREEN)
                         base = color_dark_ground
                         light = color_light_ground
@@ -1538,13 +1549,13 @@ def render_all():
                     #############
 
                     # slightly change the perlin noise parameter
-                    FOV_TORCHX += 0.2
+                    FOV_TORCHX += 0.1
                     # randomize the light position between -1.5 and 1.5
-                    tdx = [FOV_TORCHX + 200.0]
+                    tdx = [FOV_TORCHX + 20.0]
                     dx = libtcod.noise_get(NOISE, tdx, libtcod.NOISE_SIMPLEX) * 1.5
                     tdx[0] += 30.0
                     dy = libtcod.noise_get(NOISE, tdx, libtcod.NOISE_SIMPLEX) * 1.5
-                    di = 0.2 * libtcod.noise_get(NOISE, [FOV_TORCHX], libtcod.NOISE_SIMPLEX)
+                    di = 0.05 * libtcod.noise_get(NOISE, [FOV_TORCHX], libtcod.NOISE_SIMPLEX)
 
                     # cell distance to torch (squared)
                     r = float(x - player.x + dx) * (x - player.x + dx) + (y - player.y + dy) * (y - player.y + dy)
@@ -1559,13 +1570,16 @@ def render_all():
                             l = 1.0
 
                         light = libtcod.color_lerp(base, light, l)
+
                     libtcod.console_set_char_background(con, x, y, light, libtcod.BKGND_SET)
 
 
                     #Since it's visible, set it to explored
                     map[x][y].explored = True
 
+        #Supposed to cause flicker, but I think would need to be run contniuously
         FOV_NOISE = libtcod.noise_new(1, 1.0, 1.0)
+
 
 
 
@@ -2201,8 +2215,12 @@ def player_death(player):
 def monster_death(monster):
     #transform it into a nasty corpse! it doesn't block, can't be attacked and doesn't move.
 
-    #Explode it if was killed by war hammer
+    #Set tile to not block paths
     libtcod.map_set_properties(fov_map, monster.x, monster.y, True, True)
+
+
+    #Explode it if was killed by war hammer
+
     equipped = get_all_equipped(player)
     for i in equipped:
         if i.owner.char == chr(24):
@@ -2306,7 +2324,7 @@ def new_game():
     #create object representing player
     fighter_component = Fighter(hp=100, defense_dice=2, defense_sides=2, power_dice=1, power_sides=2, evasion_dice=2, evasion_sides=1, accuracy_dice=1, accuracy_sides=5, xp=0, speed=10, death_function=player_death,
                                 effects=[])
-    player = Object(0, 0, '@', 'player', libtcod.silver, blocks=True, fighter=fighter_component)
+    player = Object(0, 0, '@', 'player', libtcod.darkest_grey, blocks=True, fighter=fighter_component)
     player.level = 1
     #Create the list of game messages and their colors, starts empty
 
@@ -2326,6 +2344,12 @@ def new_game():
     #generate map
     make_map()
     initialize_fov()
+
+    #This should eventuially be a one time if object.blocks = True and obj.fighter == None
+    for obj in objects:
+        if obj.name == 'Fountain':
+            libtcod.map_set_properties(fov_map, obj.x, obj.y, True, False)
+
     for object in objects:
         if object.path is not None:
             object.path = None
@@ -2701,7 +2725,7 @@ def add_bones(x, y):
         if not is_blocked(x, y):
             # create bones
             item_component = Item(use_function=None)
-            item = Object(x, y, '%', 'Pile of bones', libtcod.lightest_grey, item=item_component, always_visible=False)
+            item = Object(x, y, '%', 'Pile of bones', libtcod.lightest_grey, item=item_component, always_visible=True)
             num_bones = libtcod.random_get_int(0, 0, 5)
             for i in range(num_bones):
                 # choose random spot for bones
@@ -2711,7 +2735,7 @@ def add_bones(x, y):
                     #create other bones
                     item_component = Item(use_function=None)
                     xbones = Object(x, y, '%', 'Pile of bones', libtcod.lightest_grey, item=item_component,
-                                    always_visible=False)
+                                    always_visible=True)
                     #append the bones
                     objects.append(xbones)
                     xbones.send_to_back()
