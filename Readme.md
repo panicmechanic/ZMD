@@ -138,8 +138,7 @@ For alpha release:
     - Implement shift run
         (1 day - No idea where to even begin)
     - Fix current bugs: paralysis/poison duplication, paralyze taking a turn to 
-        apply (move to different loop), warhammer 
-        splatter not firing with elec.
+        apply (move to different loop), warhammer slatter not firing with elec.
         (2 days - One for each day as these have been difficult to pin down)
     - Move monster gen to new file and add enough monsters for 10-15 levels
         (1 day - Simple enough)
@@ -156,7 +155,7 @@ For alpha release:
         Some internet time will be necessary to research.
         (3 days - Allow for 3 days to integrate this, research will give better estimates.
     - Implement pathfinding fix using examples from library or do some research to find examples
-        (2 days - Expect this to be difficult)
+        (DONE - Still haven't created pathing function, that will be next afer fixing current bug. Check forums/examples)
     - Add simple win condition for alpha release purposes
         (2 days - Will need to create win_screen() on win.)
     
@@ -166,10 +165,15 @@ For alpha release:
         ALPHA RELEASE DATE = 11th September
     
     20/08/14 Finished speed, dice roll implementation, way ahead of schedule. But added pathfinding
-        to TODO, as it breaks enjoyment and needs fixing if it's to be enjoyable in any way.
-        Also fixed bones/fountains covering items and made both always_visible:    
+                to TODO, as it breaks enjoyment and needs fixing if it's to be enjoyable in any way.
+                Also fixed bones/fountains covering items and made both always_visible:    
         TOTAL DAYS LEFT = 16.5 (17)
         ALPHA RELEASE DATE = 6th September
+        
+    20/08/14 Fixed pathfinding, new path bug in minors. Added lerp to tiles, wasn't in TODO but vastly 
+                improves aesthetics.    
+        TOTAL DAYS LEFT = 1.5 (14)
+        ALPHA RELEASE DATE = 3rd September
         
 #Remaining major TODO (in rough order):
 
@@ -218,6 +222,7 @@ For alpha release:
 
 #Done:
 
+- Added wall/foor char lerp
 - Fixed monster color flash tiles outside fov by removing object.clear() call in main loop after display_dmg
 - Added lerp to wall and floor color on init
 - Implemented flicker
