@@ -78,30 +78,35 @@ LEVEL_UP_FACTOR = 200
 #FPS
 LIMIT_FPS = 60  #60 frames-per-second maximum
 
-color_dark_wall = libtcod.Color(50, 90, 75)
-color_light_wall = libtcod.Color(110, 150, 135)
-color_dark_ground = libtcod.Color(60, 40, 30)
-color_light_ground = libtcod.Color(180, 160, 80)
+color_set_wall_dark = libtcod.Color(30, 50, 55)
+color_dark_wall = libtcod.Color(50, 70, 75)
+color_light_wall = libtcod.Color(110, 130, 135)
+
+color_set_ground_dark = libtcod.Color(40, 50, 30)
+color_dark_ground = libtcod.Color(80, 70, 50)
+color_light_ground = libtcod.Color(180, 170, 50)
+
 WALL_CHAR = '#'
 FLOOR_CHAR = '.'
 
-TORCH_RADIUS = 10
+TORCH_RADIUS = 5
 SQUARED_TORCH_RADIUS = TORCH_RADIUS * TORCH_RADIUS
 FOV_NOISE = None
 FOV_TORCHX = 0.0
 FOV_INIT = False
 FOV_ALGO_NUM = 1
-NOISE = libtcod.noise_new(3)
+NOISE = libtcod.noise_new(1)
 
 
 
 class Tile:
     # a tile of the map, and its properties
-    def __init__(self, blocked, block_sight=None, diff_color=None, color_flash=None):
+    def __init__(self, blocked, block_sight=None, diff_color=None, color_flash=None, color_set=None):
         self.blocked = blocked
         self.diff_color = diff_color
 
         self.color_flash = color_flash
+        self.color_set = color_set
 
         #all tiles start unexplored
         self.explored = False
@@ -1496,16 +1501,31 @@ def render_all():
             for x in range(MAP_WIDTH):
                 visible = libtcod.map_is_in_fov(fov_map, x, y)
                 wall = map[x][y].block_sight
+                #If the tile has not yet had its color_set value set, set it using perlin noise.
+                if map[x][y].color_set == None:
+                    if wall == True:
+                        base = color_set_wall_dark
+                        light = color_dark_wall
+                    elif wall == False:
+                        base = color_dark_ground
+                        light = color_set_ground_dark
+
+                    l = libtcod.random_get_float(0, 0, 1.0)
+
+                    light = libtcod.color_lerp(base, light, l)
+
+                    map[x][y].color_set = light
+
 
                 if not visible:
                     #if it's not explored right now, the player can only see it if it's explored
                     if map[x][y].explored:
                         if wall:
-                            libtcod.console_set_char_background(con, x, y, color_dark_wall, libtcod.BKGND_SET)
+                            libtcod.console_set_char_background(con, x, y, map[x][y].color_set, libtcod.BKGND_SET)
                             libtcod.console_set_default_foreground(con, libtcod.Color(30, 60, 65))
                             libtcod.console_put_char(con, x, y, WALL_CHAR, libtcod.BKGND_SCREEN)
                         else:
-                            libtcod.console_set_char_background(con, x, y, color_dark_ground, libtcod.BKGND_SET)
+                            libtcod.console_set_char_background(con, x, y, map[x][y].color_set, libtcod.BKGND_SET)
                             libtcod.console_set_default_foreground(con, libtcod.Color(80, 80, 80))
                             libtcod.console_put_char(con, x, y, FLOOR_CHAR, libtcod.BKGND_SCREEN)
                 else:
@@ -1568,7 +1588,7 @@ def render_all():
                         elif l > 1.0:
                             l = 1.0
 
-                        light = libtcod.color_lerp(base, light, l)
+                        light = libtcod.color_lerp(map[x][y].color_set, light, l)
 
                     libtcod.console_set_char_background(con, x, y, light, libtcod.BKGND_SET)
 
@@ -2329,7 +2349,6 @@ def new_game():
     player = Object(0, 0, '@', 'player', libtcod.darkest_grey, blocks=True, fighter=fighter_component)
     player.level = 1
     #Create the list of game messages and their colors, starts empty
-
 
     refresh_count = 0
     game_msgs = []
