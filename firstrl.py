@@ -85,7 +85,7 @@ color_light_ground = libtcod.Color(180, 160, 80)
 WALL_CHAR = '#'
 FLOOR_CHAR = '.'
 
-TORCH_RADIUS = 20
+TORCH_RADIUS = 10
 SQUARED_TORCH_RADIUS = TORCH_RADIUS * TORCH_RADIUS
 FOV_NOISE = None
 FOV_TORCHX = 0.0
@@ -699,12 +699,12 @@ def monster_move_or_attack(monster):
     if libtcod.map_is_in_fov(fov_map, monster.x, monster.y):  #If the monster is in the players FOV
 
         # pygmys can attack one block further in every direction.
-        if monster.char == 'p' and monster.distance_to(player) <= 2:
-            if player.fighter.hp > 0:
-                monster.fighter.attack(player)
+        #if monster.char == 'p' and monster.distance_to(player) <= 2:
+            #if player.fighter.hp > 0:
+                #monster.fighter.attack(player)
 
         #move towards player if far away
-        elif monster.distance_to(player) >= 2:
+        if monster.distance_to(player) >= 2:
             #compute how to reach the player
             # TODO: Insert an if statement to check for a blocked tile, pick an adjacent one and move into it instead
 
@@ -1554,7 +1554,7 @@ def render_all():
                     dx = libtcod.noise_get(NOISE, tdx, libtcod.NOISE_SIMPLEX) * 1.5
                     tdx[0] += 30.0
                     dy = libtcod.noise_get(NOISE, tdx, libtcod.NOISE_SIMPLEX) * 1.5
-                    di = 0.05 * libtcod.noise_get(NOISE, [FOV_TORCHX], libtcod.NOISE_SIMPLEX)
+                    di = 0.005 * libtcod.noise_get(NOISE, [FOV_TORCHX], libtcod.NOISE_SIMPLEX)
 
                     # cell distance to torch (squared)
                     r = float(x - player.x + dx) * (x - player.x + dx) + (y - player.y + dy) * (y - player.y + dy)
@@ -2431,10 +2431,12 @@ def play_game():
         #handles keys and exit game if needed
         player_action = handle_keys()
 
+        #Run render_all() while the player does nothing.
         if player_action == 'didnt-take-turn':
 
+            #Increase count
             refresh_count+=1
-            print refresh_count
+            #Trigger only after a certain number of didnt-take-turns
             if refresh_count >= 6:
 
                 fov_recompute=True

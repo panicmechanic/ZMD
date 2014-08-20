@@ -104,8 +104,7 @@ Damage player 10 hit points - '#'
  
     roll stealth/detection and raise awareness 1 level. While sleeping cannot wander.
     
-- Fix name_stat_gen() and make iterate_through_list() print each item with auto wrap. 
-      
+- Fix name_stat_gen() and make iterate_through_list() print each item with auto wrap.      
 
 - Still some minor bugs to iron out to roll, level up needs changing which will probably require adding the following:
 
@@ -117,10 +116,13 @@ Damage player 10 hit points - '#'
         Meditation (will)        - Improve accuracy, perception checks, skill helps mutations
               
 - Fix pathing to walk as close as possible if in fov and path is blocked.
-- Make torch change wall foreground color too.
+
 - Create new color variable to store dark values in so you can use them seperately to set 
 
     floor colour and keep the light on a different range.
+- An elegant solution to the pathing problem would be to fix blocks=True to automagically 
+
+    set the map tile to unpassable in new_game()
 
 #Alpha TODO:
 
@@ -170,7 +172,7 @@ For alpha release:
         
 #Remaining major TODO (in rough order):
 
-- Make inventory a list in the fighter class.
+- Make inventory a list in the fighter class so monsters can have them.
 - Make monsters drop items in inventory based on a roll from inventory
 - Fix pathfinding- look at example code in library.
 - Noise effect/Color variation in tiles; first time map is created they should be set
