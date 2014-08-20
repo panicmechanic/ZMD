@@ -123,6 +123,7 @@ Damage player 10 hit points - '#'
 - An elegant solution to the pathing problem would be to fix blocks=True to automagically 
 
     set the map tile to unpassable in new_game()
+- Torch colours and back/fore colours are still not displayed right, check all values.
     
 
 #Alpha TODO:

@@ -83,14 +83,14 @@ color_set_wall_dark = libtcod.darkest_grey
 #Lightest wall can be when not in FOV, bottom for lerp
 color_dark_wall = libtcod.darker_grey
 #Top for lerp
-color_light_wall = libtcod.grey
+color_light_wall = libtcod.light_grey
 
 #Darkest wall can be when not in FOV
-color_char_set_dark_wall = libtcod.darkest_pink
+color_char_set_dark_wall = libtcod.darkest_grey
 #Lightest, unused
 color_char_dark_wall = libtcod.dark_grey
 #Top for lerp
-color_char_light_wall = libtcod.light_yellow
+color_char_light_wall = libtcod.lightest_grey
 
 
 color_set_ground_dark = libtcod.Color(50, 60, 40)
@@ -1595,8 +1595,8 @@ def render_all():
                         libtcod.console_put_char(con, x, y, FLOOR_CHAR, libtcod.BKGND_SCREEN)
                         base = color_dark_ground
                         light = color_light_ground
-                        base_char = color_char_set_dark_wall
-                        light_char = color_char_light_wall
+                        base_char = color_char_set_dark_ground
+                        light_char = color_char_dark_wall
 
                     #############
                     #TORCH NOISE#
@@ -1628,10 +1628,12 @@ def render_all():
                             #TODO: Make torch light change have an alpha, to make coloring easier.
                             light = libtcod.color_lerp(map[x][y].diff_color, light, l)
 
+                        if wall:
+                            light = libtcod.color_lerp(map[x][y].color_set, color_light_wall, l)
+                            light_char = libtcod.color_lerp(map[x][y].color_fore, color_char_light_wall, l)
                         else:
-                            light = libtcod.color_lerp(map[x][y].color_set, light, l)
-
-                        light_char = libtcod.color_lerp(map[x][y].color_fore, color_char_light_wall, l)
+                            light = libtcod.color_lerp(map[x][y].color_set, color_light_ground, l)
+                            light_char = libtcod.color_lerp(map[x][y].color_fore, color_char_light_ground, l)
 
                     #Lerp tile in FOV's background
                     libtcod.console_set_char_background(con, x, y, light, libtcod.BKGND_SET)
