@@ -55,7 +55,6 @@ PANEL_WIDTH = SCREEN_WIDTH - PANEL2_WIDTH
 FOV_ALGO = 0  #Default FOV algorithm
 FOV_LIGHT_WALLS = True  #Light walls or not
 
-
 #Item parameters
 HEAL_AMOUNT = 40
 LIGHTNING_DAMAGE = 40
@@ -77,12 +76,12 @@ LEVEL_UP_BASE = 200
 LEVEL_UP_FACTOR = 200
 
 #FPS
-LIMIT_FPS = 100  #60 frames-per-second maximum
+LIMIT_FPS = 60  #60 frames-per-second maximum
 
-color_dark_wall = libtcod.Color(100, 70, 35)
-color_light_wall = libtcod.Color(170, 140, 105)
-color_dark_ground = libtcod.Color(140, 120, 30)
-color_light_ground = libtcod.Color(200, 180, 100)
+color_dark_wall = libtcod.Color(50, 90, 75)
+color_light_wall = libtcod.Color(110, 150, 135)
+color_dark_ground = libtcod.Color(60, 40, 30)
+color_light_ground = libtcod.Color(180, 160, 80)
 WALL_CHAR = '#'
 FLOOR_CHAR = '.'
 
@@ -1503,7 +1502,7 @@ def render_all():
                     if map[x][y].explored:
                         if wall:
                             libtcod.console_set_char_background(con, x, y, color_dark_wall, libtcod.BKGND_SET)
-                            libtcod.console_set_default_foreground(con, libtcod.Color(90, 40, 15))
+                            libtcod.console_set_default_foreground(con, libtcod.Color(30, 60, 65))
                             libtcod.console_put_char(con, x, y, WALL_CHAR, libtcod.BKGND_SCREEN)
                         else:
                             libtcod.console_set_char_background(con, x, y, color_dark_ground, libtcod.BKGND_SET)
@@ -1513,8 +1512,8 @@ def render_all():
 
                     #it's visible
                     if wall:
-                        libtcod.console_set_char_background(con, x, y, color_light_wall, libtcod.BKGND_SET)
-                        libtcod.console_set_default_foreground(con, libtcod.Color(130, 80, 55))
+
+                        libtcod.console_set_default_foreground(con, libtcod.Color(60, 90, 95))
                         libtcod.console_put_char(con, x, y, WALL_CHAR, libtcod.BKGND_SCREEN)
                         base = color_dark_wall
                         light = color_light_wall
@@ -1536,9 +1535,9 @@ def render_all():
                         map[x][y].color_flash = None
 
 
-                    #Else it has no diff_color value and should be set to the default color
+                    #Else it is floor and has no diff_color value and should be set to the default color
                     else:
-                        libtcod.console_set_char_background(con, x, y, color_light_ground, libtcod.BKGND_SET)
+
                         libtcod.console_set_default_foreground(con, libtcod.Color(140, 140, 140))
                         libtcod.console_put_char(con, x, y, FLOOR_CHAR, libtcod.BKGND_SCREEN)
                         base = color_dark_ground
@@ -1549,7 +1548,7 @@ def render_all():
                     #############
 
                     # slightly change the perlin noise parameter
-                    FOV_TORCHX += 0.1
+                    FOV_TORCHX += 0.2
                     # randomize the light position between -1.5 and 1.5
                     tdx = [FOV_TORCHX + 20.0]
                     dx = libtcod.noise_get(NOISE, tdx, libtcod.NOISE_SIMPLEX) * 1.5
@@ -2318,7 +2317,7 @@ def calc_border(x):
 
 
 def new_game():
-    global player, inventory, game_msgs, game_state, dungeon_level, turn_increment, turn_5, hunger_level
+    global player, inventory, game_msgs, game_state, dungeon_level, turn_increment, turn_5, hunger_level, refresh_count
 
     key = libtcod.Key()
     #create object representing player
@@ -2329,7 +2328,7 @@ def new_game():
     #Create the list of game messages and their colors, starts empty
 
 
-
+    refresh_count = 0
     game_msgs = []
     inventory = []
     player_effects = []
@@ -2388,7 +2387,7 @@ def initialize_fov():
 
 
 def play_game():
-    global key, mouse, turn_increment, heal_rate, fov_recompute
+    global key, mouse, turn_increment, heal_rate, fov_recompute, refresh_count
 
     player_action = None
     mouse = libtcod.Mouse()
@@ -2429,6 +2428,16 @@ def play_game():
         #handles keys and exit game if needed
         player_action = handle_keys()
 
+        if player_action == 'didnt-take-turn':
+
+            refresh_count+=1
+            print refresh_count
+            if refresh_count >= 6:
+
+                fov_recompute=True
+                render_all()
+                libtcod.console_flush()
+                refresh_count = 0
 
 
         if player_action == 'exit':
@@ -2443,7 +2452,6 @@ def play_game():
         if player_action == 'moved' and game_state == 'playing':
             check_by_turn(player.fighter.speed)
             check_run_effects(player)
-
 
 
 

@@ -118,6 +118,9 @@ Damage player 10 hit points - '#'
               
 - Fix pathing to walk as close as possible if in fov and path is blocked.
 - Make torch change wall foreground color too.
+- Create new color variable to store dark values in so you can use them seperately to set 
+
+    floor colour and keep the light on a different range.
 
 #Alpha TODO:
 
