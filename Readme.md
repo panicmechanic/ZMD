@@ -111,24 +111,15 @@ Damage player 10 hit points - '#'
         Shadow training (stealth)- Improve stealth, improve speed
         Meditation (will)        - Improve accuracy, perception checks, skill helps mutations
               
-- Fix pathing to walk as close as possible if in fov and path is blocked.
-
-- Create new color variable to store dark values in so you can use them seperately to set 
-
-    floor colour and keep the light on a different range.
-- An elegant solution to the pathing problem would be to fix blocks=True to automagically 
-
-    set the map tile to unpassable in new_game()
+- Fix pathing to walk as close as possible if in fov and path is blocked.***
 - Torch colours and back/fore colours are still not displayed right, check all values.
 - Figure out how to make color_flash work- Add description to box with auto wrap
 - Give description window and character/level up window borders.
-- Add variables to tiles at the entrances and exits to tunnels, and on entering 
-    
-    new rooms, and if map[x][y].run_block == True stop the shift_run. Will need to change
-    the make_map function.
+
 - I think go_to_last_seen functionality is broken.    
 - Make inventory a combination of equipped and other inventory
-- Paralyze effect duration is not being reset
+- Move passable set from monster_move_or_attack() to move()
+
     
 
 #Alpha TODO:
@@ -144,8 +135,7 @@ For alpha release:
         (DONE - 1.5 HOURS)
     - Implement shift run
         (DONE - Not too bad, needs more conditions)
-    - Fix current bugs: paralyze taking a turn to apply (move to different loop), 
-        warhammer splatter not firing with elec. Go to last seen functionality.
+    - Fix current bugs: Warhammer splatter not firing with elec. Go to last seen functionality.
         (1 days - One for each day as these have been difficult to pin down)
     - Move monster gen to new file and add enough monsters for 10-15 levels
         (1 day - Simple enough)
@@ -182,13 +172,17 @@ For alpha release:
         TOTAL DAYS LEFT = 12.5 (13)
         ALPHA RELEASE DATE = 3rd September
             
-    21/08/14 Fixed effect duplication bug, was due to else statement being in wrong indentation.              
+    21/08/14 Fixed effect duplication bug, was due to else statement being in wrong indentation.
+                  There was no paralyze issue.
         TOTAL DAYS LEFT = 11.5 (12)
         ALPHA RELEASE DATE = 2nd September
         
 #Remaining major TODO (in rough order):
 
-- Shift_run, needs more conditions to stop, like entering a room
+- Add variables to tiles at the entrances and exits to tunnels, and on entering 
+    
+    new rooms, and if map[x][y].run_block == True stop the shift_run. Will need to change
+    the make_map function.
 - Make inventory a list in the fighter class so monsters can have them.
 - Make monsters drop items in inventory based on a roll from inventory
 - Fix pathfinding- look at example code in library.
