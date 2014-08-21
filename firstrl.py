@@ -84,24 +84,24 @@ color_set_wall_dark = libtcod.darkest_grey
 #Lightest wall can be when not in FOV, bottom for lerp
 color_dark_wall = libtcod.darker_grey
 #Top for lerp
-color_light_wall = libtcod.Color(75, 75, 15)#Yellowed
+color_light_wall = libtcod.Color(70, 70, 2)#Yellowed
 
 #Darkest wall can be when not in FOV
 color_char_set_dark_wall = libtcod.darker_grey
 #Lightest, unused
 color_char_dark_wall = libtcod.dark_grey
 #Top for lerp
-color_char_light_wall = libtcod.Color(107, 107, 32)#Yellowed
+color_char_light_wall = libtcod.Color(107, 107, 12)#Yellowed
 
 
 
 color_set_ground_dark = libtcod.Color(50, 60, 40)
 color_dark_ground = libtcod.Color(80, 90, 70)
-color_light_ground = libtcod.Color(100, 100, 25)
+color_light_ground = libtcod.Color(100, 100, 14)
 
 color_char_set_dark_ground = libtcod.Color(80, 90, 70)
 color_char_dark_ground = libtcod.Color(110, 110, 100)
-color_char_light_ground = libtcod.Color(120, 120, 30)
+color_char_light_ground = libtcod.Color(120, 120, 15)
 
 
 WALL_CHAR = '#'
@@ -234,6 +234,7 @@ class Object:
             dy = path_y - self.y
 
         else:
+            #TODO: Else, path as close as possible
             print 'Path is empty'
             dx = target_x - self.x
             dy = target_y - self.y
@@ -750,7 +751,7 @@ def monster_move_or_attack(monster):
             check_run_effects(monster)
 
         #close enough, attack! (if the player is still alive.)
-        elif monster.distance_to(player) <= 1 and player.fighter.hp > 0:
+        elif player.fighter.hp > 0:
             monster.fighter.attack(player)
 
             check_run_effects(monster)
@@ -758,7 +759,7 @@ def monster_move_or_attack(monster):
 
 
     #TODO: Insert following line and find a way to path to the last free tile in path
-    elif libtcod.map_is_in_fov(fov_map, monster.x, monster.y) and monster.path is None:
+    elif libtcod.map_is_in_fov(fov_map, monster.x, monster.y):
         #Path to nearest monster
         for obj in objects:
             if obj.fighter and obj != monster and obj != player:
@@ -770,8 +771,6 @@ def monster_move_or_attack(monster):
 
                 #Set new map tile to not pathable
                 libtcod.map_set_properties(fov_map, monster.x, monster.y, True, False)
-
-
 
     else:
         #the player cannot see the monster
@@ -1014,9 +1013,9 @@ def place_objects(room):
     #chance of each monsters
     monster_chances = {}
     monster_chances['Dog'] = 30  #Dog always spawns, even if all other monsters have 0 chance
-    monster_chances['Snake'] = from_dungeon_level([[3000, 1], [5, 3], [50, 7]])
+    monster_chances['Snake'] = from_dungeon_level([[3, 1], [5, 3], [50, 7]])
     monster_chances['Imp'] = from_dungeon_level([[50, 2], [30, 5], [50, 7]])
-    monster_chances['Firefly'] = from_dungeon_level([[3000, 1], [30, 3], [60, 7]])
+    monster_chances['Firefly'] = from_dungeon_level([[3, 1], [30, 3], [60, 7]])
     monster_chances['Crab'] = from_dungeon_level([[1, 2], [30, 3], [60, 7]])
     monster_chances['Goat'] = from_dungeon_level([[15, 2], [30, 8], [60, 10]])
     monster_chances['Eagle'] = from_dungeon_level([[15, 5], [30, 8], [60, 10]])
@@ -1049,7 +1048,7 @@ def place_objects(room):
                 fighter_component = Fighter(hp=10, defense_dice=1, defense_sides=5, power_dice=1, power_sides=8, evasion_dice=1, evasion_sides=4, accuracy_dice=2, accuracy_sides=4, xp=40, speed=10,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
-                monster = Object(x, y, 'd', 'Dog', libtcod.darker_orange, blocks=True, fighter=fighter_component,
+                monster = Object(x, y, 'd', 'Dog', libtcod.orange, blocks=True, fighter=fighter_component,
                                  ai=ai_component, description='A large, brown muscular looking dog. His eyes glow red.')
 
             elif choice == 'Snake':
@@ -1058,9 +1057,9 @@ def place_objects(room):
                 effect_roll = 20
                 fighter_component = Fighter(hp=8, defense_dice=1, defense_sides=3, power_sides=5, power_dice=1, xp=100, speed=10, evasion_dice=1, evasion_sides=3, accuracy_dice=2, accuracy_sides=2, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
                 ai_component = BasicMonsterAI()
-                monster = Object(x, y, 's', 'Snake', libtcod.darker_grey, blocks=True, fighter=fighter_component,
+                monster = Object(x, y, 's', 'Snake', libtcod.lime, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
-                                 description='A dark green snake covered in thousands of small, glistening scales, it looks poisonous.')
+                                 description='A light green snake covered in thousands of small, glistening scales, it looks poisonous.')
 
             elif choice == 'Imp':
                 #create an Imp
@@ -1085,7 +1084,7 @@ def place_objects(room):
                 effect_roll = 5
                 fighter_component = Fighter(hp=8, defense_dice=1, defense_sides=3, power_dice=3, power_sides=3, xp=100, speed=9, evasion_dice=1, evasion_sides=3, accuracy_dice=2, accuracy_sides=2, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
                 ai_component = BasicMonsterAI()
-                monster = Object(x, y, 'f', 'Firefly', libtcod.darkest_lime, blocks=True, fighter=fighter_component,
+                monster = Object(x, y, 'f', 'Firefly', libtcod.light_green, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
                                  description='A small paralytic firefly. He moves very fast, but looks weak.')
 
@@ -2462,7 +2461,7 @@ def new_game():
     #create object representing player
     fighter_component = Fighter(hp=100, defense_dice=2, defense_sides=2, power_dice=1, power_sides=2, evasion_dice=2, evasion_sides=1, accuracy_dice=1, accuracy_sides=5, xp=0, speed=10, death_function=player_death,
                                 effects=[])
-    player = Object(0, 0, '@', 'player', libtcod.Color(150, 150, 40), blocks=True, fighter=fighter_component)
+    player = Object(0, 0, '@', 'player', libtcod.lightest_amber, blocks=True, fighter=fighter_component)
     player.level = 1
     #Create the list of game messages and their colors, starts empty
 
@@ -2627,9 +2626,6 @@ def shift_run(object, x, y):
 
         #Increment the count
         count += 1
-
-
-
 
 def main_menu():
     img = libtcod.image_load('zeus1.png')

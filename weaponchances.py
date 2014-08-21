@@ -66,7 +66,7 @@ def add_food_and_scrolls(x, y):
     if choice == 'heal':
         #create a healing potion
         item_component = Item(use_function=cast_heal)
-        item = Object(x, y, chr(173), 'healing potion', libtcod.dark_green, item=item_component, always_visible=True)
+        item = Object(x, y, chr(173), 'healing potion', libtcod.light_green, item=item_component, always_visible=True)
 
     elif choice == 'nothing':  # Allows a possibility to spawn nothing
         item = Object(x, y, chr(0), 'nothing', libtcod.darker_orange, equipment=None, item=None, always_visible=False)
@@ -91,7 +91,7 @@ def add_food_and_scrolls(x, y):
     elif choice == 'bread':
         #create a piece of bread
         item_component = Item(food_value=2000)
-        item = Object(x, y, ';', 'piece of bread', libtcod.darkest_red, item=item_component, always_visible=True)
+        item = Object(x, y, ';', 'piece of bread', libtcod.light_red, item=item_component, always_visible=True)
 
     elif choice == 'feta cheese':
         #create a piece of bread
@@ -216,7 +216,7 @@ def create_item(x, y):
     if choice == 'wooden sword':
         #create a wooden sword
         equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=2)
-        item = Object(x, y, '/', 'Wooden sword', libtcod.darker_orange, equipment=equipment_component, item=None,
+        item = Object(x, y, '/', 'Wooden sword', libtcod.light_flame, equipment=equipment_component, item=None,
                       always_visible=True)
 
     elif choice == 'brass sword':

@@ -179,12 +179,15 @@ For alpha release:
         
 #Remaining major TODO (in rough order):
 
+- Place items in clusters, define level of clusters pwr dungeon level
+- Fix description box by putting it in panel2 and include a new function to describe acc, speed, danger etc.
+- Pathfinding will need an overhaul
 - Add variables to tiles at the entrances and exits to tunnels, and on entering 
     
     new rooms, and if map[x][y].run_block == True stop the shift_run. Will need to change
     the make_map function.
 - Make inventory a list in the fighter class so monsters can have them.
-- Make monsters drop items in inventory based on a roll from inventory
+- Make monsters drop items in inventory based on a roll from inventory but use system like other 
 - Fix pathfinding- look at example code in library.
 - Describe item in inventory feature
 - As it is common to find multiples of the same item there needs to either be variation in those items or a degradation quality to the items
@@ -195,7 +198,7 @@ For alpha release:
 - Add objects x 3/5/1 in inventory and floor
 - Break up firstrl.py into modules, move modules that are called for by weaponchances
     into new files as directed from reddit post.
-- Scent tracking
+- Scent tracking~
 - Mutations/Godly powers
 - Click-to-path for map and GUI
 - Save maps and add upward stairs.
