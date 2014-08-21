@@ -403,41 +403,47 @@ class Fighter:
     def add_effect(self, Effect, object_origin_name):  # Add effect to the fighter class's list of effects
         # check if the effect already exists, if it does, just increase the duration
 
-        #This is the cause of the duplication, maybe when two snakes score poison, or
-        #perhaps the if, elif else statement aren't robust enough.
-
         #if effects is not empty, iterate through them
-        #appended = False
         if self.effects != []:
-
+            #create a variable to hold a statement that changes if the i.effectname is the same as the one already applied
+            duplicate=False
+            #Iterate through them
             for i in self.effects:
-                #If an effect with the same name already exists, add its duration to the existing copy.
-                if i.mutation == False and i.effect_name == Effect.effect_name:
+                #If an effect with the same name already exists and duplicate hasn't been changed, add its duration to the existing copy.
+                if i.mutation == False and i.effect_name == Effect.effect_name and duplicate==False:
+                    #Update variable to stop the iteration through self.effects, as we've found a copy already. This stops duplication.
+                    duplicate=True
+                    #Increase this effects duration rather than adding multiple effects, could be done either way but this is simpler.
                     i.duration += Effect.base_duration
+                    #Increase the variable applied_times which is used in other functions like render_bar() to show how many times poison has been applied
                     i.applied_times += 1
+                    #Tell the player what happened
                     message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you further!',
                             libtcod.white)
-                    #appended = True
 
                 elif i.mutation == True and i.effect_name == Effect.effect_name and Effect.mutation == True:
                     i.applied_times += 1
+                    duplicate=True
 
                     message('The gods have blessed your ' + Effect.effect_name + ' further!',
                             libtcod.white)
 
-                #Think this may be the line that fires ocassinoally causing duplication
-                else:
-
-                    self.effects.append(Effect)
-                    message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you!', libtcod.yellow)
+            #Else, if a duplicate has not been found.
+            if duplicate==False:
+                #Add the effect
+                self.effects.append(Effect)
+                #Tell the play what happened
+                message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you!', libtcod.yellow)
 
         elif Effect.mutation == True:
             self.effects.append(Effect)
+            #Set duration to base duration
+            Effect.duration = Effect.base_duration
             message(object_origin_name + ' ' + Effect.effect_name + '!' + ' Press space to continue.', libtcod.white)
             update_msgs()
             wait_for_spacekey()
 
-
+        #Else, effects is empty and this effect is not a mutation, so just add it to the player and tell them what happened.
         else:
             self.effects.append(Effect)
             message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you!', libtcod.yellow)
@@ -445,6 +451,8 @@ class Fighter:
 
     def remove_effect(self, Effect):
         if Effect.duration == Effect.turns_passed:
+
+            Effect.applied_times = 1
             self.effects.remove(Effect)
 
 
@@ -543,7 +551,7 @@ class Fighter:
     def roll_for_effect(self, target):
         #if the fighter has an effect to be cast, and the roll is > cast_roll - add effect to target.
         roll = libtcod.random_get_int(0, 0, 100)
-        if self.cast_effect and roll <= self.cast_roll:
+        if self.cast_effect != None and roll <= self.cast_roll:
             target.fighter.add_effect(self.cast_effect, self.owner.name)
 
 
@@ -729,11 +737,11 @@ def monster_move_or_attack(monster):
         #move towards player if far away
         if monster.distance_to(player) >= 2:
             #compute how to reach the player
-            # TODO: Insert an if statement to check for a blocked tile, pick an adjacent one and move into it instead
 
             #Set old map tile to pathable
             libtcod.map_set_properties(fov_map, monster.x, monster.y, True, True)
 
+            #Move monster
             monster.move_towards(player.x, player.y)
 
             #Set new map tile to not pathable
@@ -742,16 +750,27 @@ def monster_move_or_attack(monster):
             check_run_effects(monster)
 
         #close enough, attack! (if the player is still alive.)
-        elif player.fighter.hp > 0:
+        elif monster.distance_to(player) <= 1 and player.fighter.hp > 0:
             monster.fighter.attack(player)
 
             check_run_effects(monster)
 
-        #elif monster.path is None:
-            #move to the nearest free space
+
 
     #TODO: Insert following line and find a way to path to the last free tile in path
-    #elif libtcod.map_is_in_fov(fov_map, monster.x, monster.y) and self.path is not None:
+    elif libtcod.map_is_in_fov(fov_map, monster.x, monster.y) and monster.path is None:
+        #Path to nearest monster
+        for obj in objects:
+            if obj.fighter and obj != monster and obj != player:
+                #Set old map tile to pathable
+                libtcod.map_set_properties(fov_map, monster.x, monster.y, True, True)
+
+                #Move monster
+                monster.move_towards(obj.x, obj.y)
+
+                #Set new map tile to not pathable
+                libtcod.map_set_properties(fov_map, monster.x, monster.y, True, False)
+
 
 
     else:
@@ -759,9 +778,11 @@ def monster_move_or_attack(monster):
         #if we have an old path, follow it
 
         #If path is not empty and the distance to the player is greater than 2
-        if monster.path is not None and not libtcod.path_is_empty(monster.path):
+        if monster.path != None and monster.path is not libtcod.path_is_empty(monster.path):
 
-            nextx, nexty = libtcod.path_walk(monster.path, True)
+
+            nextx, nexty = libtcod.path_walk(monster.path, False)
+
             if nextx or nexty is not None:
                 dx = nextx - monster.x
                 dy = nexty - monster.y
@@ -779,7 +800,7 @@ def monster_move_or_attack(monster):
         #stop boar and baby boars and pygmys from wandering
         elif not monster.char == 'B' or monster.char == 'b' or monster.char == 'p':
             #path is empty, wander randomly
-            rand_direction = libtcod.random_get_int(0, 1, 8)
+            rand_direction = libtcod.random_get_int(0, 1, 12)
             if rand_direction == 1:
                 monster.move(-1, 1)
             elif rand_direction == 2:
@@ -794,9 +815,11 @@ def monster_move_or_attack(monster):
                 monster.move(-1, -1)
             elif rand_direction == 7:
                 monster.move(0, -1)
-            else:
+            elif rand_direction == 8:
                 monster.move(1, -1)
-
+            else:
+                #Don't wander
+                monster.move(0, 0)
         else:
             return 'cancelled'
 
@@ -991,9 +1014,9 @@ def place_objects(room):
     #chance of each monsters
     monster_chances = {}
     monster_chances['Dog'] = 30  #Dog always spawns, even if all other monsters have 0 chance
-    monster_chances['Snake'] = from_dungeon_level([[3, 2], [5, 3], [50, 7]])
-    monster_chances['Imp'] = from_dungeon_level([[5, 2], [30, 5], [50, 7]])
-    monster_chances['Firefly'] = from_dungeon_level([[1, 2], [30, 3], [60, 7]])  #TODO: Fix paralyse bug
+    monster_chances['Snake'] = from_dungeon_level([[3000, 1], [5, 3], [50, 7]])
+    monster_chances['Imp'] = from_dungeon_level([[50, 2], [30, 5], [50, 7]])
+    monster_chances['Firefly'] = from_dungeon_level([[3000, 1], [30, 3], [60, 7]])  #TODO: Fix paralyse bug
     monster_chances['Crab'] = from_dungeon_level([[1, 2], [30, 3], [60, 7]])
     monster_chances['Goat'] = from_dungeon_level([[15, 2], [30, 8], [60, 10]])
     monster_chances['Eagle'] = from_dungeon_level([[15, 5], [30, 8], [60, 10]])
@@ -1033,9 +1056,7 @@ def place_objects(room):
                 #create a Snake
                 effect_component = Effect('poisoned', duration=5, damage_by_turn=2, base_duration=5)
                 effect_roll = 20
-                fighter_component = Fighter(hp=8, defense=2, power=5, xp=100, ev=10, acc=10, speed=10,
-                                            cast_effect=effect_component, cast_roll=effect_roll,
-                                            death_function=monster_death)
+                fighter_component = Fighter(hp=8, defense_dice=1, defense_sides=3, power_sides=5, power_dice=1, xp=100, speed=10, evasion_dice=1, evasion_sides=3, accuracy_dice=2, accuracy_sides=2, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 's', 'Snake', libtcod.darker_grey, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
@@ -1061,14 +1082,12 @@ def place_objects(room):
             elif choice == 'Firefly':
                 #create a glow fly
                 effect_component = Effect('Paralyzed', duration=5, paralyzed=True, base_duration=5)
-                effect_roll = 10
-                fighter_component = Fighter(hp=20, defense=0, power=8, xp=50, ev=15, acc=10, speed=10,
-                                            cast_effect=effect_component, cast_roll=effect_roll,
-                                            death_function=monster_death)
+                effect_roll = 5
+                fighter_component = Fighter(hp=8, defense_dice=1, defense_sides=3, power_dice=3, power_sides=3, xp=100, speed=9, evasion_dice=1, evasion_sides=3, accuracy_dice=2, accuracy_sides=2, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'f', 'Firefly', libtcod.darkest_lime, blocks=True, fighter=fighter_component,
                                  ai=ai_component,
-                                 description='A small power firefly. He moves very fast, but looks weak.')
+                                 description='A small paralytic firefly. He moves very fast, but looks weak.')
 
             elif choice == 'Pygmy':
                 #create a pygmy
@@ -1943,7 +1962,7 @@ def message_wait(char, messagetext, color=libtcod.white):
             render_all()
             #use message function to present message
             message(messagetext, color)
-            render_all()  #IF THIS FUNCTION IS THE CAUSE OF A CRASH REMOVE THIS LINE
+            render_all()
             #set object to seen
             object.seen = True
             #wait for keypress

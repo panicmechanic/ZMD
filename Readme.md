@@ -85,16 +85,10 @@ Damage player 10 hit points - '#'
 #Minor TODO/bugs:
 
 - Finish lever object
-- Remove todo list from firstrl.py
-- Bones and fountains appear over objects
 - Rough balancing
 - Change cast_fireball to apply a burning effect to all inside range for 5 turns. 
 - Add gui bar for eff in monster.effects to display effects like burning, poisoned, confused, paralysed.
-- Paralyze still lets you hit first few turns 
-- Paralyze is tripled when lightning goes off and you are paralyzed
-- Poison is being appended more than once. Something in add_effect() or roll_for_effect(). Debug it.
-- Fix effect double append, highlighted lines both fire, although maybe not in the same run.
-- Geting an occasional "ValueError: list.remove(x): x not in list" error after check_run_effects().
+
 - Problem with warhammer splatter and lightning mutation making it not fire - give take_damage another variable, weapon.
  
     If it is war hammer, and the damage will kill the monster, give it the splatter effect in a function.
@@ -134,6 +128,7 @@ Damage player 10 hit points - '#'
     the make_map function.
 - I think go_to_last_seen functionality is broken.    
 - Make inventory a combination of equipped and other inventory
+- Paralyze effect duration is not being reset
     
 
 #Alpha TODO:
@@ -149,9 +144,9 @@ For alpha release:
         (DONE - 1.5 HOURS)
     - Implement shift run
         (DONE - Not too bad, needs more conditions)
-    - Fix current bugs: paralysis/poison duplication, paralyze taking a turn to 
-        apply (move to different loop), warhammer splatter not firing with elec.
-        (2 days - One for each day as these have been difficult to pin down)
+    - Fix current bugs: paralyze taking a turn to apply (move to different loop), 
+        warhammer splatter not firing with elec. Go to last seen functionality.
+        (1 days - One for each day as these have been difficult to pin down)
     - Move monster gen to new file and add enough monsters for 10-15 levels
         (1 day - Simple enough)
     - Add 2 more mutations
@@ -186,6 +181,10 @@ For alpha release:
                 Added shift run (now left alt run), most tasks have been easier than expected.                
         TOTAL DAYS LEFT = 12.5 (13)
         ALPHA RELEASE DATE = 3rd September
+            
+    21/08/14 Fixed effect duplication bug, was due to else statement being in wrong indentation.              
+        TOTAL DAYS LEFT = 11.5 (12)
+        ALPHA RELEASE DATE = 2nd September
         
 #Remaining major TODO (in rough order):
 
@@ -247,6 +246,7 @@ Make monster drops a chance of a next level item, build an anticipation. http://
 
 #Done:
 
+- Fixed effects duplication bug
 - Added shift_run
 - Lerping updated, Only accepts a range of a single color at the moment, rather than two colors. Could be neater.
 - Added wall/foor character foreground lerp
