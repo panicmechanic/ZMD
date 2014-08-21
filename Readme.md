@@ -40,7 +40,7 @@ Rest a turn - Numpad 5
 
 Sprint - Alt + any directional key
 
-AutoRest - 'r'
+AutoRest - Alt + '5' or 'r'
 
 Inventory - 'i'
 
@@ -133,6 +133,7 @@ Damage player 10 hit points - '#'
     new rooms, and if map[x][y].run_block == True stop the shift_run. Will need to change
     the make_map function.
 - I think go_to_last_seen functionality is broken.    
+- Make inventory a combination of equipped and other inventory
     
 
 #Alpha TODO:
@@ -149,7 +150,7 @@ For alpha release:
     - Implement shift run
         (DONE - Not too bad, needs more conditions)
     - Fix current bugs: paralysis/poison duplication, paralyze taking a turn to 
-        apply (move to different loop), warhammer slatter not firing with elec.
+        apply (move to different loop), warhammer splatter not firing with elec.
         (2 days - One for each day as these have been difficult to pin down)
     - Move monster gen to new file and add enough monsters for 10-15 levels
         (1 day - Simple enough)
@@ -158,7 +159,7 @@ For alpha release:
     - Create 'forget map' effect
         (0.5 days - Seems simple enough)
     - Create 'blind' effect
-        (0.5 days - Simple again)
+        (0.5 days - Simple again)            
     - Create 'burning' effect
         (0.5 days - Simple, every turn set a random orange colour too)
     - Add ranged combat if not too complex. Will need to integrate a render_all call for
@@ -193,6 +194,7 @@ For alpha release:
 - Make monsters drop items in inventory based on a roll from inventory
 - Fix pathfinding- look at example code in library.
 - Describe item in inventory feature
+- As it is common to find multiples of the same item there needs to either be variation in those items or a degradation quality to the items
 - Noise effect/Color variation in tiles; first time map is created they should be set
 - Shift-run (if next.x,y is not_blocked() and no fighter is in fov, take next step)
 - Add click messages to see page of messages, rather than delete them, 
@@ -232,6 +234,16 @@ For alpha release:
 - Add potion random names
 - Add monster drops based on difficulty, to encourage risk/reward
 - Figure out how to get fatal effect warning to display on panel2, line 535.
+- Add big halls with many, many drinking foes, as a challenge to players stealth.
+- Use cellular automata for mountains and forests, 2nd3rd image here: http://www.gridsagegames.com/blog/2014/06/mapgen-cellular-automata/
+- Mutations should behave like abilities from sil, using collected xp points to purchase mutations.
+
+    Should be many types of mutation (50+(?) and intereact with one-another for emergent gameplay.
+    Aome should need prerequisite skill points in skills i.e. calisthenics etc.
+- A dungeon generator capable of diffferent tpyes of layout, with post processing. Look here for ideas, seclusion analytics could place rarer objects.
+- After alpha, take some time to consider gameplay and innovation. Set goals for 0.1.0. 
+Make monster drops a chance of a next level item, build an anticipation. http://journal.stuffwithstuff.com/2014/07/05/dropping-loot/s
+    
 
 #Done:
 

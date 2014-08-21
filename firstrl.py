@@ -22,6 +22,7 @@ FATAL_NAME = None
 SCREEN_WIDTH = 130
 SCREEN_HEIGHT = 60
 
+
 #size of the map
 MAP_WIDTH = 106
 MAP_HEIGHT = 53
@@ -83,23 +84,24 @@ color_set_wall_dark = libtcod.darkest_grey
 #Lightest wall can be when not in FOV, bottom for lerp
 color_dark_wall = libtcod.darker_grey
 #Top for lerp
-color_light_wall = libtcod.light_grey
+color_light_wall = libtcod.Color(75, 75, 15)#Yellowed
 
 #Darkest wall can be when not in FOV
-color_char_set_dark_wall = libtcod.darkest_grey
+color_char_set_dark_wall = libtcod.darker_grey
 #Lightest, unused
 color_char_dark_wall = libtcod.dark_grey
 #Top for lerp
-color_char_light_wall = libtcod.lightest_grey
+color_char_light_wall = libtcod.Color(107, 107, 32)#Yellowed
+
 
 
 color_set_ground_dark = libtcod.Color(50, 60, 40)
 color_dark_ground = libtcod.Color(80, 90, 70)
-color_light_ground = libtcod.Color(150, 160, 140)
+color_light_ground = libtcod.Color(100, 100, 25)
 
-color_char_set_dark_ground = libtcod.Color(20, 30, 10)
-color_char_dark_ground = libtcod.Color(70, 80, 60)
-color_char_light_ground = libtcod.Color(100, 110, 90)
+color_char_set_dark_ground = libtcod.Color(80, 90, 70)
+color_char_dark_ground = libtcod.Color(110, 110, 100)
+color_char_light_ground = libtcod.Color(120, 120, 30)
 
 
 WALL_CHAR = '#'
@@ -744,6 +746,9 @@ def monster_move_or_attack(monster):
             monster.fighter.attack(player)
 
             check_run_effects(monster)
+
+        #elif monster.path is None:
+            #move to the nearest free space
 
     #TODO: Insert following line and find a way to path to the last free tile in path
     #elif libtcod.map_is_in_fov(fov_map, monster.x, monster.y) and self.path is not None:
@@ -1551,7 +1556,6 @@ def render_all():
                     light = libtcod.color_lerp(base, light, l)
                     light_char = libtcod.color_lerp(base_char, light_char, l)
 
-
                     map[x][y].color_set = light
                     map[x][y].color_fore = light_char
 
@@ -1591,7 +1595,6 @@ def render_all():
                     #Is ground, if map.diff_color is not None, render the color instead
                     elif map[x][y].diff_color is not None:
                         libtcod.console_set_char_background(con, x, y, map[x][y].diff_color, libtcod.BKGND_SET)
-
 
                         #If flash is true, render it once, then set to false, this shouldn't work as wait_for_spacekey()
                         #uses render_all() in its while loop. Problem lies elsewhere I think.
@@ -1636,9 +1639,9 @@ def render_all():
                         #Needs to use r as for some reason distance_from doesn't work
                         l = (SQUARED_TORCH_RADIUS - r) / SQUARED_TORCH_RADIUS + di
                         if l < 0.0:
-                            l = 0.0
-                        elif l > 1.0:
-                            l = 1.0
+                            l = -0.0
+                        elif l > 1.6:
+                            l = 1.6
 
                         if map[x][y].diff_color is not None:
                             #TODO: Make torch light change have an alpha, to make coloring easier.
@@ -2440,7 +2443,7 @@ def new_game():
     #create object representing player
     fighter_component = Fighter(hp=100, defense_dice=2, defense_sides=2, power_dice=1, power_sides=2, evasion_dice=2, evasion_sides=1, accuracy_dice=1, accuracy_sides=5, xp=0, speed=10, death_function=player_death,
                                 effects=[])
-    player = Object(0, 0, '@', 'player', libtcod.darkest_grey, blocks=True, fighter=fighter_component)
+    player = Object(0, 0, '@', 'player', libtcod.Color(150, 150, 40), blocks=True, fighter=fighter_component)
     player.level = 1
     #Create the list of game messages and their colors, starts empty
 
@@ -2694,7 +2697,7 @@ def next_level():
     initialize_fov()
 
 
-def check_level_up():  #TODO: Add cool mutations to fighter class like horns, speed boost,
+def check_level_up():
     #see if a players expereince is enough to level up
     level_up_xp = LEVEL_UP_BASE + player.level * LEVEL_UP_FACTOR
     if player.fighter.xp >= level_up_xp:
