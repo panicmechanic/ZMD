@@ -2550,6 +2550,7 @@ def play_game():
         #erase all objects at their old locations, before they move. Used to be after check_level_up
         #but moved to fix duplicate monster chars on floor
 
+        #DISPLAY DAMAGE PAUSE
         for object in objects:
             if object.display_dmg != None:
                 libtcod.sys_sleep_milli(50)
@@ -2563,7 +2564,7 @@ def play_game():
         #handles keys and exit game if needed
         player_action = handle_keys()
 
-        #Run render_all() while the player does nothing.
+        #Run render_all() while the player does nothing to give flicker effect
         if player_action == 'didnt-take-turn':
 
             #Increase count
@@ -2592,12 +2593,13 @@ def play_game():
 
 def shift_run(object, x, y):
     global fov_recompute
-
-    #Set a variable to check for in the whiel loop
+    #TODO: This is not rendering FOV each turn to check for monsters or to present it to root console.
+    #Set a variable to check for in the while loop
     fov_danger = False
     #Create a count
     count = 0
     while fov_danger == False:
+
 
         #Trigger movement
         if count >= 5:
@@ -2605,6 +2607,12 @@ def shift_run(object, x, y):
             object.move(x, y)
             #Loop for the players speed for his move
             check_by_turn(player.fighter.speed)
+
+            #Render FOV and flush console
+            fov_recompute=True
+            render_all()
+            libtcod.console_flush()
+
 
         #If is blocked, stop the run
         if is_blocked(object.x + x, object.y + y):
@@ -2617,12 +2625,6 @@ def shift_run(object, x, y):
             if libtcod.map_is_in_fov(fov_map, obj.x, obj.y) and obj.name != 'player' and obj.fighter and obj.fighter.hp > 0:
                 message('You see a ' + str(obj.name) + '.')
                 fov_danger=True
-
-        #If count is 5
-        if count >= 5:
-            #render the fov once
-            fov_recompute=True
-            render_all()
 
         #Increment the count
         count += 1

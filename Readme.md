@@ -94,6 +94,7 @@ Damage player 10 hit points - '#'
     If it is war hammer, and the damage will kill the monster, give it the splatter effect in a function.
 - Make bottom right box display info under mouse on mouse over
 - Give all monsters a speed and heal_rate
+- Stun effect
 - Give an @property value to speed, accuracy, evasion
 - Implement stealth by giving fighters a detection and stealth value 
 - Give fighters an awareness value equal to sleeping, wandering, aware. If monster is in fov and distance < 10
@@ -205,6 +206,7 @@ For alpha release:
 - New level types (forest, swamp, mountain range, meadow, hell)
 - Quest system
 - Auto-explore
+- Stop time ability
 - Graphical overhaul (possibly tileset)
 - High score page (start in player_death())
 - Add all descriptions
@@ -239,7 +241,33 @@ For alpha release:
 - A dungeon generator capable of diffferent tpyes of layout, with post processing. Look here for ideas, seclusion analytics could place rarer objects.
 - After alpha, take some time to consider gameplay and innovation. Set goals for 0.1.0. 
 Make monster drops a chance of a next level item, build an anticipation. http://journal.stuffwithstuff.com/2014/07/05/dropping-loot/s
+- Consider combat:
+
+        ..each type of weapon (sixteen total, four each in four categories, short/long/heavy/slashing) will have a
+        "moveset" like a Dark Souls weapon. 
+        The closest thing I've seen similar to date are the moves from Sword in Hand[1] - if you look on the right of
+        the bar it shows what'll be attacked by each move and how (it at all) the player will move. In URR most moves 
+        will be available just by acquiring the weapon, a small number for each weapon can be learned. The combat system
+        is going to be heavily focused on the timing of moves, the area they do damage in, whether they do damage
+        high/mid/low (i.e. head/torso/legs), and how many turns they take, whether your enemy has their shield 
+        up/lowered, etc. The other inspiration is FTL. I've always enjoyed the way that depending on the situation, 
+        different parts of the enemy ship - shields, weapons, engines, etc - are the appropriate first target. I want to
+        make it so that you want to assess your enemy at the start of battle - what weapon do they have, what kind of 
+        shield, do they have a helmet, cuirass, etc - and then use that, and how fast/slow you know they'll be with 
+        their weapon, and your knowledge of your weapon/armour, to figure out a timing process of blocking, attacking,
+        and attacking their weakest points.
+        
+        Additional edit: The intention is to be akin to Dark Souls in another way - with "perfect play" you should
+        be able to escape from a 1v1 damage-free, but on a 2v1 or more you'll have to think about positioning, items,
+        other factors, etc.
+        
+        [1] - http://www.zincland.com/7drl/sword/
+- Look here: http://www.reddit.com/r/roguelikes/comments/2bsa6x/describe_your_perfect_roguelike/
     
+    /Being able to strangle an elf with a wombat leather sock from it's own severed foot. 
+    
+    /Casting Polymorph Arm to Banana followed by Animate Banana and watching a goblin's own arm beat it to death.
+
 
 #Done:
 
