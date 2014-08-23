@@ -2592,26 +2592,41 @@ def play_game():
             check_run_effects(player)
 
 def shift_run(object, x, y):
-    global fov_recompute
-    #TODO: This is not rendering FOV each turn to check for monsters or to present it to root console.
+    global fov_recompute, keys
+
     #Set a variable to check for in the while loop
     fov_danger = False
-    #Create a count
+
+
+    #Create a count to vary speed of render
     count = 0
     while fov_danger == False:
 
+        #Check for monsters inside the players fov.
+        for obj in objects:
+            if libtcod.map_is_in_fov(fov_map, obj.x, obj.y) and obj.name != 'player' and obj.fighter and obj.fighter.hp > 0:
+                message('You see a ' + str(obj.name) + '.')
+                fov_danger=True
+
+        #TODO: Add an if statement to break if the player presses a key
+        #if key.vk != None:
+            #fov_danger=True
 
         #Trigger movement
-        if count >= 5:
+        if count >= 1:
             #Move player
             object.move(x, y)
             #Loop for the players speed for his move
             check_by_turn(player.fighter.speed)
 
+
             #Render FOV and flush console
             fov_recompute=True
             render_all()
             libtcod.console_flush()
+            count = 0
+
+
 
 
         #If is blocked, stop the run
@@ -2619,12 +2634,6 @@ def shift_run(object, x, y):
             #Set while variable to True to break the loop, should probably be a break
             fov_danger=True
             message('You cannot move any further.')
-
-        #Check for monsters inside the players fov.
-        for obj in objects:
-            if libtcod.map_is_in_fov(fov_map, obj.x, obj.y) and obj.name != 'player' and obj.fighter and obj.fighter.hp > 0:
-                message('You see a ' + str(obj.name) + '.')
-                fov_danger=True
 
         #Increment the count
         count += 1

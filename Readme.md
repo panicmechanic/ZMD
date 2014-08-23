@@ -1,29 +1,5 @@
 #Zeus must die - A python roguelike based on the libtcod tutorial.
 
-#Mission statement:
-
-ZMD is a roguelike in which you play an ancient Greek gladiator, hunting a bezerk Zeus.
-You seek retribution and will have to journey to the top of Mount Olympus to claim your
-prize. On the way you will encounter many different randomised level types; forests,
-dungeons, the sea of the dead and the infamous Mt. Olympus. You will have to outwit
-great foes, avoid traps, solve puzzles, gather legendary items and battle mythic monsters.
-
-The game seeks to (eventually) have a feeling of undertaking a great journey, different
-every time you play. As inspired by the Odyssey and LOTR. Think an Odyssey Simulator.
-
-There should be many different level types for you to interact with, providing a great
-variety of challenges and problems to solve with brains or brawn as you continue your
-journey, creating your own odyssey as you go.
-
-Repetitive tasks (such as grinding) should be kept to a minimum, including those necessary
-to cross the dungeon, hot keys like fire/grab/open should be less than 5 and ideally use 
-a universal hotkey system.
-
-The game takes inspiration from Brogue, Sil, Angband and DCSS, and aims to be simple and relatively
-intuitive, while providing deep and rewarding functionality through the complex systems
-synonymous with roguelikes(such as combat, effects, speed and random generation). It currently uses 
-an experience point system, although this may change in the future.
-
 Originally just a way for me to learn python, as it grew I decided to manage the project
 properly and get it on GitHub. Any help/advice is greatly appreciated.
 
@@ -114,7 +90,8 @@ Damage player 10 hit points - '#'
               
 - Fix pathing to walk as close as possible if in fov and path is blocked.***
 - Torch colours and back/fore colours are still not displayed right, check all values.
-- Figure out how to make color_flash work- Add description to box with auto wrap
+- Figure out how to make color_flash work
+- Add description to box with auto wrap
 - Give description window and character/level up window borders.
 
 - I think go_to_last_seen functionality is broken.    
@@ -141,7 +118,7 @@ For alpha release:
     - Move monster gen to new file and add enough monsters for 10-15 levels
         (1 day - Simple enough)
     - Add 2 more mutations
-        (2 days - 1 for each as still no ''ideas, look at sil's abilities for inspiration)
+        (2 days - 1 for each as still no ideas, look at sil's abilities for inspiration and tomes abilities.)
     - Create 'forget map' effect
         (0.5 days - Seems simple enough)
     - Create 'blind' effect
@@ -328,3 +305,30 @@ Make monster drops a chance of a next level item, build an anticipation. http://
 - Added accuracy roll, a min/max system6.
 - Added a new GUI to the right, displays monster.fighter hp bars when in FOV
 - Added character info box to panel2, discarded irrelevant/duplicated information like xp.
+
+
+#Mission statement:
+
+
+
+ZMD is a roguelike in which you play an ancient Greek gladiator, hunting a beserk Zeus.
+You seek retribution and will have to journey to the top of Mount Olympus to claim your
+prize. On the way you will encounter many different randomised level types; forests,
+dungeons, the sea of the dead and the infamous Mt. Olympus. You will have to outwit
+great foes, avoid traps, solve puzzles, gather legendary items and battle mythic monsters.
+
+The game seeks to (eventually) have a feeling of undertaking a great journey, different
+every time you play. As inspired by the Odyssey and LOTR. Think an Odyssey Simulator.
+
+There should be many different level types for you to interact with, providing a great
+variety of challenges and problems to solve with brains or brawn as you continue your
+journey, creating your own odyssey as you go.
+
+Repetitive tasks (such as grinding) should be kept to a minimum, including those necessary
+to cross the dungeon, hot keys like fire/grab/open should be less than 5 and ideally use 
+a universal hotkey system.
+
+The game takes inspiration from Brogue, Sil, Angband and DCSS, and aims to be simple and relatively
+intuitive, while providing deep and rewarding functionality through the complex systems
+synonymous with roguelikes(such as combat, effects, speed and random generation). It currently uses 
+an experience point system, although this may change in the future.
