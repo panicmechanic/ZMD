@@ -218,7 +218,7 @@ class Object:
         # load_game() and use() functions.
 
         if self.path is None:
-            self.path = libtcod.path_new_using_map(fov_map)
+            self.path = libtcod.path_new_using_function(MAP_WIDTH, MAP_HEIGHT, path_func, map, 1.41)
 
         #Compute path to player
         libtcod.path_compute(self.path, self.x, self.y, target_x, target_y)
@@ -234,6 +234,7 @@ class Object:
             dy = path_y - self.y
 
         else:
+
             #TODO: Else, path as close as possible
             print 'Path is empty'
             dx = target_x - self.x
@@ -741,15 +742,9 @@ def monster_move_or_attack(monster):
         if monster.distance_to(player) >= 2:
             #compute how to reach the player
 
-            #Set old map tile to pathable
-            libtcod.map_set_properties(fov_map, monster.x, monster.y, True, True)
-
             #Move monster
             monster.move_towards(player.x, player.y)
-
-            #Set new map tile to not pathable
-            libtcod.map_set_properties(fov_map, monster.x, monster.y, True, False)
-
+            #As monster has moved, check_run effects for that monster
             check_run_effects(monster)
 
         #close enough, attack! (if the player is still alive.)
@@ -758,22 +753,6 @@ def monster_move_or_attack(monster):
 
             check_run_effects(monster)
 
-
-
-    #TODO: Insert following line and find a way to path to the last free tile in path
-    elif libtcod.map_is_in_fov(fov_map, monster.x, monster.y):
-        #Path to nearest monster
-        for obj in objects:
-            if obj.fighter and obj != monster and obj != player:
-                #Set old map tile to pathable
-                libtcod.map_set_properties(fov_map, monster.x, monster.y, True, True)
-
-                #Move monster
-                monster.move_towards(obj.x, obj.y)
-
-                #Set new map tile to not pathable
-                libtcod.map_set_properties(fov_map, monster.x, monster.y, True, False)
-
     else:
         #the player cannot see the monster
         #if we have an old path, follow it
@@ -781,19 +760,13 @@ def monster_move_or_attack(monster):
         #If path is not empty and the distance to the player is greater than 2
         if monster.path != None and monster.path is not libtcod.path_is_empty(monster.path):
 
-
             nextx, nexty = libtcod.path_walk(monster.path, False)
 
             if nextx or nexty is not None:
                 dx = nextx - monster.x
                 dy = nexty - monster.y
-                #Set old map tile to pathable
-                libtcod.map_set_properties(fov_map, monster.x, monster.y, True, True)
 
                 monster.move(dx, dy)
-
-                #Set new map tile to not pathable
-                libtcod.map_set_properties(fov_map, monster.x, monster.y, True, False)
 
             else:
                 print 'no nextx or nexty line 770'
@@ -824,13 +797,27 @@ def monster_move_or_attack(monster):
         else:
             return 'cancelled'
 
+def path_func(xFrom, yFrom, xTo, yTo, map):
+
+    if not map[xTo][yTo].blocked: #open space
+
+        for obj in objects:  #map.units will be a list of all your monsters/soldiers/ducks/whatevers
+
+            if obj.fighter and obj.x == xTo and obj.y == yTo and obj != player and obj.fighter.hp > 0:
+                return 0.0  #tile is blocked if a obj is in the wayc
+
+        return 1.0  #All good!
+
+    elif map[xTo][yTo].blocked:  #wall
+        return 0.0
+
+
 
 def roll(dice, sides):
     result = 0
     for i in range(0, dice, 1):
         roll = libtcod.random_get_int(0, 1, sides)
         result += roll
-
 
 def check_run_effects(obj):
     global fov_recompute
