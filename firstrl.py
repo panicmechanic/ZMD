@@ -218,7 +218,7 @@ class Object:
         # load_game() and use() functions.
 
         if self.path is None:
-            self.path = libtcod.path_new_using_function(MAP_WIDTH, MAP_HEIGHT, path_func, map, 1.41)
+            self.path = libtcod.path_new_using_function(MAP_WIDTH, MAP_HEIGHT, path_func, self, 1.41)
 
         #Compute path to player
         libtcod.path_compute(self.path, self.x, self.y, target_x, target_y)
@@ -797,20 +797,21 @@ def monster_move_or_attack(monster):
         else:
             return 'cancelled'
 
-def path_func(xFrom, yFrom, xTo, yTo, map):
+def path_func(xFrom, yFrom, xTo, yTo, self):
+
+    global map
 
     if not map[xTo][yTo].blocked: #open space
 
         for obj in objects:  #map.units will be a list of all your monsters/soldiers/ducks/whatevers
 
-            if obj.fighter and obj.x == xTo and obj.y == yTo and obj != player and obj.fighter.hp > 0:
-                return 0.0  #tile is blocked if a obj is in the wayc
+            if obj.fighter and obj.x == xTo and obj.y == yTo and obj != player and obj.fighter.hp > 0 and obj != self and self.distance_to(obj) >= 2:
+                return 0.0  #tile is blocked if a obj is in the way
 
         return 1.0  #All good!
 
     elif map[xTo][yTo].blocked:  #wall
         return 0.0
-
 
 
 def roll(dice, sides):
