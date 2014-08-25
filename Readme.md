@@ -97,6 +97,7 @@ Damage player 10 hit points - '#'
 - I think go_to_last_seen functionality is broken.    
 - Make inventory a combination of equipped and other inventory
 - Move passable set from monster_move_or_attack() to move()
+- Create an extra map to store pathfinding in without monster blocks.
 
     
 
@@ -122,7 +123,7 @@ For alpha release:
     - Create 'forget map' effect
         (0.5 days - Seems simple enough)
     - Create 'blind' effect
-        (0.5 days - Simple again)            
+        DONE - Needs to be tested though          
     - Create 'burning' effect
         (0.5 days - Simple, every turn set a random orange colour too)
     - Add ranged combat if not too complex. Will need to integrate a render_all call for

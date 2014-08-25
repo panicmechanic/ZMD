@@ -695,7 +695,7 @@ class Effect:
     def __init__(self, effect_name=None, duration=0, turns_passed=0, base_duration=0, power_effect_dice=0, power_effect_sides=0, defense_effect_dice=0, defense_effect_sides=0, evasion_effect_dice=0, evasion_effect_sides=0, accuracy_effect_dice=0, accuracy_effect_sides=-0,
                  max_hp_effect=0, applied_times=1, confused=False, burning=False, damage_by_turn=None, paralyzed=None,
                  fatal_alert=False, mutation=False, m_loop=0, m_loop_turn=0, m_elec=False, m_elec_count=0,
-                 m_elec_trigger=5, m_elec_damage=0):
+                 m_elec_trigger=5, m_elec_damage=0, forget=False):
         self.effect_name = effect_name
         self.duration = duration
         self.turns_passed = turns_passed
@@ -724,6 +724,8 @@ class Effect:
         self.m_elec_count = m_elec_count
         self.m_elec_trigger = m_elec_trigger
         self.m_elec_damage = m_elec_damage
+
+        self.forget = forget
 
 
 def monster_move_or_attack(monster):
@@ -794,7 +796,7 @@ def monster_move_or_attack(monster):
                 libtcod.map_set_properties(fov_map, monster.x, monster.y, True, False)
 
             else:
-                print 'no nextx or next line 770'
+                print 'no nextx or nexty line 770'
 
         #stop boar and baby boars and pygmys from wandering
         elif not monster.char == 'B' or monster.char == 'b' or monster.char == 'p':
@@ -875,6 +877,12 @@ def check_run_effects(obj):
                 #If the effect causes paralysis, set fighter paralysis to true
                 if eff.paralyzed != None:
                     obj.fighter.paralysis = True
+
+                if eff.forget == True:
+                    message('You have had your brain purged of all recent memories!')
+                    for y in range(MAP_HEIGHT):
+                        for x in range(MAP_WIDTH):
+                            map[x][y].explored = False
 
                 #if turns_passed is equal to duration, remove the effect
                 if eff.turns_passed == eff.duration:
@@ -2306,7 +2314,6 @@ def cast_confuse():
         libtcod.light_green)
     render_all()
     wait_for_spacekey()
-
 
 def cast_fireball():  #FIGURE OUT HOW TO PAUSE AFTER THIS MESSAGE BEFORE DEALING DAMAGE
     #ask the player for a target tile to throw a fireball at
