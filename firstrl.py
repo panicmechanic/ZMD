@@ -218,15 +218,21 @@ class Object:
         #This creates the path needed, in seven trials this is done in play_game loop,
         # load_game() and use() functions.
 
+        #Create list to hold objects that are having their tile set as unwalkable
         last_list = []
 
+        #Iterate through objects
         for obj in objects:
-            if obj.fighter and obj.distance_to(self) < 2 and obj != player or self:
+            #If object has a fighter instance, and is less than 2 tiles away from self and is not self or player
+            if obj.fighter and obj.distance_to(self) <= 2 and obj != player or self:
+                #Add this object to the list
                 last_list.append(obj)
 
+        #Mark all is list as blocked
         for i in last_list:
             libtcod.map_set_properties(fov_map, i.x, i.y, True, True)
 
+        #If player can see you, new path.
         if libtcod.map_is_in_fov(fov_map, self.x, self.y):
             self.path = libtcod.path_new_using_function(MAP_WIDTH, MAP_HEIGHT, path_func, self, 1.41)
 
@@ -236,6 +242,7 @@ class Object:
         #vector from this object to the target, and distance
         if not libtcod.path_is_empty(self.path):
 
+            #Walk the path
             path_x, path_y = libtcod.path_walk(self.path, True)
 
             #normalise it to 1 length (preserving direction), then round it and
@@ -818,10 +825,16 @@ def path_func(xFrom, yFrom, xTo, yTo, self):
     global map
 
     if not map[xTo][yTo].blocked: #open space
-        return 1.0  #All good!
+        return 1.0 #All good!
 
     elif map[xTo][yTo].blocked:  #wall
         return 0.0 #Not good!
+
+    if not libtcod.map_is_walkable(fov_map, xTo, yTo):
+        return 0.0 #Not good!
+
+    elif libtcod.map_is_walkable(fov_map, xTo, yTo):
+        return 1.0 #All good!
 
 
 def roll(dice, sides):
