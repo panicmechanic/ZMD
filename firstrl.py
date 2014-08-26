@@ -236,13 +236,13 @@ class Object:
         #vector from this object to the target, and distance
         if not libtcod.path_is_empty(self.path):
 
-            path_x, path_y = libtcod.path_get(self.path, 0)
-            libtcod.path_get
+            path_x, path_y = libtcod.path_walk(self.path, True)
 
             #normalise it to 1 length (preserving direction), then round it and
             #convert to integer so the movement is restricted to the map grid
             dx = path_x - self.x
             dy = path_y - self.y
+
 
         else:
 
@@ -776,7 +776,7 @@ def monster_move_or_attack(monster):
         #If path is not empty and the distance to the player is greater than 2
         if monster.path != None and monster.path is not libtcod.path_is_empty(monster.path):
 
-            nextx, nexty = libtcod.path_walk(monster.path, False)
+            nextx, nexty = libtcod.path_walk(monster.path, True)
 
             if nextx or nexty is not None:
                 dx = nextx - monster.x
