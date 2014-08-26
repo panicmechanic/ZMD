@@ -218,19 +218,7 @@ class Object:
         #This creates the path needed, in seven trials this is done in play_game loop,
         # load_game() and use() functions.
 
-        #Create list to hold objects that are having their tile set as unwalkable
-        last_list = []
 
-        #Iterate through objects
-        for obj in objects:
-            #If object has a fighter instance, and is less than 2 tiles away from self and is not self or player
-            if obj.fighter and obj.distance_to(self) <= 2 and obj != player or self:
-                #Add this object to the list
-                last_list.append(obj)
-
-        #Mark all is list as blocked
-        for i in last_list:
-            libtcod.map_set_properties(fov_map, i.x, i.y, True, True)
 
         #If player can see you, new path.
         if libtcod.map_is_in_fov(fov_map, self.x, self.y):
@@ -250,10 +238,8 @@ class Object:
             dx = path_x - self.x
             dy = path_y - self.y
 
-
         else:
 
-            #TODO: Else, path as close as possible
             print 'Path is empty'
             dx = target_x - self.x
             dy = target_y - self.y
@@ -262,10 +248,6 @@ class Object:
             dy = int(round(dy / distance))
 
         self.move(dx, dy)
-
-        for i in last_list:
-            libtcod.map_set_properties(fov_map, i.x, i.y, True, False)
-
 
 
     def distance_to(self, other):
@@ -836,6 +818,11 @@ def path_func(xFrom, yFrom, xTo, yTo, self):
     elif libtcod.map_is_walkable(fov_map, xTo, yTo):
         return 1.0 #All good!
 
+    if self.distance_to(player) <= 1:
+        libtcod.map_set_properties(fov_map, self.x, self.y, True, False)
+
+    elif self.distance_to(player) >= 2:
+        libtcod.map_set_properties(fov_map, self.x, self.y, True, True)
 
 def roll(dice, sides):
     result = 0
@@ -2682,6 +2669,10 @@ def main_menu():
 
 
 def save_game():
+    #Otherwise it's a whole hassle saving all the paths, TODO: figure out how top save all the paths
+    for obj in objects:
+        obj.path = None
+
     #open a new empty shelve (possibly overwriting an old one) to write the game data
     file = shelve.open('savegame', 'n')
     file['map'] = map

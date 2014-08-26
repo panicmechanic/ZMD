@@ -114,7 +114,7 @@ For alpha release:
         (DONE - 1.5 HOURS)
     - Implement shift run
         (DONE - Not too bad, needs more conditions)
-    - Fix current bugs: Warhammer splatter not firing with elec. Go to last seen functionality.
+    - Fix current bugs: Warhammer splatter not firing with elec.
         (1 days - One for each day as these have been difficult to pin down)
     - Move monster gen to new file and add enough monsters for 10-15 levels
         (1 day - Simple enough)
@@ -152,9 +152,14 @@ For alpha release:
         ALPHA RELEASE DATE = 3rd September
             
     21/08/14 Fixed effect duplication bug, was due to else statement being in wrong indentation.
-                  There was no paralyze issue.
+                There was no paralyze issue.
         TOTAL DAYS LEFT = 11.5 (12)
         ALPHA RELEASE DATE = 2nd September
+        
+    26/08/14 Minor stuff done, slowed down a bit as pathfinding has been a pain in the ass and is not fixed. 
+                Added forget_map effect.
+        TOTAL DAYS LEFT = 11 (11)
+        ALPHA RELEASE DATE = 6th September
         
 #Remaining major TODO (in rough order):
 
@@ -251,6 +256,7 @@ Make monster drops a chance of a next level item, build an anticipation. http://
     
     new level loads, from here any type of quest could play out.
 - Maybe you steal powers from the gods and they have all gone mad?   
+- Look at p&p systems: http://www.reddit.com/r/roguelikedev/comments/2ecmrs/sharing_saturday_12/ck0m8lg
 
 
 
