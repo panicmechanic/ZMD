@@ -220,15 +220,15 @@ class Object:
 
         last_list = []
 
-        if self.path is None:
-            self.path = libtcod.path_new_using_function(MAP_WIDTH, MAP_HEIGHT, path_func, self, 1.41)
-
         for obj in objects:
-            if obj.distance_to(self) < 2 and obj != player or self:
+            if obj.fighter and obj.distance_to(self) < 2 and obj != player or self:
                 last_list.append(obj)
 
         for i in last_list:
-            map[i.x][i.y].blocked = True
+            libtcod.map_set_properties(fov_map, i.x, i.y, True, True)
+
+        if libtcod.map_is_in_fov(fov_map, self.x, self.y):
+            self.path = libtcod.path_new_using_function(MAP_WIDTH, MAP_HEIGHT, path_func, self, 1.41)
 
         #Compute path to player
         libtcod.path_compute(self.path, self.x, self.y, target_x, target_y)
@@ -237,6 +237,7 @@ class Object:
         if not libtcod.path_is_empty(self.path):
 
             path_x, path_y = libtcod.path_get(self.path, 0)
+            libtcod.path_get
 
             #normalise it to 1 length (preserving direction), then round it and
             #convert to integer so the movement is restricted to the map grid
@@ -256,8 +257,8 @@ class Object:
         self.move(dx, dy)
 
         for i in last_list:
+            libtcod.map_set_properties(fov_map, i.x, i.y, True, False)
 
-            map[i.x][i.y].blocked = False
 
 
     def distance_to(self, other):
