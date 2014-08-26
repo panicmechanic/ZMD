@@ -245,6 +245,13 @@ Make monster drops a chance of a next level item, build an anticipation. http://
     /Being able to strangle an elf with a wombat leather sock from it's own severed foot. 
     
     /Casting Polymorph Arm to Banana followed by Animate Banana and watching a goblin's own arm beat it to death.
+    
+- Play TGGW/Cave of Qud/Cataclysm for 'research'
+- Random quest element - As walknig through a forest you are suddenly messaged that you have been captured and a 
+    
+    new level loads, from here any type of quest could play out.
+- Maybe you steal powers from the gods and they have all gone mad?   
+
 
 
 #Done:

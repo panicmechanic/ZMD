@@ -211,14 +211,24 @@ class Object:
             self.y += dy
 
     def move_towards(self, target_x, target_y):
+
         #A lot of this is taken directly from SevenTrials (https://github.com/nefD/SevenTrials)
         #and modified to work here.
 
         #This creates the path needed, in seven trials this is done in play_game loop,
         # load_game() and use() functions.
 
+        last_list = []
+
         if self.path is None:
             self.path = libtcod.path_new_using_function(MAP_WIDTH, MAP_HEIGHT, path_func, self, 1.41)
+
+        for obj in objects:
+            if obj.distance_to(self) < 2 and obj != player or self:
+                last_list.append(obj)
+
+        for i in last_list:
+            map[i.x][i.y].blocked = True
 
         #Compute path to player
         libtcod.path_compute(self.path, self.x, self.y, target_x, target_y)
@@ -244,6 +254,11 @@ class Object:
             dy = int(round(dy / distance))
 
         self.move(dx, dy)
+
+        for i in last_list:
+
+            map[i.x][i.y].blocked = False
+
 
     def distance_to(self, other):
         #return the distance to another object
@@ -802,16 +817,10 @@ def path_func(xFrom, yFrom, xTo, yTo, self):
     global map
 
     if not map[xTo][yTo].blocked: #open space
-
-        for obj in objects:  #map.units will be a list of all your monsters/soldiers/ducks/whatevers
-
-            if obj.fighter and obj.x == xTo and obj.y == yTo and obj != player and obj.fighter.hp > 0 and obj != self and self.distance_to(obj) >= 2:
-                return 0.0  #tile is blocked if a obj is in the way
-
         return 1.0  #All good!
 
     elif map[xTo][yTo].blocked:  #wall
-        return 0.0
+        return 0.0 #Not good!
 
 
 def roll(dice, sides):
