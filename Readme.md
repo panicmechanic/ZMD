@@ -85,7 +85,7 @@ Damage player 10 hit points - '#'
     
         Calisthenics (strength)  - Increase attack (power sides by 1), increase ranged range. 
         Gymnastics (dexterity)   - Increase acc/ev, small boost to speed
-        Shadow training (stealth)- Improve stealth, improve speed
+        Shadow training (stealth)- Improve stealth, defense improve speed
         Meditation (will)        - Improve accuracy, perception checks, skill helps mutations
               
 - Fix pathing to walk as close as possible if in fov and path is blocked.***
@@ -94,21 +94,18 @@ Damage player 10 hit points - '#'
 - Add description to box with auto wrap
 - Give description window and character/level up window borders.
 
-- I think go_to_last_seen functionality is broken.    
+- go_to_last_seen functionality is broken.    
 - Make inventory a combination of equipped and other inventory
 - Move passable set from monster_move_or_attack() to move()
 - Create an extra map to store pathfinding in without monster blocks.
-- Add an effect to increase stealth for every adjacent wall to player - sneaking
-
-    
+- Add an effect to increase stealth for every adjacent wall to player - sneaking    
 
 #Alpha TODO:
 
 For alpha release:
     
     - MAJOR: Implement numdice*numfaces rolling system a la sil for attack. 
-        (DONE - 1 DAY. Still need to update check_level_up and change old monster values
-            and add skills)
+        (DONE - 1 DAY. Still need to change old monster values)
     - Add more items/weapons, implement 4 skills above
         (1 day - After num*dice change, this will require a complete rework
     - MAJOR: Turn system http://www.roguebasin.com/index.php?title=A_simple_turn_scheduling_system_--_Python_implementation
@@ -117,7 +114,7 @@ For alpha release:
         (DONE - Not too bad, needs more conditions)
     - Fix current bugs: Warhammer splatter not firing with elec.
         (1 days - One for each day as these have been difficult to pin down)
-    - Move monster gen to new file and add enough monsters for 10-15 levels
+    - Move monster gen to new file and add enough monsters for 10 levels
         (1 day - Simple enough)
     - Add 2 more mutations
         (2 days - 1 for each as still no ideas, look at sil's abilities for inspiration and tomes abilities.)
@@ -130,7 +127,7 @@ For alpha release:
     - Add ranged combat if not too complex. 
         (0 days - Too complex before alpha, planned out in scrapbook.py.)
     - Implement pathfinding fix
-        (DONE - pathing function next after fixing new pathing bug; monsters moving down tunnels)
+        (IN PROGRESS - Decided to implement callbacks into pathfinding for future ease, but proving difficult. Ongoing.
     - Add simple win condition for alpha release purposes
         (2 days - Will need to create win_screen() on win, make dungeon depth 10 levels, lerp wall/floor color each level to get darker/lighter.)
     
@@ -163,8 +160,9 @@ For alpha release:
     26/08/14 Added blind effect, tested that and forget map effect, both work fine. Removed but planned for ranged combat,
                 as it is needs cascading changes while pathfinding continues to sprawl out it is better to get pathing 
                 fixed and worry about ranged combat later, especially as ranged combat will eventually need pathfinding.
-                Added skills (strength, dex, stealth + will), added @property's for all. Implemented them into level up.
                 for monster AI.
+                Added skills (strength, dex, stealth + will), added @property's for all. Implemented them into level up.
+                Made strength give you an extra power face for every two points.                
         TOTAL DAYS LEFT = 7.5 (8)
         ALPHA RELEASE DATE = 4th September
         
@@ -288,6 +286,14 @@ Make monster drops a chance of a next level item, build an anticipation. http://
 
 #Done:
 
+- Added skills, currently:
+
+            2 strength = +1 power face.
+            5 strength = +1 accuracy die
+            1 dexterity = +1 ev +1 acc
+            stealth = Nothing (no stealth system)
+            will = Nothing (no alert/sleeping system)
+            
 - Fixed effects duplication bug
 - Added shift_run
 - Lerping updated, Only accepts a range of a single color at the moment, rather than two colors. Could be neater.

@@ -373,7 +373,9 @@ class Fighter:
     def power(self):  #return actual power, by summing up the bonuses from all equipped items
         #Add dice/sides from equipment
         bonus_dice = (sum(equipment.power_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_power_dice)+(self.crit_dice))
-        bonus_sides = (sum(equipment.power_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_power_sides))
+
+        #Currently adds equipment bonuses, equipped bonuses, plus 1 face for every 2 strength points
+        bonus_sides = (sum(equipment.power_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_power_sides))+(self.strength/2)
 
         #Add dice/sides from effects
         bonus_dice += (sum(effect.power_effect_dice for effect in self.effects))
@@ -415,7 +417,8 @@ class Fighter:
     @property
     def evasion(self): #return actual evasion
         bonus_dice = (sum(equipment.evasion_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_evasion_dice))
-        bonus_sides = (sum(equipment.evasion_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_evasion_sides))
+        #Add all equipment + one point for each in dexterity
+        bonus_sides = (sum(equipment.evasion_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_evasion_sides)+(self.dexterity))
 
         #Need to integrate effects below
         bonus_dice += (sum(effect.evasion_effect_dice for effect in self.effects))
@@ -429,8 +432,10 @@ class Fighter:
 
     @property
     def accuracy(self): #return actual accuracy
-        bonus_dice = (sum(equipment.accuracy_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_accuracy_dice))
-        bonus_sides = (sum(equipment.accuracy_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_accuracy_sides))
+        #Equipment bonus, plus one die for every five points of strength
+        bonus_dice = (sum(equipment.accuracy_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_accuracy_dice)+(self.strength/5))
+        #Adds all equipped, all effects, plus one for every point of dexterity
+        bonus_sides = (sum(equipment.accuracy_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_accuracy_sides)+(self.dexterity))
 
         #Need to integrate effects below
         bonus_dice += (sum(effect.accuracy_effect_dice for effect in self.effects))
@@ -2225,6 +2230,13 @@ def handle_keys():
             #debug
             if key_char == '#':
                 player.fighter.take_damage(10)
+
+            if key_char == '/':
+                for y in range(MAP_HEIGHT):
+                    for x in range(MAP_WIDTH):
+                        if map[x][y].blocked == True:
+                            map[x][y].color_set = libtcod.light_pink
+                            map[x][y].color_fore = libtcod.light_pink
 
             if key_char == 'r':
                 player_rest()
