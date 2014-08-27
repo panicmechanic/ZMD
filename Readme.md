@@ -257,7 +257,18 @@ Make monster drops a chance of a next level item, build an anticipation. http://
     new level loads, from here any type of quest could play out.
 - Maybe you steal powers from the gods and they have all gone mad?   
 - Look at p&p systems: http://www.reddit.com/r/roguelikedev/comments/2ecmrs/sharing_saturday_12/ck0m8lg
+- Monster fear/alertness/sleeping
+- Monsters should all be able to have effects, ranged attacks and special moves (functions that do not fall under effects)
 
+    although perhaps it would be easier to make effects find a way to test for the right conditions (nested in the effect) and if true, use it.
+- From /u/munificent: 
+
+        If it doesn't have a move to use, it needs to decide how it's going to harm the player. It has two options: it 
+        can try to get close and do a melee attack or (if it has any ranged attacks), it can try to do a ranged attack. 
+        Getting this working was the hardest part of the AI, but when I did, it made a huge difference in how smart the 
+        monsters seem.
+
+- In fact, just read his whole post regarding ai: http://www.reddit.com/r/roguelikedev/comments/2en9jh/weekly_wednesday_systems_sharing_1_ai_systems/ck1uttn
 
 
 #Done:
