@@ -218,11 +218,24 @@ class Object:
         #This creates the path needed, in seven trials this is done in play_game loop,
         # load_game() and use() functions.
 
+        #Create list to hold objects that are having their tile set as unwalkable
+        last_list = []
+
+        #Iterate through objects
+        for obj in objects:
+            #If object has a fighter instance, and is less than 2 tiles away from self and is not self or player
+            if obj.fighter and obj.distance_to(self) >= 2 and obj != player and obj != self:
+                #Add this object to the list
+                last_list.append(obj)
+
+        #Mark all is list as blocked
+        for i in last_list:
+            libtcod.map_set_properties(fov_map, i.x, i.y, True, False)
 
 
         #If player can see you, new path.
-        if libtcod.map_is_in_fov(fov_map, self.x, self.y):
-            self.path = libtcod.path_new_using_function(MAP_WIDTH, MAP_HEIGHT, path_func, self, 1.41)
+        if self.path == None:
+            self.path = libtcod.path_new_using_function(MAP_WIDTH, MAP_HEIGHT, path_func, self, 1)
 
         #Compute path to player
         libtcod.path_compute(self.path, self.x, self.y, target_x, target_y)
@@ -231,7 +244,7 @@ class Object:
         if not libtcod.path_is_empty(self.path):
 
             #Walk the path
-            path_x, path_y = libtcod.path_walk(self.path, True)
+            path_x, path_y = libtcod.path_get(self.path, 0)
 
             #normalise it to 1 length (preserving direction), then round it and
             #convert to integer so the movement is restricted to the map grid
@@ -239,7 +252,7 @@ class Object:
             dy = path_y - self.y
 
         else:
-
+            self.path = None
             print 'Path is empty'
             dx = target_x - self.x
             dy = target_y - self.y
@@ -249,6 +262,8 @@ class Object:
 
         self.move(dx, dy)
 
+        for i in last_list:
+            libtcod.map_set_properties(fov_map, i.x, i.y, True, True)
 
     def distance_to(self, other):
         #return the distance to another object
@@ -806,23 +821,17 @@ def path_func(xFrom, yFrom, xTo, yTo, self):
 
     global map
 
-    if not map[xTo][yTo].blocked: #open space
+    if not map[xTo][yTo].blocked == False or libtcod.map_is_walkable(fov_map, xTo, yTo) == True: #open space
         return 1.0 #All good!
 
-    elif map[xTo][yTo].blocked:  #wall
+    elif map[xTo][yTo].blocked == True or libtcod.map_is_walkable(fov_map, xTo, yTo) == False:  #wall
         return 0.0 #Not good!
 
-    if not libtcod.map_is_walkable(fov_map, xTo, yTo):
-        return 0.0 #Not good!
+    #if self.distance_to(player) <= 1:
+        #libtcod.map_set_properties(fov_map, self.x, self.y, True, False)
 
-    elif libtcod.map_is_walkable(fov_map, xTo, yTo):
-        return 1.0 #All good!
-
-    if self.distance_to(player) <= 1:
-        libtcod.map_set_properties(fov_map, self.x, self.y, True, False)
-
-    elif self.distance_to(player) >= 2:
-        libtcod.map_set_properties(fov_map, self.x, self.y, True, True)
+    #elif self.distance_to(player) >= 2:
+        #libtcod.map_set_properties(fov_map, self.x, self.y, True, True)
 
 def roll(dice, sides):
     result = 0
@@ -2669,7 +2678,7 @@ def main_menu():
 
 
 def save_game():
-    #Otherwise it's a whole hassle saving all the paths, TODO: figure out how top save all the paths
+    #Otherwise it's a whole hassle saving all the paths. TODO: figure out how to save all the paths
     for obj in objects:
         obj.path = None
 
