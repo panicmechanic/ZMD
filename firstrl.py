@@ -309,9 +309,13 @@ class Object:
 
 class Fighter:
     #combat-related properties and methods (monster, player, npc).
-    def __init__(self, hp, defense_dice=0, defense_sides=0, power_dice=0, power_sides=0, evasion_dice=0, evasion_sides=0, accuracy_dice=0, accuracy_sides=0, crit_dice=0, xp=0, speed=None, speed_counter=0, heal_rate=50, heal_counter=0, death_function=None, effects=[], cast_effect=None, cast_roll=0, paralysis=False):
+    def __init__(self, hp, strength=0, dexterity=0, stealth=0, will=0, defense_dice=0, defense_sides=0, power_dice=0, power_sides=0, evasion_dice=0, evasion_sides=0, accuracy_dice=0, accuracy_sides=0, crit_dice=0, xp=0, speed=None, speed_counter=0, heal_rate=50, heal_counter=0, death_function=None, effects=[], cast_effect=None, cast_roll=0, paralysis=False):
         self.base_max_hp = hp
         self.hp = hp
+        self.base_strength = strength
+        self.base_dexterity = dexterity
+        self.base_stealth = stealth
+        self.base_will = will
         self.base_defense_dice = defense_dice
         self.base_defense_sides = defense_sides
         self.base_power_dice = power_dice
@@ -334,6 +338,35 @@ class Fighter:
         self.cast_effect = cast_effect
         self.cast_roll = cast_roll
         self.paralysis = paralysis
+
+    #Will need @properties for strength, dex, stealth and will. Will be integers not dice rolls but need to add them to effects and equipment
+    @property
+    def strength(self):
+        bonus = sum(equipment.strength_bonus for equipment in get_all_equipped(self.owner))
+        #Add effect bonuses to max_hp
+        bonus += (sum(effect.strength_effect for effect in self.effects))
+        return self.base_strength + bonus
+
+    @property
+    def dexterity(self):
+        bonus = sum(equipment.dexterity_bonus for equipment in get_all_equipped(self.owner))
+        #Add effect bonuses to max_hp
+        bonus += (sum(effect.dexterity_effect for effect in self.effects))
+        return self.base_dexterity + bonus
+
+    @property
+    def stealth(self):
+        bonus = sum(equipment.stealth_bonus for equipment in get_all_equipped(self.owner))
+        #Add effect bonuses to max_hp
+        bonus += (sum(effect.stealth_effect for effect in self.effects))
+        return self.base_stealth + bonus
+
+    @property
+    def will(self):
+        bonus = sum(equipment.will_bonus for equipment in get_all_equipped(self.owner))
+        #Add effect bonuses to max_hp
+        bonus += (sum(effect.will_effect for effect in self.effects))
+        return self.base_will + bonus
 
 
     @property
@@ -461,7 +494,7 @@ class Fighter:
             self.effects.append(Effect)
             #Set duration to base duration
             Effect.duration = Effect.base_duration
-            message(object_origin_name + ' ' + Effect.effect_name + '!' + ' Press space to continue.', libtcod.white)
+            message(object_origin_name + ' ' + Effect.effect_name + '!' + ' Press space to continue.', libtcod.light_purple)
             update_msgs()
             wait_for_spacekey()
 
@@ -674,7 +707,13 @@ class Item:
 
 class Equipment:
     #an object that can be equipped, yielding bonuses. Automatically adds the Item component
-    def __init__(self, slot, power_bonus_dice=0, power_bonus_sides=0, defense_bonus_dice=0, defense_bonus_sides=0, evasion_bonus_dice=0, evasion_bonus_sides=0, accuracy_bonus_dice=0, accuracy_bonus_sides=0, max_hp_bonus=0):
+    def __init__(self, slot, weapon=False, ranged=False, strength_bonus=0, dexterity_bonus=0, stealth_bonus=0, will_bonus=0, power_bonus_dice=0, power_bonus_sides=0, defense_bonus_dice=0, defense_bonus_sides=0, evasion_bonus_dice=0, evasion_bonus_sides=0, accuracy_bonus_dice=0, accuracy_bonus_sides=0, max_hp_bonus=0):
+        self.weapon = weapon
+        self.ranged = ranged
+        self.strength_bonus = strength_bonus
+        self.dexterity_bonus = dexterity_bonus
+        self.stealth_bonus = stealth_bonus
+        self.will_bonus = will_bonus
         self.power_bonus_dice = power_bonus_dice
         self.power_bonus_sides = power_bonus_sides
         self.defense_bonus_dice = defense_bonus_dice
@@ -713,14 +752,18 @@ class Equipment:
 
 class Effect:
     #an effect that can be applied to the character, yielding bonuses or nerfs
-    def __init__(self, effect_name=None, duration=0, turns_passed=0, base_duration=0, power_effect_dice=0, power_effect_sides=0, defense_effect_dice=0, defense_effect_sides=0, evasion_effect_dice=0, evasion_effect_sides=0, accuracy_effect_dice=0, accuracy_effect_sides=-0,
+    def __init__(self, effect_name=None, duration=0, turns_passed=0, base_duration=0, strength_effect=0, power_effect_dice=0, dexterity_effect=0, stealth_effect=0, will_effect=0, power_effect_sides=0, defense_effect_dice=0, defense_effect_sides=0, evasion_effect_dice=0, evasion_effect_sides=0, accuracy_effect_dice=0, accuracy_effect_sides=-0,
                  max_hp_effect=0, applied_times=1, confused=False, burning=False, damage_by_turn=None, paralyzed=None,
                  fatal_alert=False, mutation=False, m_loop=0, m_loop_turn=0, m_elec=False, m_elec_count=0,
-                 m_elec_trigger=5, m_elec_damage=0, forget=False):
+                 m_elec_trigger=5, m_elec_damage=0, forget=False, blind=False):
         self.effect_name = effect_name
         self.duration = duration
         self.turns_passed = turns_passed
         self.base_duration = base_duration
+        self.strength_effect = strength_effect
+        self.dexterity_effect = dexterity_effect
+        self.stealth_effect = stealth_effect
+        self.will_effect = will_effect
         self.power_effect_dice = power_effect_dice
         self.power_effect_sides = power_effect_sides
         self.defense_effect_dice = defense_effect_dice
@@ -747,6 +790,7 @@ class Effect:
         self.m_elec_damage = m_elec_damage
 
         self.forget = forget
+        self.blind = blind
 
 
 def monster_move_or_attack(monster):
@@ -841,6 +885,7 @@ def roll(dice, sides):
 
 def check_run_effects(obj):
     global fov_recompute
+    global TORCH_RADIUS
 
     # Check for effects, if there is 1 or more and their turns_passed value is not == duration, increase its turn_passed value by one, if it is equal to duration remove it.
     if obj.fighter.effects is not None:
@@ -891,12 +936,21 @@ def check_run_effects(obj):
                         for x in range(MAP_WIDTH):
                             map[x][y].explored = False
 
+                if eff.blind == True:
+                    TORCH_RADIUS = 1
+
                 #if turns_passed is equal to duration, remove the effect
                 if eff.turns_passed == eff.duration:
                     #if the effect caused paralysis, set the fighters variable to False to allow movement again
                     if eff.paralyzed != None:
                         obj.fighter.paralysis = False
                         message('You can move again!')
+
+                    #If the effect caused blindness, restore the players sight
+                    if eff.blind == True:
+                        TORCH_RADIUS = 8
+
+                    #Remove the effect
                     obj.fighter.remove_effect(eff)
                     eff.turns_passed = 0
 
@@ -1060,7 +1114,7 @@ def place_objects(room):
             choice = random_choice(monster_chances)
             if choice == 'Dog':
                 #create an dog
-                fighter_component = Fighter(hp=10, defense_dice=1, defense_sides=5, power_dice=1, power_sides=8, evasion_dice=1, evasion_sides=4, accuracy_dice=2, accuracy_sides=4, xp=40, speed=10,
+                fighter_component = Fighter(hp=10, defense_dice=1, defense_sides=5, power_dice=1, power_sides=8, evasion_dice=1, evasion_sides=4, accuracy_dice=2, accuracy_sides=4, xp=400, speed=10,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'd', 'Dog', libtcod.orange, blocks=True, fighter=fighter_component,
@@ -2200,10 +2254,9 @@ def handle_keys():
                 msgbox(
                     'Character Information\n\nLevel: ' + str(player.level) + '\nExperience: ' + str(player.fighter.xp) +
                     '\nExperience to level up: ' + str(level_up_xp) + '\n\nHP: ' + str(
-                        player.fighter.max_hp) + '\nAttack: ' + str(
-                        player.fighter.power) + '\nDefense: ' + str(player.fighter.defense) + '\nEvasion: ' + str(
-                        player.fighter.ev) + '\nAccuracy: ' + str(
-                        player.fighter.acc) + '\nEffects: ' + get_player_effects(), CHARACTER_SCREEN_WIDTH)
+                        player.fighter.max_hp) + '\nStrength: ' + str(
+                        player.fighter.strength) + '\nDexterity: ' + str(player.fighter.dexterity) + '\nStealth: ' + str(
+                        player.fighter.stealth) + '\nWill: ' + str(player.fighter.will), CHARACTER_SCREEN_WIDTH)
 
             return 'didnt-take-turn'
 
@@ -2473,7 +2526,7 @@ def new_game():
 
     key = libtcod.Key()
     #create object representing player
-    fighter_component = Fighter(hp=100, defense_dice=2, defense_sides=2, power_dice=1, power_sides=2, evasion_dice=2, evasion_sides=1, accuracy_dice=1, accuracy_sides=5, xp=0, speed=10, death_function=player_death,
+    fighter_component = Fighter(hp=100, strength=2, dexterity=3, stealth=1, will=1, defense_dice=2, defense_sides=2, power_dice=1, power_sides=2, evasion_dice=2, evasion_sides=1, accuracy_dice=1, accuracy_sides=5, xp=0, speed=10, death_function=player_death,
                                 effects=[])
     player = Object(0, 0, '@', 'player', libtcod.lightest_amber, blocks=True, fighter=fighter_component)
     player.level = 1
@@ -2509,6 +2562,7 @@ def new_game():
     #player.fighter.add_effect(Effect('Paralyzed', duration=5, paralyzed=True, base_duration=5), 'Game developer')
     #player.fighter.add_effect(Effect('cruelly hurt', duration=5, damage_by_turn=10), 'Game developer')
     #player.fighter.add_effect(Effect('Defense buffed', duration=50, defense_effect_dice=2, defense_effect_sides=2), 'Game developer')
+    #player.fighter.add_effect(Effect('Blind', duration=10, #blind=True), 'Game developer')
     game_state = 'playing'
 
 
@@ -2753,30 +2807,33 @@ def check_level_up():
         choice = None
         while choice == None:  #keep asking until a choice is made
             render_all()
-            choice = menu('Level up! Choose a stat to raise:\n',
-                          ['Constitution (+20 HP)',
-                           'Strength (+1 Attack)',
-                           'Defense (+1 Defense)',
-                           'Accuracy (+2 Accuracy, +1 Evasion)',
-                           'Evasion (+2 Evasion, +1 Accuracy)'], LEVEL_SCREEN_WIDTH)
+            choice = menu('Chronos blesses you with a moments rest. Your thoughts turn to training, which discipline will you practice?\n',
+                          ['Sleeping (+20 HP)',
+                           'Calisthenics (+1 Strength)',
+                           'Gymnastics (+1 Dexterity)',
+                           'Shadow training (+1 Stealth)',
+                           'Meditation (+1 Will)'], LEVEL_SCREEN_WIDTH)
 
             # May be better to leave evasion and accuracy out of the players hands, to keep it simple
             if choice == 0:
                 player.fighter.max_hp += 20
                 player.fighter.hp += 20
+                message('You forget about training and get some well earned rest. (+20HP)', libtcod.white)
             elif choice == 1:
-                player.fighter.power += 1
+                player.fighter.strength += 1
+                message('You practice your advanced calisthenics routines, your muscles grow. (+1 Strength)', libtcod.white)
             elif choice == 2:
-                player.fighter.defense += 1
+                player.fighter.dexterity += 1
+                message('You practice your gymnastics skills using the rocks around you, your body quickens. (+1 Dexterity)', libtcod.white)
             elif choice == 3:
-                player.fighter.acc += 2
-                player.fighter.ev += 1
+                player.fighter.stealth +=1
+                message('You practice the ancient art as taught to you by your master, you fade further into the shadows. (+1 Stealth)', libtcod.white)
             elif choice == 4:
-                player.fighter.ev += 2
-                player.fighter.acc += 1
+                player.fighter.will +=1
+                message('You sit, contemplating nothing, and everything. Your inner strength grows. (+1 Will)', libtcod.white)
 
         #Add a random mutation
-        level_mutate = (2, 7, 9, 12)
+        level_mutate = (3, 7, 9, 12)
         for i in level_mutate:
             if player.level == i:
                 #This will eventually be a pick a random mutation function

@@ -98,6 +98,7 @@ Damage player 10 hit points - '#'
 - Make inventory a combination of equipped and other inventory
 - Move passable set from monster_move_or_attack() to move()
 - Create an extra map to store pathfinding in without monster blocks.
+- Add an effect to increase stealth for every adjacent wall to player - sneaking
 
     
 
@@ -121,19 +122,17 @@ For alpha release:
     - Add 2 more mutations
         (2 days - 1 for each as still no ideas, look at sil's abilities for inspiration and tomes abilities.)
     - Create 'forget map' effect
-        (0.5 days - Seems simple enough)
+        (DONE - working)
     - Create 'blind' effect
-        DONE - Needs to be tested though          
+        DONE - working)
     - Create 'burning' effect
         (0.5 days - Simple, every turn set a random orange colour too)
-    - Add ranged combat if not too complex. Will need to integrate a render_all call for
-        for each tile from attacker to target to paint an 'arrow' and display it once.
-        Some internet time will be necessary to research.
-        (3 days - Allow for 3 days to integrate this, research will give better estimates.
+    - Add ranged combat if not too complex. 
+        (0 days - Too complex before alpha, planned out in scrapbook.py.)
     - Implement pathfinding fix
         (DONE - pathing function next after fixing new pathing bug; monsters moving down tunnels)
     - Add simple win condition for alpha release purposes
-        (2 days - Will need to create win_screen() on win.)
+        (2 days - Will need to create win_screen() on win, make dungeon depth 10 levels, lerp wall/floor color each level to get darker/lighter.)
     
     ALPHA UPDATE:
     19/08/14 (started countdown):    
@@ -160,9 +159,25 @@ For alpha release:
                 Added forget_map effect.
         TOTAL DAYS LEFT = 11 (11)
         ALPHA RELEASE DATE = 6th September
+    
+    26/08/14 Added blind effect, tested that and forget map effect, both work fine. Removed but planned for ranged combat,
+                as it is needs cascading changes while pathfinding continues to sprawl out it is better to get pathing 
+                fixed and worry about ranged combat later, especially as ranged combat will eventually need pathfinding.
+                Added skills (strength, dex, stealth + will), added @property's for all. Implemented them into level up.
+                for monster AI.
+        TOTAL DAYS LEFT = 7.5 (8)
+        ALPHA RELEASE DATE = 4th September
+        
+    
         
 #Remaining major TODO (in rough order):
 
+- Would be really cool to find thematic ways to give the player chances to train. This could remove the need for xp entirely.
+    
+    E.g you are captured by harpies, after disptaching them you save a prisoner who offers you a special type of 
+    
+    training, boosting your stats much more than a level up. Maybe giving you a mutation too.
+- Need a fire key for mutations, and a box to list available mutations that are charged and ready to fire
 - Place items in clusters, define level of clusters pwr dungeon level
 - Fix description box by putting it in panel2 and include a new function to describe acc, speed, danger etc.
 - Pathfinding will need an overhaul
