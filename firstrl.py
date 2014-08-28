@@ -118,7 +118,7 @@ NOISE = libtcod.noise_new(1)
 
 class Tile:
     # a tile of the map, and its properties
-    def __init__(self, blocked, block_sight=None, diff_color=None, color_flash=None, color_set=None, color_fore=None, debug_blocked=False):
+    def __init__(self, blocked, block_sight=None, diff_color=None, color_flash=None, color_set=None, color_fore=None, debug_blocked=False, debug_path=False):
         self.blocked = blocked
         self.diff_color = diff_color
 
@@ -126,6 +126,7 @@ class Tile:
         self.color_set = color_set
         self.color_fore = color_fore
         self.debug_blocked = debug_blocked
+        self.debug_path = debug_path
 
         #all tiles start unexplored
         self.explored = False
@@ -233,27 +234,27 @@ class Object:
             libtcod.map_set_properties(fov_map, i.x, i.y, True, False)
 
 
-        #If player can see you, new path.
-        if self.path == None:
-            self.path = libtcod.path_new_using_function(MAP_WIDTH, MAP_HEIGHT, path_func, self, 1)
+        self.path = libtcod.path_new_using_function(MAP_WIDTH, MAP_HEIGHT, path_func, self, 1)
 
-        #Compute path to player
+        #Compute path to target
         libtcod.path_compute(self.path, self.x, self.y, target_x, target_y)
 
         #vector from this object to the target, and distance
         if not libtcod.path_is_empty(self.path):
 
             #Walk the path
-            path_x, path_y = libtcod.path_get(self.path, 0)
-            print self.x
-            print self.y
-            print path_x
-            print path_y
+            path_x, path_y = libtcod.path_walk(self.path, 0)
+
+            print map[path_x][path_y].blocked
 
             #normalise it to 1 length (preserving direction), then round it and
             #convert to integer so the movement is restricted to the map grid
             dx = path_x - self.x
             dy = path_y - self.y
+
+            print dx
+            print dy
+
 
         else:
             self.path = None
@@ -1762,9 +1763,14 @@ def render_all():
                     #Since it's visible, set it to explored
                     map[x][y].explored = True
 
-                    if map[x][y].debug_blocked == True:
-                        libtcod.console_set_char_background(con, x, y, libtcod.light_pink, libtcod.BKGND_SET)
-                        libtcod.console_set_char_foreground(con, x, y, libtcod.dark_pink)
+                if map[x][y].debug_blocked == True:
+                    libtcod.console_set_char_background(con, x, y, libtcod.light_pink, libtcod.BKGND_SET)
+                    libtcod.console_set_char_foreground(con, x, y, libtcod.dark_pink)
+
+                if map[x][y].debug_path == True:
+                    libtcod.console_set_char_background(con, x, y, libtcod.light_green, libtcod.BKGND_SET)
+                    libtcod.console_set_char_foreground(con, x, y, libtcod.dark_green)
+
 
         #Supposed to cause flicker, but does nothing (I think).
         FOV_NOISE = libtcod.noise_new(1, 1.0, 1.0)
@@ -2250,6 +2256,20 @@ def handle_keys():
                     if libtcod.map_is_walkable(fov_map, obj.x, obj.y) == False:
                         map[x][y].debug_blocked = True
 
+            if key_char == '~':
+                for obj in objects:
+                    if obj.path != None:
+                        for i in range(libtcod.path_size(obj.path)):
+                            x, y = libtcod.path_get(obj.path, i)
+                            map[x][y].debug_path = True
+
+            if key_char == ':':
+                for y in range(MAP_HEIGHT):
+                    for x in range(MAP_WIDTH):
+                        if map[x][y].debug_path == True:
+                            map[x][y].debug_path = False
+
+
             if key_char == 'r':
                 player_rest()
 
@@ -2439,15 +2459,8 @@ def player_death(player):
 
 
 def monster_death(monster):
-    #transform it into a nasty corpse! it doesn't block, can't be attacked and doesn't move.
-
-    #Set tile to not block paths
-    libtcod.map_set_properties(fov_map, monster.x, monster.y, True, True)
-
-
-
+    #transform it into a corpse! it doesn't block, can't be attacked and doesn't move.
     #Explode it if was killed by war hammer
-
     equipped = get_all_equipped(player)
     for i in equipped:
         if i.owner.char == chr(24):
@@ -2501,6 +2514,10 @@ def monster_death(monster):
     monster.ai = None
     monster.name = 'Remains of ' + monster.name
     monster.send_to_back()
+    #Remove path
+    monster.path = None
+    #Set tile to not block paths
+    libtcod.map_set_properties(fov_map, monster.x, monster.y, True, True)
 
 
 def target_tile(max_range=None):
@@ -2614,8 +2631,8 @@ def initialize_fov():
             libtcod.map_set_properties(fov_map, x, y, not map[x][y].block_sight, not map[x][y].blocked)
 
             #If you wanted to set walls to the following properties you could do it this way
-            #if map[x][y].blocked == True and map[x][y].block_sight == True:
-                #libtcod.map_set_properties(fov_map, x, y, False, False)
+            if map[x][y].blocked == True and map[x][y].block_sight == True:
+                libtcod.map_set_properties(fov_map, x, y, False, False)
 
     libtcod.console_clear(con)  # unexplored areas start black
 

@@ -119,8 +119,8 @@ For alpha release:
     - Add 2 more mutations
         (2 days - 1 for each as still no ideas, look at sil's abilities for inspiration and tomes abilities.
             Ideas:
-            Herme's Blessing - Doubles your speed for 10 turns (lvl1)
-            Are's Blessing - Gives you an extra power die for 5 turns (lvl1)
+            Hermes Timeslip - Doubles your speed for 10 turns (lvl1)
+            Ares roar - Gives you an extra power die for 5 turns (lvl1)
             Apollo's Blessing - Doubles your stealth for 200 turns (lvl1)
             How to order these without having ten keys? A single key that brings up a menu if more than one is charged?
     - Create 'forget map' effect
@@ -300,6 +300,7 @@ Make monster drops a chance of a next level item, build an anticipation. http://
 
 #Done:
 
+- Added debug keys to show blocked tiles, and paths.
 - Added skills, currently:
 
             2 strength = +1 power face.
