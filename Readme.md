@@ -98,7 +98,8 @@ Damage player 10 hit points - '#'
 - Make inventory a combination of equipped and other inventory
 - Move passable set from monster_move_or_attack() to move()
 - Create an extra map to store pathfinding in without monster blocks.
-- Add an effect to increase stealth for every adjacent wall to player - sneaking    
+- Add an effect to increase stealth for every adjacent wall to player - sneaking   
+- Seems I can't apply an effect to monsters? (When attempting to apply burning effect to monsters with cast_fireball())
 
 #Alpha TODO:
 
@@ -123,6 +124,7 @@ For alpha release:
             Ares roar - Gives you an extra power die for 5 turns (lvl1)
             Apollo's Blessing - Doubles your stealth for 200 turns (lvl1)
             How to order these without having ten keys? A single key that brings up a menu if more than one is charged?
+            Should change the torch color for some of these "Your torch glows red.."
     - Create 'forget map' effect
         (DONE - working)
     - Create 'blind' effect
@@ -173,6 +175,8 @@ For alpha release:
         
     28/08/14 Pathfinding is almost fixed, one bug still exists, but is too severe to ignore so work continues. Also 
                 added debug keys for seeing blocked and pathed tiles. Fixed warhammer elec bug.
+                Revamped torch for mutations tomorrow. Changed mutation effect attributes to be non specific.
+                
         TOTAL DAYS LEFT = 6.5 (7)
         ALPHA RELEASE DATE = 4th September
         

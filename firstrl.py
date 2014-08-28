@@ -103,10 +103,12 @@ color_light_ground = libtcod.Color(100, 100, 14)
 color_char_set_dark_ground = libtcod.Color(80, 90, 70)
 color_char_dark_ground = libtcod.Color(110, 110, 100)
 #Torch color
-torch_color = libtcod.light_orange
+torch_color = libtcod.light_flame
 #darker torch color for foreground
-torch_light_color = libtcod.light_yellow
+torch_light_color = libtcod.light_flame
+#Torch alpha
 torch_alpha = 0.6
+#TODO: Change this value slgihtly to add a better flicker
 
 
 WALL_CHAR = '#'
@@ -882,10 +884,10 @@ def path_func(xFrom, yFrom, xTo, yTo, self):
 
     global map
 
-    if not map[xTo][yTo].blocked == False or libtcod.map_is_walkable(fov_map, xTo, yTo) == True: #open space
+    if libtcod.map_is_walkable(fov_map, xTo, yTo) == True: #open space
         return 1.0 #All good!
 
-    elif map[xTo][yTo].blocked == True or libtcod.map_is_walkable(fov_map, xTo, yTo) == False:  #wall
+    elif libtcod.map_is_walkable(fov_map, xTo, yTo) == False:  #wall
         return 0.0 #Not good!
 
     #if self.distance_to(player) <= 1:
