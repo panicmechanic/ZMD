@@ -106,18 +106,23 @@ For alpha release:
     
     - MAJOR: Implement numdice*numfaces rolling system a la sil for attack. 
         (DONE - 1 DAY. Still need to change old monster values)
-    - Add more items/weapons, implement 4 skills above
-        (1 day - After num*dice change, this will require a complete rework
+    - Implement 4 skills above
+        (DONE - After num*dice change, this will require a complete rework
     - MAJOR: Turn system http://www.roguebasin.com/index.php?title=A_simple_turn_scheduling_system_--_Python_implementation
         (DONE - 1.5 HOURS)
     - Implement shift run
         (DONE - Not too bad, needs more conditions)
     - Fix current bugs: Warhammer splatter not firing with elec.
-        (1 days - One for each day as these have been difficult to pin down)
+        (1 day - One for each day as these have been difficult to pin down)
     - Move monster gen to new file and add enough monsters for 10 levels
         (1 day - Simple enough)
     - Add 2 more mutations
-        (2 days - 1 for each as still no ideas, look at sil's abilities for inspiration and tomes abilities.)
+        (2 days - 1 for each as still no ideas, look at sil's abilities for inspiration and tomes abilities.
+            Ideas:
+            Herme's Blessing - Doubles your speed for 10 turns (lvl1)
+            Are's Blessing - Gives you an extra power die for 5 turns (lvl1)
+            Apollo's Blessing - Doubles your stealth for 200 turns (lvl1)
+            How to order these without having ten keys? A single key that brings up a menu if more than one is charged?
     - Create 'forget map' effect
         (DONE - working)
     - Create 'blind' effect
@@ -159,10 +164,10 @@ For alpha release:
     
     26/08/14 Added blind effect, tested that and forget map effect, both work fine. Removed but planned for ranged combat,
                 as it is needs cascading changes while pathfinding continues to sprawl out it is better to get pathing 
-                fixed and worry about ranged combat later, especially as ranged combat will eventually need pathfinding.
+                fixed and worry about ranged combat later, especially as ranged combat will eventually need pathfinding
                 for monster AI.
                 Added skills (strength, dex, stealth + will), added @property's for all. Implemented them into level up.
-                Made strength give you an extra power face for every two points.                
+                Made strength and dex affect acc/ev/power                               
         TOTAL DAYS LEFT = 7.5 (8)
         ALPHA RELEASE DATE = 4th September
         
@@ -170,6 +175,7 @@ For alpha release:
         
 #Remaining major TODO (in rough order):
 
+- Add new potions for new skills
 - Would be really cool to find thematic ways to give the player chances to train. This could remove the need for xp entirely.
     
     E.g you are captured by harpies, after disptaching them you save a prisoner who offers you a special type of 
@@ -282,6 +288,14 @@ Make monster drops a chance of a next level item, build an anticipation. http://
         monsters seem.
 
 - In fact, just read his whole post regarding ai: http://www.reddit.com/r/roguelikedev/comments/2en9jh/weekly_wednesday_systems_sharing_1_ai_systems/ck1uttn
+- Maybe require the player to spend a turn (and a keypress) swapping between the melee and ranged loadouts.
+- Potion interactions, using certain potions immediately after others may boost or give entirely new effects:
+
+    e.g. potion of strength follow by potions of sustain = longer effect
+    
+    e.g potion of permanence/removal - make current effects permanent/remove all effects (rare)  
+    
+    e.g. potion of
 
 
 #Done:
@@ -363,8 +377,9 @@ prize. On the way you will encounter many different randomised level types; fore
 dungeons, the sea of the dead and the infamous Mt. Olympus. You will have to outwit
 great foes, avoid traps, solve puzzles, gather legendary items and battle mythic monsters.
 
-The game seeks to (eventually) have a feeling of undertaking a great journey, different
-every time you play. As inspired by the Odyssey and LOTR. Think an Odyssey Simulator.
+The game seeks to (eventually) have a focus on combat, with tight mechanics and realisism.
+The game should be short, around 3-5 hours to win, but have enough breadth and depth to keep
+the player from acheiving mastery easily.
 
 There should be many different level types for you to interact with, providing a great
 variety of challenges and problems to solve with brains or brawn as you continue your

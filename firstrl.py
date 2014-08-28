@@ -53,7 +53,7 @@ MSG_STOP = MSG_WIDTH - PANEL2_WIDTH
 PANEL_WIDTH = SCREEN_WIDTH - PANEL2_WIDTH
 
 #FOV
-FOV_ALGO = 0  #Default FOV algorithm
+FOV_ALGO = 1  #Default FOV algorithm
 FOV_LIGHT_WALLS = True  #Light walls or not
 
 #Item parameters
@@ -107,25 +107,25 @@ color_char_light_ground = libtcod.Color(120, 120, 15)
 WALL_CHAR = '#'
 FLOOR_CHAR = '.'
 
-TORCH_RADIUS = 8
+TORCH_RADIUS = 10
 SQUARED_TORCH_RADIUS = TORCH_RADIUS * TORCH_RADIUS
 FOV_NOISE = None
 FOV_TORCHX = 0.0
 FOV_INIT = False
-FOV_ALGO_NUM = 1
 NOISE = libtcod.noise_new(1)
 
 
 
 class Tile:
     # a tile of the map, and its properties
-    def __init__(self, blocked, block_sight=None, diff_color=None, color_flash=None, color_set=None, color_fore=None):
+    def __init__(self, blocked, block_sight=None, diff_color=None, color_flash=None, color_set=None, color_fore=None, debug_blocked=False):
         self.blocked = blocked
         self.diff_color = diff_color
 
         self.color_flash = color_flash
         self.color_set = color_set
         self.color_fore = color_fore
+        self.debug_blocked = debug_blocked
 
         #all tiles start unexplored
         self.explored = False
@@ -224,7 +224,7 @@ class Object:
         #Iterate through objects
         for obj in objects:
             #If object has a fighter instance, and is less than 2 tiles away from self and is not self or player
-            if obj.fighter and obj.distance_to(self) >= 2 and obj != player and obj != self:
+            if obj.fighter and obj.distance_to(self) <= 2 and obj != player and obj != self:
                 #Add this object to the list
                 last_list.append(obj)
 
@@ -245,6 +245,10 @@ class Object:
 
             #Walk the path
             path_x, path_y = libtcod.path_get(self.path, 0)
+            print self.x
+            print self.y
+            print path_x
+            print path_y
 
             #normalise it to 1 length (preserving direction), then round it and
             #convert to integer so the movement is restricted to the map grid
@@ -815,6 +819,7 @@ def monster_move_or_attack(monster):
             monster.move_towards(player.x, player.y)
             #As monster has moved, check_run effects for that monster
             check_run_effects(monster)
+            print 'Pathing'
 
         #close enough, attack! (if the player is still alive.)
         elif player.fighter.hp > 0:
@@ -877,7 +882,7 @@ def path_func(xFrom, yFrom, xTo, yTo, self):
         return 0.0 #Not good!
 
     #if self.distance_to(player) <= 1:
-        #libtcod.map_set_properties(fov_map, self.x, self.y, True, False)
+       #libtcod.map_set_properties(fov_map, self.x, self.y, True, False)
 
     #elif self.distance_to(player) >= 2:
         #libtcod.map_set_properties(fov_map, self.x, self.y, True, True)
@@ -1702,7 +1707,6 @@ def render_all():
                     #Else it is floor and has no diff_color value and should be set to the default color
                     else:
 
-                        libtcod.console_set_default_foreground(con, libtcod.gold)
                         libtcod.console_put_char(con, x, y, FLOOR_CHAR, libtcod.BKGND_SCREEN)
                         base = color_dark_ground
                         light = color_light_ground
@@ -1738,8 +1742,9 @@ def render_all():
                         if map[x][y].diff_color is not None:
                             #TODO: Make torch light change have an alpha, to make coloring easier.
                             light = libtcod.color_lerp(map[x][y].diff_color, light, l)
+                            light_char = libtcod.color_lerp(map[x][y].color_fore, color_char_light_wall, l)
 
-                        if wall:
+                        elif wall:
                             light = libtcod.color_lerp(map[x][y].color_set, color_light_wall, l)
                             light_char = libtcod.color_lerp(map[x][y].color_fore, color_char_light_wall, l)
                         else:
@@ -1757,7 +1762,11 @@ def render_all():
                     #Since it's visible, set it to explored
                     map[x][y].explored = True
 
-        #Supposed to cause flicker, but does nothing.
+                    if map[x][y].debug_blocked == True:
+                        libtcod.console_set_char_background(con, x, y, libtcod.light_pink, libtcod.BKGND_SET)
+                        libtcod.console_set_char_foreground(con, x, y, libtcod.dark_pink)
+
+        #Supposed to cause flicker, but does nothing (I think).
         FOV_NOISE = libtcod.noise_new(1, 1.0, 1.0)
 
 
@@ -2235,8 +2244,11 @@ def handle_keys():
                 for y in range(MAP_HEIGHT):
                     for x in range(MAP_WIDTH):
                         if map[x][y].blocked == True:
-                            map[x][y].color_set = libtcod.light_pink
-                            map[x][y].color_fore = libtcod.light_pink
+                            map[x][y].debug_blocked = True
+
+                for obj in objects:
+                    if libtcod.map_is_walkable(fov_map, obj.x, obj.y) == False:
+                        map[x][y].debug_blocked = True
 
             if key_char == 'r':
                 player_rest()
@@ -2433,6 +2445,7 @@ def monster_death(monster):
     libtcod.map_set_properties(fov_map, monster.x, monster.y, True, True)
 
 
+
     #Explode it if was killed by war hammer
 
     equipped = get_all_equipped(player)
@@ -2599,6 +2612,10 @@ def initialize_fov():
     for y in range(MAP_HEIGHT):
         for x in range(MAP_WIDTH):
             libtcod.map_set_properties(fov_map, x, y, not map[x][y].block_sight, not map[x][y].blocked)
+
+            #If you wanted to set walls to the following properties you could do it this way
+            #if map[x][y].blocked == True and map[x][y].block_sight == True:
+                #libtcod.map_set_properties(fov_map, x, y, False, False)
 
     libtcod.console_clear(con)  # unexplored areas start black
 
