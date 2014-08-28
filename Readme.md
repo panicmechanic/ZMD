@@ -112,8 +112,8 @@ For alpha release:
         (DONE - 1.5 HOURS)
     - Implement shift run
         (DONE - Not too bad, needs more conditions)
-    - Fix current bugs: Warhammer splatter not firing with elec.
-        (1 day - One for each day as these have been difficult to pin down)
+    - Fix current bugs: None
+        (DONE - All fixed.)
     - Move monster gen to new file and add enough monsters for 10 levels
         (1 day - Simple enough)
     - Add 2 more mutations
@@ -126,7 +126,7 @@ For alpha release:
     - Create 'forget map' effect
         (DONE - working)
     - Create 'blind' effect
-        DONE - working)
+        (DONE - working)
     - Create 'burning' effect
         (0.5 days - Simple, every turn set a random orange colour too)
     - Add ranged combat if not too complex. 
@@ -162,13 +162,18 @@ For alpha release:
         TOTAL DAYS LEFT = 11 (11)
         ALPHA RELEASE DATE = 6th September
     
-    26/08/14 Added blind effect, tested that and forget map effect, both work fine. Removed but planned for ranged combat,
+    27/08/14 Added blind effect, tested that and forget map effect, both work fine. Removed but planned for ranged combat,
                 as it is needs cascading changes while pathfinding continues to sprawl out it is better to get pathing 
                 fixed and worry about ranged combat later, especially as ranged combat will eventually need pathfinding
                 for monster AI.
                 Added skills (strength, dex, stealth + will), added @property's for all. Implemented them into level up.
                 Made strength and dex affect acc/ev/power                               
         TOTAL DAYS LEFT = 7.5 (8)
+        ALPHA RELEASE DATE = 4th September
+        
+    28/08/14 Pathfinding is almost fixed, one bug still exists, but is too severe to ignore so work continues. Also 
+                added debug keys for seeing blocked and pathed tiles. Fixed warhammer elec bug.
+        TOTAL DAYS LEFT = 6.5 (7)
         ALPHA RELEASE DATE = 4th September
         
     

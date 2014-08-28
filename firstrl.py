@@ -65,6 +65,7 @@ CONFUSE_RANGE = 8
 FIREBALL_RADIUS = 3
 FIREBALL_DAMAGE = 25
 HEAL_RATE = 1
+ELEC_FIRING = False
 
 #Food properties
 HUNGER_RATE = 1
@@ -233,7 +234,8 @@ class Object:
         for i in last_list:
             libtcod.map_set_properties(fov_map, i.x, i.y, True, False)
 
-
+        #Old line (paths correctly but no multiple monsters in tunnels):
+        #self.path = libtcod.path_new_using_map(fov_map)
         self.path = libtcod.path_new_using_function(MAP_WIDTH, MAP_HEIGHT, path_func, self, 1)
 
         #Compute path to target
@@ -764,8 +766,8 @@ class Effect:
     #an effect that can be applied to the character, yielding bonuses or nerfs
     def __init__(self, effect_name=None, duration=0, turns_passed=0, base_duration=0, strength_effect=0, power_effect_dice=0, dexterity_effect=0, stealth_effect=0, will_effect=0, power_effect_sides=0, defense_effect_dice=0, defense_effect_sides=0, evasion_effect_dice=0, evasion_effect_sides=0, accuracy_effect_dice=0, accuracy_effect_sides=-0,
                  max_hp_effect=0, applied_times=1, confused=False, burning=False, damage_by_turn=None, paralyzed=None,
-                 fatal_alert=False, mutation=False, m_loop=0, m_loop_turn=0, m_elec=False, m_elec_count=0,
-                 m_elec_trigger=5, m_elec_damage=0, forget=False, blind=False):
+                 fatal_alert=False, mutation=False, m_loop=0, m_loop_turn=0, m_elec=False, m_count=0,
+                 m_trigger=5, m_damage=0, forget=False, blind=False):
         self.effect_name = effect_name
         self.duration = duration
         self.turns_passed = turns_passed
@@ -791,13 +793,13 @@ class Effect:
         self.fatal_alert = fatal_alert
         self.is_active = False
         self.mutation = mutation
-
+        #TODO: Remove references to elec except for m_elec to use these attributes for multiple mutations
         self.m_loop = m_loop
         self.m_loop_turn = m_loop_turn
         self.m_elec = m_elec
-        self.m_elec_count = m_elec_count
-        self.m_elec_trigger = m_elec_trigger
-        self.m_elec_damage = m_elec_damage
+        self.m_count = m_count
+        self.m_trigger = m_trigger
+        self.m_damage = m_damage
 
         self.forget = forget
         self.blind = blind
@@ -896,7 +898,7 @@ def roll(dice, sides):
 
 def check_run_effects(obj):
     global fov_recompute
-    global TORCH_RADIUS
+    global TORCH_RADIUS, ELEC_FIRING
 
     # Check for effects, if there is 1 or more and their turns_passed value is not == duration, increase its turn_passed value by one, if it is equal to duration remove it.
     if obj.fighter.effects is not None:
@@ -973,14 +975,15 @@ def check_run_effects(obj):
             elif eff.mutation == True:
                 if eff.m_elec == True:
                     #Each application halves the turns needed to charge
-                    real_trigger = eff.m_elec_trigger / eff.applied_times
-                    if eff.m_elec_count < real_trigger:
-                        eff.m_elec_count += 1
+                    real_trigger = eff.m_trigger / eff.applied_times
+                    if eff.m_count < real_trigger:
+                        eff.m_count += 1
                     #if it has accumulated enough turns
-                    if eff.m_elec_count >= real_trigger:
+                    if eff.m_count >= real_trigger:
                         for obj in objects:
                             fire_times = eff.applied_times
                             fired_times = 0
+                            ELEC_FIRING = True
 
                             #Find an object that isn't the player within 1 tile and fire if fired_times < fire_times
                             if obj.fighter and player.distance_to(
@@ -996,14 +999,16 @@ def check_run_effects(obj):
                                 wait_for_spacekey()
 
                                 message('A bolt of lightning hits the ' + str(obj.name) + ' for ' + str(
-                                    eff.m_elec_damage) + ' damage!', libtcod.white)
+                                    eff.m_damage) + ' damage!', libtcod.white)
 
-                                obj.fighter.take_damage(eff.m_elec_damage)
-                                eff.m_elec_count = 0
+                                obj.fighter.take_damage(eff.m_damage)
+                                eff.m_count = 0
                                 fired_times += 1
 
                                 #Set map.diff_color to darkest_grey. This order is important.
                                 map[obj.x][obj.y].diff_color = libtcod.darker_grey
+
+                                ELEC_FIRING = False
 
 
 
@@ -1908,7 +1913,7 @@ def render_all():
 
         if eff.effect_name == 'electric power':
             render_bar_simple(panel, 1, 3 + total_effects, BAR_WIDTH, 'Electrified Level ' + str(eff.applied_times),
-                              eff.m_elec_count, eff.m_elec_trigger / eff.applied_times, libtcod.blue,
+                              eff.m_count, eff.m_trigger / eff.applied_times, libtcod.blue,
                               libtcod.darker_yellow)
             total_effects += 1
 
@@ -2463,11 +2468,9 @@ def monster_death(monster):
     #Explode it if was killed by war hammer
     equipped = get_all_equipped(player)
     for i in equipped:
-        if i.owner.char == chr(24):
+        if i.owner.char == chr(24) and ELEC_FIRING == False:
             #blow strength
-
-            message(
-                'The ' + str(monster.name) + ' explodes under the ferocious blow of your ' + str(i.owner.name) + '!',
+            message('The ' + str(monster.name) + ' explodes under the ferocious blow of your ' + str(i.owner.name) + '!',
                 libtcod.white)
             #Use blow strength as a max number of gibs
             rand_num_gibs = libtcod.random_get_int(0, 1, 7)
@@ -2644,15 +2647,6 @@ def play_game():
     mouse = libtcod.Mouse()
     key = libtcod.Key()
 
-    #Add elec
-    elec = False
-    if elec == True:
-        player.fighter.add_effect(
-            Effect(effect_name='electric power', mutation=True, applied_times=5, m_elec=True, m_elec_trigger=125,
-                   m_elec_damage=150),
-            'For your valiant effort you have earned the gods favour, they convene and offer you')
-        elec = False
-
     ##MAIN LOOP##
     while not libtcod.console_is_window_closed():
         #render the screen
@@ -2732,6 +2726,8 @@ def shift_run(object, x, y):
             object.move(x, y)
             #Loop for the players speed for his move
             check_by_turn(player.fighter.speed)
+            check_run_effects(player)
+
 
 
             #Render FOV and flush console
@@ -2884,8 +2880,8 @@ def check_level_up():
             if player.level == i:
                 #This will eventually be a pick a random mutation function
                 player.fighter.add_effect(
-                    Effect(effect_name='electric power', mutation=True, m_elec=True, m_elec_trigger=125,
-                           m_elec_damage=150),
+                    Effect(effect_name='electric power', mutation=True, m_elec=True, m_trigger=125,
+                           m_damage=150),
                     'For your valiant effort you have earned the gods favour, they convene and offer you')
 
 
