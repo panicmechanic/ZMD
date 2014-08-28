@@ -102,7 +102,11 @@ color_light_ground = libtcod.Color(100, 100, 14)
 
 color_char_set_dark_ground = libtcod.Color(80, 90, 70)
 color_char_dark_ground = libtcod.Color(110, 110, 100)
-color_char_light_ground = libtcod.Color(120, 120, 15)
+#Torch color
+torch_color = libtcod.light_orange
+#darker torch color for foreground
+torch_light_color = libtcod.light_yellow
+torch_alpha = 0.6
 
 
 WALL_CHAR = '#'
@@ -1008,13 +1012,14 @@ def check_run_effects(obj):
                                 #Set map.diff_color to darkest_grey. This order is important.
                                 map[obj.x][obj.y].diff_color = libtcod.darker_grey
 
-                                ELEC_FIRING = False
 
+                            ELEC_FIRING = False
 
 
                             #Function has completed, reset fired_times
                             if fired_times == fire_times:
                                 fired_times = 0
+
     else:
         return 'no effects'
 
@@ -1680,6 +1685,7 @@ def render_all():
                             libtcod.console_set_default_foreground(con, map[x][y].color_fore)
                             #Set character
                             libtcod.console_put_char(con, x, y, FLOOR_CHAR, libtcod.BKGND_SCREEN)
+
                 else:
 
                     #it's visible
@@ -1741,25 +1747,27 @@ def render_all():
                         #Needs to use r as for some reason distance_from doesn't work
                         l = (SQUARED_TORCH_RADIUS - r) / SQUARED_TORCH_RADIUS + di
                         if l < 0.0:
-                            l = -0.0
+                            l = 0.0
                         elif l > 1.6:
                             l = 1.6
 
+                        #Lerp tiles
                         if map[x][y].diff_color is not None:
                             #TODO: Make torch light change have an alpha, to make coloring easier.
-                            light = libtcod.color_lerp(map[x][y].diff_color, light, l)
-                            light_char = libtcod.color_lerp(map[x][y].color_fore, color_char_light_wall, l)
+                            light = libtcod.color_lerp(map[x][y].diff_color, torch_color, l)
+                            light_char = libtcod.color_lerp(map[x][y].color_fore, map[x][y].color_fore+torch_light_color, l)
 
                         elif wall:
-                            light = libtcod.color_lerp(map[x][y].color_set, color_light_wall, l)
-                            light_char = libtcod.color_lerp(map[x][y].color_fore, color_char_light_wall, l)
-                        else:
-                            light = libtcod.color_lerp(map[x][y].color_set, color_light_ground, l)
-                            light_char = libtcod.color_lerp(map[x][y].color_fore, color_char_light_ground, l)
+                            light = libtcod.color_lerp(map[x][y].color_set, map[x][y].color_set+torch_color, l)
+                            light_char = libtcod.color_lerp(map[x][y].color_fore, map[x][y].color_fore+torch_light_color, l)
 
-                    #Lerp tile in FOV's background
-                    libtcod.console_set_char_background(con, x, y, light, libtcod.BKGND_SET)
-                    #Lerp tile in FOV foreground
+                        else:
+                            light = libtcod.color_lerp(map[x][y].color_set, map[x][y].color_set+torch_color, l)
+                            light_char = libtcod.color_lerp(map[x][y].color_fore, map[x][y].color_fore+torch_light_color, l)
+
+                    #Set tile in FOV's background
+                    libtcod.console_set_char_background(con, x, y, light, libtcod.BKGND_ADDALPHA(torch_alpha))
+                    #Set tile in FOV foreground
                     libtcod.console_set_char_foreground(con, x, y, light_char)
 
                     #May improve flicker
@@ -2573,7 +2581,7 @@ def new_game():
     #create object representing player
     fighter_component = Fighter(hp=100, strength=2, dexterity=3, stealth=1, will=1, defense_dice=2, defense_sides=2, power_dice=1, power_sides=2, evasion_dice=2, evasion_sides=1, accuracy_dice=1, accuracy_sides=5, xp=0, speed=10, death_function=player_death,
                                 effects=[])
-    player = Object(0, 0, '@', 'player', libtcod.lightest_amber, blocks=True, fighter=fighter_component)
+    player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter_component)
     player.level = 1
     #Create the list of game messages and their colors, starts empty
 

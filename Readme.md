@@ -180,6 +180,7 @@ For alpha release:
         
 #Remaining major TODO (in rough order):
 
+- More groups
 - Add new potions for new skills
 - Would be really cool to find thematic ways to give the player chances to train. This could remove the need for xp entirely.
     
