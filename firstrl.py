@@ -53,7 +53,7 @@ MSG_STOP = MSG_WIDTH - PANEL2_WIDTH
 PANEL_WIDTH = SCREEN_WIDTH - PANEL2_WIDTH
 
 #FOV
-FOV_ALGO = 0  #Default FOV algorithm
+FOV_ALGO = 1  #Default FOV algorithm
 FOV_LIGHT_WALLS = True  #Light walls or not
 
 #Item parameters
@@ -65,6 +65,7 @@ CONFUSE_RANGE = 8
 FIREBALL_RADIUS = 3
 FIREBALL_DAMAGE = 25
 HEAL_RATE = 1
+ELEC_FIRING = False
 
 #Food properties
 HUNGER_RATE = 1
@@ -101,31 +102,38 @@ color_light_ground = libtcod.Color(100, 100, 14)
 
 color_char_set_dark_ground = libtcod.Color(80, 90, 70)
 color_char_dark_ground = libtcod.Color(110, 110, 100)
-color_char_light_ground = libtcod.Color(120, 120, 15)
+#Torch color
+torch_color = libtcod.light_flame
+#darker torch color for foreground
+torch_light_color = libtcod.light_flame
+#Torch alpha
+torch_alpha = 0.6
+#TODO: Change this value slgihtly to add a better flicker
 
 
 WALL_CHAR = '#'
 FLOOR_CHAR = '.'
 
-TORCH_RADIUS = 8
+TORCH_RADIUS = 10
 SQUARED_TORCH_RADIUS = TORCH_RADIUS * TORCH_RADIUS
 FOV_NOISE = None
 FOV_TORCHX = 0.0
 FOV_INIT = False
-FOV_ALGO_NUM = 1
 NOISE = libtcod.noise_new(1)
 
 
 
 class Tile:
     # a tile of the map, and its properties
-    def __init__(self, blocked, block_sight=None, diff_color=None, color_flash=None, color_set=None, color_fore=None):
+    def __init__(self, blocked, block_sight=None, diff_color=None, color_flash=None, color_set=None, color_fore=None, debug_blocked=False, debug_path=False):
         self.blocked = blocked
         self.diff_color = diff_color
 
         self.color_flash = color_flash
         self.color_set = color_set
         self.color_fore = color_fore
+        self.debug_blocked = debug_blocked
+        self.debug_path = debug_path
 
         #all tiles start unexplored
         self.explored = False
@@ -211,30 +219,53 @@ class Object:
             self.y += dy
 
     def move_towards(self, target_x, target_y):
+
         #A lot of this is taken directly from SevenTrials (https://github.com/nefD/SevenTrials)
         #and modified to work here.
 
         #This creates the path needed, in seven trials this is done in play_game loop,
         # load_game() and use() functions.
 
-        if self.path is None:
-            self.path = libtcod.path_new_using_map(fov_map)
+        #Create list to hold objects that are having their tile set as unwalkable
+        last_list = []
 
-        #Compute path to player
+        #Iterate through objects
+        for obj in objects:
+            #If object has a fighter instance, and is less than 2 tiles away from self and is not self or player
+            if obj.fighter and obj.distance_to(self) <= 2 and obj != player and obj != self:
+                #Add this object to the list
+                last_list.append(obj)
+
+        #Mark all is list as blocked
+        for i in last_list:
+            libtcod.map_set_properties(fov_map, i.x, i.y, True, False)
+
+        #Old line (paths correctly but no multiple monsters in tunnels):
+        #self.path = libtcod.path_new_using_map(fov_map)
+        self.path = libtcod.path_new_using_function(MAP_WIDTH, MAP_HEIGHT, path_func, self, 1)
+
+        #Compute path to target
         libtcod.path_compute(self.path, self.x, self.y, target_x, target_y)
 
         #vector from this object to the target, and distance
         if not libtcod.path_is_empty(self.path):
 
-            path_x, path_y = libtcod.path_get(self.path, 0)
+            #Walk the path
+            path_x, path_y = libtcod.path_walk(self.path, 0)
+
+            print map[path_x][path_y].blocked
 
             #normalise it to 1 length (preserving direction), then round it and
             #convert to integer so the movement is restricted to the map grid
             dx = path_x - self.x
             dy = path_y - self.y
 
+            print dx
+            print dy
+
+
         else:
-            #TODO: Else, path as close as possible
+            self.path = None
             print 'Path is empty'
             dx = target_x - self.x
             dy = target_y - self.y
@@ -243,6 +274,9 @@ class Object:
             dy = int(round(dy / distance))
 
         self.move(dx, dy)
+
+        for i in last_list:
+            libtcod.map_set_properties(fov_map, i.x, i.y, True, True)
 
     def distance_to(self, other):
         #return the distance to another object
@@ -288,9 +322,13 @@ class Object:
 
 class Fighter:
     #combat-related properties and methods (monster, player, npc).
-    def __init__(self, hp, defense_dice=0, defense_sides=0, power_dice=0, power_sides=0, evasion_dice=0, evasion_sides=0, accuracy_dice=0, accuracy_sides=0, crit_dice=0, xp=0, speed=None, speed_counter=0, heal_rate=50, heal_counter=0, death_function=None, effects=[], cast_effect=None, cast_roll=0, paralysis=False):
+    def __init__(self, hp, strength=0, dexterity=0, stealth=0, will=0, defense_dice=0, defense_sides=0, power_dice=0, power_sides=0, evasion_dice=0, evasion_sides=0, accuracy_dice=0, accuracy_sides=0, crit_dice=0, xp=0, speed=None, speed_counter=0, heal_rate=50, heal_counter=0, death_function=None, effects=[], cast_effect=None, cast_roll=0, paralysis=False):
         self.base_max_hp = hp
         self.hp = hp
+        self.base_strength = strength
+        self.base_dexterity = dexterity
+        self.base_stealth = stealth
+        self.base_will = will
         self.base_defense_dice = defense_dice
         self.base_defense_sides = defense_sides
         self.base_power_dice = power_dice
@@ -314,12 +352,43 @@ class Fighter:
         self.cast_roll = cast_roll
         self.paralysis = paralysis
 
+    #Will need @properties for strength, dex, stealth and will. Will be integers not dice rolls but need to add them to effects and equipment
+    @property
+    def strength(self):
+        bonus = sum(equipment.strength_bonus for equipment in get_all_equipped(self.owner))
+        #Add effect bonuses to max_hp
+        bonus += (sum(effect.strength_effect for effect in self.effects))
+        return self.base_strength + bonus
+
+    @property
+    def dexterity(self):
+        bonus = sum(equipment.dexterity_bonus for equipment in get_all_equipped(self.owner))
+        #Add effect bonuses to max_hp
+        bonus += (sum(effect.dexterity_effect for effect in self.effects))
+        return self.base_dexterity + bonus
+
+    @property
+    def stealth(self):
+        bonus = sum(equipment.stealth_bonus for equipment in get_all_equipped(self.owner))
+        #Add effect bonuses to max_hp
+        bonus += (sum(effect.stealth_effect for effect in self.effects))
+        return self.base_stealth + bonus
+
+    @property
+    def will(self):
+        bonus = sum(equipment.will_bonus for equipment in get_all_equipped(self.owner))
+        #Add effect bonuses to max_hp
+        bonus += (sum(effect.will_effect for effect in self.effects))
+        return self.base_will + bonus
+
 
     @property
     def power(self):  #return actual power, by summing up the bonuses from all equipped items
         #Add dice/sides from equipment
         bonus_dice = (sum(equipment.power_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_power_dice)+(self.crit_dice))
-        bonus_sides = (sum(equipment.power_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_power_sides))
+
+        #Currently adds equipment bonuses, equipped bonuses, plus 1 face for every 2 strength points
+        bonus_sides = (sum(equipment.power_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_power_sides))+(self.strength/2)
 
         #Add dice/sides from effects
         bonus_dice += (sum(effect.power_effect_dice for effect in self.effects))
@@ -361,7 +430,8 @@ class Fighter:
     @property
     def evasion(self): #return actual evasion
         bonus_dice = (sum(equipment.evasion_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_evasion_dice))
-        bonus_sides = (sum(equipment.evasion_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_evasion_sides))
+        #Add all equipment + one point for each in dexterity
+        bonus_sides = (sum(equipment.evasion_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_evasion_sides)+(self.dexterity))
 
         #Need to integrate effects below
         bonus_dice += (sum(effect.evasion_effect_dice for effect in self.effects))
@@ -375,8 +445,10 @@ class Fighter:
 
     @property
     def accuracy(self): #return actual accuracy
-        bonus_dice = (sum(equipment.accuracy_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_accuracy_dice))
-        bonus_sides = (sum(equipment.accuracy_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_accuracy_sides))
+        #Equipment bonus, plus one die for every five points of strength
+        bonus_dice = (sum(equipment.accuracy_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_accuracy_dice)+(self.strength/5))
+        #Adds all equipped, all effects, plus one for every point of dexterity
+        bonus_sides = (sum(equipment.accuracy_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_accuracy_sides)+(self.dexterity))
 
         #Need to integrate effects below
         bonus_dice += (sum(effect.accuracy_effect_dice for effect in self.effects))
@@ -440,7 +512,7 @@ class Fighter:
             self.effects.append(Effect)
             #Set duration to base duration
             Effect.duration = Effect.base_duration
-            message(object_origin_name + ' ' + Effect.effect_name + '!' + ' Press space to continue.', libtcod.white)
+            message(object_origin_name + ' ' + Effect.effect_name + '!' + ' Press space to continue.', libtcod.light_purple)
             update_msgs()
             wait_for_spacekey()
 
@@ -653,7 +725,13 @@ class Item:
 
 class Equipment:
     #an object that can be equipped, yielding bonuses. Automatically adds the Item component
-    def __init__(self, slot, power_bonus_dice=0, power_bonus_sides=0, defense_bonus_dice=0, defense_bonus_sides=0, evasion_bonus_dice=0, evasion_bonus_sides=0, accuracy_bonus_dice=0, accuracy_bonus_sides=0, max_hp_bonus=0):
+    def __init__(self, slot, weapon=False, ranged=False, strength_bonus=0, dexterity_bonus=0, stealth_bonus=0, will_bonus=0, power_bonus_dice=0, power_bonus_sides=0, defense_bonus_dice=0, defense_bonus_sides=0, evasion_bonus_dice=0, evasion_bonus_sides=0, accuracy_bonus_dice=0, accuracy_bonus_sides=0, max_hp_bonus=0):
+        self.weapon = weapon
+        self.ranged = ranged
+        self.strength_bonus = strength_bonus
+        self.dexterity_bonus = dexterity_bonus
+        self.stealth_bonus = stealth_bonus
+        self.will_bonus = will_bonus
         self.power_bonus_dice = power_bonus_dice
         self.power_bonus_sides = power_bonus_sides
         self.defense_bonus_dice = defense_bonus_dice
@@ -692,14 +770,18 @@ class Equipment:
 
 class Effect:
     #an effect that can be applied to the character, yielding bonuses or nerfs
-    def __init__(self, effect_name=None, duration=0, turns_passed=0, base_duration=0, power_effect_dice=0, power_effect_sides=0, defense_effect_dice=0, defense_effect_sides=0, evasion_effect_dice=0, evasion_effect_sides=0, accuracy_effect_dice=0, accuracy_effect_sides=-0,
+    def __init__(self, effect_name=None, duration=0, turns_passed=0, base_duration=0, strength_effect=0, power_effect_dice=0, dexterity_effect=0, stealth_effect=0, will_effect=0, power_effect_sides=0, defense_effect_dice=0, defense_effect_sides=0, evasion_effect_dice=0, evasion_effect_sides=0, accuracy_effect_dice=0, accuracy_effect_sides=-0,
                  max_hp_effect=0, applied_times=1, confused=False, burning=False, damage_by_turn=None, paralyzed=None,
-                 fatal_alert=False, mutation=False, m_loop=0, m_loop_turn=0, m_elec=False, m_elec_count=0,
-                 m_elec_trigger=5, m_elec_damage=0):
+                 fatal_alert=False, mutation=False, m_loop=0, m_loop_turn=0, m_elec=False, m_count=0,
+                 m_trigger=5, m_damage=0, forget=False, blind=False):
         self.effect_name = effect_name
         self.duration = duration
         self.turns_passed = turns_passed
         self.base_duration = base_duration
+        self.strength_effect = strength_effect
+        self.dexterity_effect = dexterity_effect
+        self.stealth_effect = stealth_effect
+        self.will_effect = will_effect
         self.power_effect_dice = power_effect_dice
         self.power_effect_sides = power_effect_sides
         self.defense_effect_dice = defense_effect_dice
@@ -717,13 +799,16 @@ class Effect:
         self.fatal_alert = fatal_alert
         self.is_active = False
         self.mutation = mutation
-
+        #TODO: Remove references to elec except for m_elec to use these attributes for multiple mutations
         self.m_loop = m_loop
         self.m_loop_turn = m_loop_turn
         self.m_elec = m_elec
-        self.m_elec_count = m_elec_count
-        self.m_elec_trigger = m_elec_trigger
-        self.m_elec_damage = m_elec_damage
+        self.m_count = m_count
+        self.m_trigger = m_trigger
+        self.m_damage = m_damage
+
+        self.forget = forget
+        self.blind = blind
 
 
 def monster_move_or_attack(monster):
@@ -739,38 +824,17 @@ def monster_move_or_attack(monster):
         if monster.distance_to(player) >= 2:
             #compute how to reach the player
 
-            #Set old map tile to pathable
-            libtcod.map_set_properties(fov_map, monster.x, monster.y, True, True)
-
             #Move monster
             monster.move_towards(player.x, player.y)
-
-            #Set new map tile to not pathable
-            libtcod.map_set_properties(fov_map, monster.x, monster.y, True, False)
-
+            #As monster has moved, check_run effects for that monster
             check_run_effects(monster)
+            print 'Pathing'
 
         #close enough, attack! (if the player is still alive.)
         elif player.fighter.hp > 0:
             monster.fighter.attack(player)
 
             check_run_effects(monster)
-
-
-
-    #TODO: Insert following line and find a way to path to the last free tile in path
-    elif libtcod.map_is_in_fov(fov_map, monster.x, monster.y):
-        #Path to nearest monster
-        for obj in objects:
-            if obj.fighter and obj != monster and obj != player:
-                #Set old map tile to pathable
-                libtcod.map_set_properties(fov_map, monster.x, monster.y, True, True)
-
-                #Move monster
-                monster.move_towards(obj.x, obj.y)
-
-                #Set new map tile to not pathable
-                libtcod.map_set_properties(fov_map, monster.x, monster.y, True, False)
 
     else:
         #the player cannot see the monster
@@ -779,22 +843,16 @@ def monster_move_or_attack(monster):
         #If path is not empty and the distance to the player is greater than 2
         if monster.path != None and monster.path is not libtcod.path_is_empty(monster.path):
 
-
-            nextx, nexty = libtcod.path_walk(monster.path, False)
+            nextx, nexty = libtcod.path_walk(monster.path, True)
 
             if nextx or nexty is not None:
                 dx = nextx - monster.x
                 dy = nexty - monster.y
-                #Set old map tile to pathable
-                libtcod.map_set_properties(fov_map, monster.x, monster.y, True, True)
 
                 monster.move(dx, dy)
 
-                #Set new map tile to not pathable
-                libtcod.map_set_properties(fov_map, monster.x, monster.y, True, False)
-
             else:
-                print 'no nextx or next line 770'
+                print 'no nextx or nexty line 770'
 
         #stop boar and baby boars and pygmys from wandering
         elif not monster.char == 'B' or monster.char == 'b' or monster.char == 'p':
@@ -822,6 +880,21 @@ def monster_move_or_attack(monster):
         else:
             return 'cancelled'
 
+def path_func(xFrom, yFrom, xTo, yTo, self):
+
+    global map
+
+    if libtcod.map_is_walkable(fov_map, xTo, yTo) == True: #open space
+        return 1.0 #All good!
+
+    elif libtcod.map_is_walkable(fov_map, xTo, yTo) == False:  #wall
+        return 0.0 #Not good!
+
+    #if self.distance_to(player) <= 1:
+       #libtcod.map_set_properties(fov_map, self.x, self.y, True, False)
+
+    #elif self.distance_to(player) >= 2:
+        #libtcod.map_set_properties(fov_map, self.x, self.y, True, True)
 
 def roll(dice, sides):
     result = 0
@@ -829,9 +902,9 @@ def roll(dice, sides):
         roll = libtcod.random_get_int(0, 1, sides)
         result += roll
 
-
 def check_run_effects(obj):
     global fov_recompute
+    global TORCH_RADIUS, ELEC_FIRING
 
     # Check for effects, if there is 1 or more and their turns_passed value is not == duration, increase its turn_passed value by one, if it is equal to duration remove it.
     if obj.fighter.effects is not None:
@@ -876,12 +949,27 @@ def check_run_effects(obj):
                 if eff.paralyzed != None:
                     obj.fighter.paralysis = True
 
+                if eff.forget == True:
+                    message('You have had your brain purged of all recent memories!')
+                    for y in range(MAP_HEIGHT):
+                        for x in range(MAP_WIDTH):
+                            map[x][y].explored = False
+
+                if eff.blind == True:
+                    TORCH_RADIUS = 1
+
                 #if turns_passed is equal to duration, remove the effect
                 if eff.turns_passed == eff.duration:
                     #if the effect caused paralysis, set the fighters variable to False to allow movement again
                     if eff.paralyzed != None:
                         obj.fighter.paralysis = False
                         message('You can move again!')
+
+                    #If the effect caused blindness, restore the players sight
+                    if eff.blind == True:
+                        TORCH_RADIUS = 8
+
+                    #Remove the effect
                     obj.fighter.remove_effect(eff)
                     eff.turns_passed = 0
 
@@ -893,14 +981,15 @@ def check_run_effects(obj):
             elif eff.mutation == True:
                 if eff.m_elec == True:
                     #Each application halves the turns needed to charge
-                    real_trigger = eff.m_elec_trigger / eff.applied_times
-                    if eff.m_elec_count < real_trigger:
-                        eff.m_elec_count += 1
+                    real_trigger = eff.m_trigger / eff.applied_times
+                    if eff.m_count < real_trigger:
+                        eff.m_count += 1
                     #if it has accumulated enough turns
-                    if eff.m_elec_count >= real_trigger:
+                    if eff.m_count >= real_trigger:
                         for obj in objects:
                             fire_times = eff.applied_times
                             fired_times = 0
+                            ELEC_FIRING = True
 
                             #Find an object that isn't the player within 1 tile and fire if fired_times < fire_times
                             if obj.fighter and player.distance_to(
@@ -916,20 +1005,23 @@ def check_run_effects(obj):
                                 wait_for_spacekey()
 
                                 message('A bolt of lightning hits the ' + str(obj.name) + ' for ' + str(
-                                    eff.m_elec_damage) + ' damage!', libtcod.white)
+                                    eff.m_damage) + ' damage!', libtcod.white)
 
-                                obj.fighter.take_damage(eff.m_elec_damage)
-                                eff.m_elec_count = 0
+                                obj.fighter.take_damage(eff.m_damage)
+                                eff.m_count = 0
                                 fired_times += 1
 
                                 #Set map.diff_color to darkest_grey. This order is important.
                                 map[obj.x][obj.y].diff_color = libtcod.darker_grey
 
 
+                            ELEC_FIRING = False
+
 
                             #Function has completed, reset fired_times
                             if fired_times == fire_times:
                                 fired_times = 0
+
     else:
         return 'no effects'
 
@@ -1045,7 +1137,7 @@ def place_objects(room):
             choice = random_choice(monster_chances)
             if choice == 'Dog':
                 #create an dog
-                fighter_component = Fighter(hp=10, defense_dice=1, defense_sides=5, power_dice=1, power_sides=8, evasion_dice=1, evasion_sides=4, accuracy_dice=2, accuracy_sides=4, xp=40, speed=10,
+                fighter_component = Fighter(hp=10, defense_dice=1, defense_sides=5, power_dice=1, power_sides=8, evasion_dice=1, evasion_sides=4, accuracy_dice=2, accuracy_sides=4, xp=400, speed=10,
                                             death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 monster = Object(x, y, 'd', 'Dog', libtcod.orange, blocks=True, fighter=fighter_component,
@@ -1595,6 +1687,7 @@ def render_all():
                             libtcod.console_set_default_foreground(con, map[x][y].color_fore)
                             #Set character
                             libtcod.console_put_char(con, x, y, FLOOR_CHAR, libtcod.BKGND_SCREEN)
+
                 else:
 
                     #it's visible
@@ -1628,7 +1721,6 @@ def render_all():
                     #Else it is floor and has no diff_color value and should be set to the default color
                     else:
 
-                        libtcod.console_set_default_foreground(con, libtcod.gold)
                         libtcod.console_put_char(con, x, y, FLOOR_CHAR, libtcod.BKGND_SCREEN)
                         base = color_dark_ground
                         light = color_light_ground
@@ -1657,24 +1749,27 @@ def render_all():
                         #Needs to use r as for some reason distance_from doesn't work
                         l = (SQUARED_TORCH_RADIUS - r) / SQUARED_TORCH_RADIUS + di
                         if l < 0.0:
-                            l = -0.0
+                            l = 0.0
                         elif l > 1.6:
                             l = 1.6
 
+                        #Lerp tiles
                         if map[x][y].diff_color is not None:
                             #TODO: Make torch light change have an alpha, to make coloring easier.
-                            light = libtcod.color_lerp(map[x][y].diff_color, light, l)
+                            light = libtcod.color_lerp(map[x][y].diff_color, torch_color, l)
+                            light_char = libtcod.color_lerp(map[x][y].color_fore, map[x][y].color_fore+torch_light_color, l)
 
-                        if wall:
-                            light = libtcod.color_lerp(map[x][y].color_set, color_light_wall, l)
-                            light_char = libtcod.color_lerp(map[x][y].color_fore, color_char_light_wall, l)
+                        elif wall:
+                            light = libtcod.color_lerp(map[x][y].color_set, map[x][y].color_set+torch_color, l)
+                            light_char = libtcod.color_lerp(map[x][y].color_fore, map[x][y].color_fore+torch_light_color, l)
+
                         else:
-                            light = libtcod.color_lerp(map[x][y].color_set, color_light_ground, l)
-                            light_char = libtcod.color_lerp(map[x][y].color_fore, color_char_light_ground, l)
+                            light = libtcod.color_lerp(map[x][y].color_set, map[x][y].color_set+torch_color, l)
+                            light_char = libtcod.color_lerp(map[x][y].color_fore, map[x][y].color_fore+torch_light_color, l)
 
-                    #Lerp tile in FOV's background
-                    libtcod.console_set_char_background(con, x, y, light, libtcod.BKGND_SET)
-                    #Lerp tile in FOV foreground
+                    #Set tile in FOV's background
+                    libtcod.console_set_char_background(con, x, y, light, libtcod.BKGND_ADDALPHA(torch_alpha))
+                    #Set tile in FOV foreground
                     libtcod.console_set_char_foreground(con, x, y, light_char)
 
                     #May improve flicker
@@ -1683,7 +1778,16 @@ def render_all():
                     #Since it's visible, set it to explored
                     map[x][y].explored = True
 
-        #Supposed to cause flicker, but does nothing.
+                if map[x][y].debug_blocked == True:
+                    libtcod.console_set_char_background(con, x, y, libtcod.light_pink, libtcod.BKGND_SET)
+                    libtcod.console_set_char_foreground(con, x, y, libtcod.dark_pink)
+
+                if map[x][y].debug_path == True:
+                    libtcod.console_set_char_background(con, x, y, libtcod.light_green, libtcod.BKGND_SET)
+                    libtcod.console_set_char_foreground(con, x, y, libtcod.dark_green)
+
+
+        #Supposed to cause flicker, but does nothing (I think).
         FOV_NOISE = libtcod.noise_new(1, 1.0, 1.0)
 
 
@@ -1819,7 +1923,7 @@ def render_all():
 
         if eff.effect_name == 'electric power':
             render_bar_simple(panel, 1, 3 + total_effects, BAR_WIDTH, 'Electrified Level ' + str(eff.applied_times),
-                              eff.m_elec_count, eff.m_elec_trigger / eff.applied_times, libtcod.blue,
+                              eff.m_count, eff.m_trigger / eff.applied_times, libtcod.blue,
                               libtcod.darker_yellow)
             total_effects += 1
 
@@ -2157,6 +2261,30 @@ def handle_keys():
             if key_char == '#':
                 player.fighter.take_damage(10)
 
+            if key_char == '/':
+                for y in range(MAP_HEIGHT):
+                    for x in range(MAP_WIDTH):
+                        if map[x][y].blocked == True:
+                            map[x][y].debug_blocked = True
+
+                for obj in objects:
+                    if libtcod.map_is_walkable(fov_map, obj.x, obj.y) == False:
+                        map[x][y].debug_blocked = True
+
+            if key_char == '~':
+                for obj in objects:
+                    if obj.path != None:
+                        for i in range(libtcod.path_size(obj.path)):
+                            x, y = libtcod.path_get(obj.path, i)
+                            map[x][y].debug_path = True
+
+            if key_char == ':':
+                for y in range(MAP_HEIGHT):
+                    for x in range(MAP_WIDTH):
+                        if map[x][y].debug_path == True:
+                            map[x][y].debug_path = False
+
+
             if key_char == 'r':
                 player_rest()
 
@@ -2185,10 +2313,9 @@ def handle_keys():
                 msgbox(
                     'Character Information\n\nLevel: ' + str(player.level) + '\nExperience: ' + str(player.fighter.xp) +
                     '\nExperience to level up: ' + str(level_up_xp) + '\n\nHP: ' + str(
-                        player.fighter.max_hp) + '\nAttack: ' + str(
-                        player.fighter.power) + '\nDefense: ' + str(player.fighter.defense) + '\nEvasion: ' + str(
-                        player.fighter.ev) + '\nAccuracy: ' + str(
-                        player.fighter.acc) + '\nEffects: ' + get_player_effects(), CHARACTER_SCREEN_WIDTH)
+                        player.fighter.max_hp) + '\nStrength: ' + str(
+                        player.fighter.strength) + '\nDexterity: ' + str(player.fighter.dexterity) + '\nStealth: ' + str(
+                        player.fighter.stealth) + '\nWill: ' + str(player.fighter.will), CHARACTER_SCREEN_WIDTH)
 
             return 'didnt-take-turn'
 
@@ -2307,7 +2434,6 @@ def cast_confuse():
     render_all()
     wait_for_spacekey()
 
-
 def cast_fireball():  #FIGURE OUT HOW TO PAUSE AFTER THIS MESSAGE BEFORE DEALING DAMAGE
     #ask the player for a target tile to throw a fireball at
     message('Lef-click a target tile for the fireball, or right_click to cancel.', libtcod.light_cyan)
@@ -2348,21 +2474,13 @@ def player_death(player):
 
 
 def monster_death(monster):
-    #transform it into a nasty corpse! it doesn't block, can't be attacked and doesn't move.
-
-    #Set tile to not block paths
-    libtcod.map_set_properties(fov_map, monster.x, monster.y, True, True)
-
-
+    #transform it into a corpse! it doesn't block, can't be attacked and doesn't move.
     #Explode it if was killed by war hammer
-
     equipped = get_all_equipped(player)
     for i in equipped:
-        if i.owner.char == chr(24):
+        if i.owner.char == chr(24) and ELEC_FIRING == False:
             #blow strength
-
-            message(
-                'The ' + str(monster.name) + ' explodes under the ferocious blow of your ' + str(i.owner.name) + '!',
+            message('The ' + str(monster.name) + ' explodes under the ferocious blow of your ' + str(i.owner.name) + '!',
                 libtcod.white)
             #Use blow strength as a max number of gibs
             rand_num_gibs = libtcod.random_get_int(0, 1, 7)
@@ -2409,6 +2527,10 @@ def monster_death(monster):
     monster.ai = None
     monster.name = 'Remains of ' + monster.name
     monster.send_to_back()
+    #Remove path
+    monster.path = None
+    #Set tile to not block paths
+    libtcod.map_set_properties(fov_map, monster.x, monster.y, True, True)
 
 
 def target_tile(max_range=None):
@@ -2459,9 +2581,9 @@ def new_game():
 
     key = libtcod.Key()
     #create object representing player
-    fighter_component = Fighter(hp=100, defense_dice=2, defense_sides=2, power_dice=1, power_sides=2, evasion_dice=2, evasion_sides=1, accuracy_dice=1, accuracy_sides=5, xp=0, speed=10, death_function=player_death,
+    fighter_component = Fighter(hp=100, strength=2, dexterity=3, stealth=1, will=1, defense_dice=2, defense_sides=2, power_dice=1, power_sides=2, evasion_dice=2, evasion_sides=1, accuracy_dice=1, accuracy_sides=5, xp=0, speed=10, death_function=player_death,
                                 effects=[])
-    player = Object(0, 0, '@', 'player', libtcod.lightest_amber, blocks=True, fighter=fighter_component)
+    player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter_component)
     player.level = 1
     #Create the list of game messages and their colors, starts empty
 
@@ -2495,6 +2617,7 @@ def new_game():
     #player.fighter.add_effect(Effect('Paralyzed', duration=5, paralyzed=True, base_duration=5), 'Game developer')
     #player.fighter.add_effect(Effect('cruelly hurt', duration=5, damage_by_turn=10), 'Game developer')
     #player.fighter.add_effect(Effect('Defense buffed', duration=50, defense_effect_dice=2, defense_effect_sides=2), 'Game developer')
+    #player.fighter.add_effect(Effect('Blind', duration=10, #blind=True), 'Game developer')
     game_state = 'playing'
 
 
@@ -2520,6 +2643,10 @@ def initialize_fov():
         for x in range(MAP_WIDTH):
             libtcod.map_set_properties(fov_map, x, y, not map[x][y].block_sight, not map[x][y].blocked)
 
+            #If you wanted to set walls to the following properties you could do it this way
+            if map[x][y].blocked == True and map[x][y].block_sight == True:
+                libtcod.map_set_properties(fov_map, x, y, False, False)
+
     libtcod.console_clear(con)  # unexplored areas start black
 
 
@@ -2529,15 +2656,6 @@ def play_game():
     player_action = None
     mouse = libtcod.Mouse()
     key = libtcod.Key()
-
-    #Add elec
-    elec = False
-    if elec == True:
-        player.fighter.add_effect(
-            Effect(effect_name='electric power', mutation=True, applied_times=5, m_elec=True, m_elec_trigger=125,
-                   m_elec_damage=150),
-            'For your valiant effort you have earned the gods favour, they convene and offer you')
-        elec = False
 
     ##MAIN LOOP##
     while not libtcod.console_is_window_closed():
@@ -2618,6 +2736,8 @@ def shift_run(object, x, y):
             object.move(x, y)
             #Loop for the players speed for his move
             check_by_turn(player.fighter.speed)
+            check_run_effects(player)
+
 
 
             #Render FOV and flush console
@@ -2664,6 +2784,10 @@ def main_menu():
 
 
 def save_game():
+    #Otherwise it's a whole hassle saving all the paths. TODO: figure out how to save all the paths
+    for obj in objects:
+        obj.path = None
+
     #open a new empty shelve (possibly overwriting an old one) to write the game data
     file = shelve.open('savegame', 'n')
     file['map'] = map
@@ -2735,36 +2859,39 @@ def check_level_up():
         choice = None
         while choice == None:  #keep asking until a choice is made
             render_all()
-            choice = menu('Level up! Choose a stat to raise:\n',
-                          ['Constitution (+20 HP)',
-                           'Strength (+1 Attack)',
-                           'Defense (+1 Defense)',
-                           'Accuracy (+2 Accuracy, +1 Evasion)',
-                           'Evasion (+2 Evasion, +1 Accuracy)'], LEVEL_SCREEN_WIDTH)
+            choice = menu('Chronos blesses you with a moments rest. Your thoughts turn to training, which discipline will you practice?\n',
+                          ['Sleeping (+20 HP)',
+                           'Calisthenics (+1 Strength)',
+                           'Gymnastics (+1 Dexterity)',
+                           'Shadow training (+1 Stealth)',
+                           'Meditation (+1 Will)'], LEVEL_SCREEN_WIDTH)
 
             # May be better to leave evasion and accuracy out of the players hands, to keep it simple
             if choice == 0:
                 player.fighter.max_hp += 20
                 player.fighter.hp += 20
+                message('You forget about training and get some well earned rest. (+20HP)', libtcod.white)
             elif choice == 1:
-                player.fighter.power += 1
+                player.fighter.strength += 1
+                message('You practice your advanced calisthenics routines, your muscles grow. (+1 Strength)', libtcod.white)
             elif choice == 2:
-                player.fighter.defense += 1
+                player.fighter.dexterity += 1
+                message('You practice your gymnastics skills using the rocks around you, your body quickens. (+1 Dexterity)', libtcod.white)
             elif choice == 3:
-                player.fighter.acc += 2
-                player.fighter.ev += 1
+                player.fighter.stealth +=1
+                message('You practice the ancient art as taught to you by your master, you fade further into the shadows. (+1 Stealth)', libtcod.white)
             elif choice == 4:
-                player.fighter.ev += 2
-                player.fighter.acc += 1
+                player.fighter.will +=1
+                message('You sit, contemplating nothing, and everything. Your inner strength grows. (+1 Will)', libtcod.white)
 
         #Add a random mutation
-        level_mutate = (2, 7, 9, 12)
+        level_mutate = (3, 7, 9, 12)
         for i in level_mutate:
             if player.level == i:
                 #This will eventually be a pick a random mutation function
                 player.fighter.add_effect(
-                    Effect(effect_name='electric power', mutation=True, m_elec=True, m_elec_trigger=125,
-                           m_elec_damage=150),
+                    Effect(effect_name='electric power', mutation=True, m_elec=True, m_trigger=125,
+                           m_damage=150),
                     'For your valiant effort you have earned the gods favour, they convene and offer you')
 
 

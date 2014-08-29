@@ -85,7 +85,7 @@ Damage player 10 hit points - '#'
     
         Calisthenics (strength)  - Increase attack (power sides by 1), increase ranged range. 
         Gymnastics (dexterity)   - Increase acc/ev, small boost to speed
-        Shadow training (stealth)- Improve stealth, improve speed
+        Shadow training (stealth)- Improve stealth, defense improve speed
         Meditation (will)        - Improve accuracy, perception checks, skill helps mutations
               
 - Fix pathing to walk as close as possible if in fov and path is blocked.***
@@ -94,45 +94,49 @@ Damage player 10 hit points - '#'
 - Add description to box with auto wrap
 - Give description window and character/level up window borders.
 
-- I think go_to_last_seen functionality is broken.    
+- go_to_last_seen functionality is broken.    
 - Make inventory a combination of equipped and other inventory
 - Move passable set from monster_move_or_attack() to move()
-
-    
+- Create an extra map to store pathfinding in without monster blocks.
+- Add an effect to increase stealth for every adjacent wall to player - sneaking   
+- Seems I can't apply an effect to monsters? (When attempting to apply burning effect to monsters with cast_fireball())
 
 #Alpha TODO:
 
 For alpha release:
     
     - MAJOR: Implement numdice*numfaces rolling system a la sil for attack. 
-        (DONE - 1 DAY. Still need to update check_level_up and change old monster values
-            and add skills)
-    - Add more items/weapons, implement 4 skills above
-        (1 day - After num*dice change, this will require a complete rework
+        (DONE - 1 DAY. Still need to change old monster values)
+    - Implement 4 skills above
+        (DONE - After num*dice change, this will require a complete rework
     - MAJOR: Turn system http://www.roguebasin.com/index.php?title=A_simple_turn_scheduling_system_--_Python_implementation
         (DONE - 1.5 HOURS)
     - Implement shift run
         (DONE - Not too bad, needs more conditions)
-    - Fix current bugs: Warhammer splatter not firing with elec. Go to last seen functionality.
-        (1 days - One for each day as these have been difficult to pin down)
-    - Move monster gen to new file and add enough monsters for 10-15 levels
+    - Fix current bugs: None
+        (DONE - All fixed.)
+    - Move monster gen to new file and add enough monsters for 10 levels
         (1 day - Simple enough)
     - Add 2 more mutations
-        (2 days - 1 for each as still no ideas, look at sil's abilities for inspiration and tomes abilities.)
+        (2 days - 1 for each as still no ideas, look at sil's abilities for inspiration and tomes abilities.
+            Ideas:
+            Hermes Timeslip - Doubles your speed for 10 turns (lvl1)
+            Ares roar - Gives you an extra power die for 5 turns (lvl1)
+            Apollo's Blessing - Doubles your stealth for 200 turns (lvl1)
+            How to order these without having ten keys? A single key that brings up a menu if more than one is charged?
+            Should change the torch color for some of these "Your torch glows red.."
     - Create 'forget map' effect
-        (0.5 days - Seems simple enough)
+        (DONE - working)
     - Create 'blind' effect
-        (0.5 days - Simple again)            
+        (DONE - working)
     - Create 'burning' effect
         (0.5 days - Simple, every turn set a random orange colour too)
-    - Add ranged combat if not too complex. Will need to integrate a render_all call for
-        for each tile from attacker to target to paint an 'arrow' and display it once.
-        Some internet time will be necessary to research.
-        (3 days - Allow for 3 days to integrate this, research will give better estimates.
+    - Add ranged combat if not too complex. 
+        (0 days - Too complex before alpha, planned out in scrapbook.py.)
     - Implement pathfinding fix
-        (DONE - pathing function next after fixing new pathing bug; monsters moving down tunnels)
+        (IN PROGRESS - Decided to implement callbacks into pathfinding for future ease, but proving difficult. Ongoing.
     - Add simple win condition for alpha release purposes
-        (2 days - Will need to create win_screen() on win.)
+        (2 days - Will need to create win_screen() on win, make dungeon depth 10 levels, lerp wall/floor color each level to get darker/lighter.)
     
     ALPHA UPDATE:
     19/08/14 (started countdown):    
@@ -151,12 +155,43 @@ For alpha release:
         ALPHA RELEASE DATE = 3rd September
             
     21/08/14 Fixed effect duplication bug, was due to else statement being in wrong indentation.
-                  There was no paralyze issue.
+                There was no paralyze issue.
         TOTAL DAYS LEFT = 11.5 (12)
         ALPHA RELEASE DATE = 2nd September
         
+    26/08/14 Minor stuff done, slowed down a bit as pathfinding has been a pain in the ass and is not fixed. 
+                Added forget_map effect.
+        TOTAL DAYS LEFT = 11 (11)
+        ALPHA RELEASE DATE = 6th September
+    
+    27/08/14 Added blind effect, tested that and forget map effect, both work fine. Removed but planned for ranged combat,
+                as it is needs cascading changes while pathfinding continues to sprawl out it is better to get pathing 
+                fixed and worry about ranged combat later, especially as ranged combat will eventually need pathfinding
+                for monster AI.
+                Added skills (strength, dex, stealth + will), added @property's for all. Implemented them into level up.
+                Made strength and dex affect acc/ev/power                               
+        TOTAL DAYS LEFT = 7.5 (8)
+        ALPHA RELEASE DATE = 4th September
+        
+    28/08/14 Pathfinding is almost fixed, one bug still exists, but is too severe to ignore so work continues. Also 
+                added debug keys for seeing blocked and pathed tiles. Fixed warhammer elec bug.
+                Revamped torch for mutations tomorrow. Changed mutation effect attributes to be non specific.
+                
+        TOTAL DAYS LEFT = 6.5 (7)
+        ALPHA RELEASE DATE = 4th September
+        
+    
+        
 #Remaining major TODO (in rough order):
 
+- More groups
+- Add new potions for new skills
+- Would be really cool to find thematic ways to give the player chances to train. This could remove the need for xp entirely.
+    
+    E.g you are captured by harpies, after disptaching them you save a prisoner who offers you a special type of 
+    
+    training, boosting your stats much more than a level up. Maybe giving you a mutation too.
+- Need a fire key for mutations, and a box to list available mutations that are charged and ready to fire
 - Place items in clusters, define level of clusters pwr dungeon level
 - Fix description box by putting it in panel2 and include a new function to describe acc, speed, danger etc.
 - Pathfinding will need an overhaul
@@ -244,10 +279,46 @@ Make monster drops a chance of a next level item, build an anticipation. http://
     /Being able to strangle an elf with a wombat leather sock from it's own severed foot. 
     
     /Casting Polymorph Arm to Banana followed by Animate Banana and watching a goblin's own arm beat it to death.
+    
+- Play TGGW/Cave of Qud/Cataclysm for 'research'
+- Random quest element - As walknig through a forest you are suddenly messaged that you have been captured and a 
+    
+    new level loads, from here any type of quest could play out.
+- Maybe you steal powers from the gods and they have all gone mad?   
+- Look at p&p systems: http://www.reddit.com/r/roguelikedev/comments/2ecmrs/sharing_saturday_12/ck0m8lg
+- Monster fear/alertness/sleeping
+- Monsters should all be able to have effects, ranged attacks and special moves (functions that do not fall under effects)
+
+    although perhaps it would be easier to make effects find a way to test for the right conditions (nested in the effect) and if true, use it.
+- From /u/munificent: 
+
+        If it doesn't have a move to use, it needs to decide how it's going to harm the player. It has two options: it 
+        can try to get close and do a melee attack or (if it has any ranged attacks), it can try to do a ranged attack. 
+        Getting this working was the hardest part of the AI, but when I did, it made a huge difference in how smart the 
+        monsters seem.
+
+- In fact, just read his whole post regarding ai: http://www.reddit.com/r/roguelikedev/comments/2en9jh/weekly_wednesday_systems_sharing_1_ai_systems/ck1uttn
+- Maybe require the player to spend a turn (and a keypress) swapping between the melee and ranged loadouts.
+- Potion interactions, using certain potions immediately after others may boost or give entirely new effects:
+
+    e.g. potion of strength follow by potions of sustain = longer effect
+    
+    e.g potion of permanence/removal - make current effects permanent/remove all effects (rare)  
+    
+    e.g. potion of
 
 
 #Done:
 
+- Added debug keys to show blocked tiles, and paths.
+- Added skills, currently:
+
+            2 strength = +1 power face.
+            5 strength = +1 accuracy die
+            1 dexterity = +1 ev +1 acc
+            stealth = Nothing (no stealth system)
+            will = Nothing (no alert/sleeping system)
+            
 - Fixed effects duplication bug
 - Added shift_run
 - Lerping updated, Only accepts a range of a single color at the moment, rather than two colors. Could be neater.
@@ -317,8 +388,9 @@ prize. On the way you will encounter many different randomised level types; fore
 dungeons, the sea of the dead and the infamous Mt. Olympus. You will have to outwit
 great foes, avoid traps, solve puzzles, gather legendary items and battle mythic monsters.
 
-The game seeks to (eventually) have a feeling of undertaking a great journey, different
-every time you play. As inspired by the Odyssey and LOTR. Think an Odyssey Simulator.
+The game seeks to (eventually) have a focus on combat, with tight mechanics and realisism.
+The game should be short, around 3-5 hours to win, but have enough breadth and depth to keep
+the player from acheiving mastery easily.
 
 There should be many different level types for you to interact with, providing a great
 variety of challenges and problems to solve with brains or brawn as you continue your

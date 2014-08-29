@@ -58,7 +58,7 @@ def add_food_and_scrolls(x, y):
     item_chances['bread'] = from_dungeon_level([[10, 1], [15, 5]])
     item_chances['feta cheese'] = from_dungeon_level([[5, 1], [8, 5]])
     item_chances['lightning'] = from_dungeon_level([[1, 2], [15, 6]])
-    item_chances['fireball'] = from_dungeon_level([[1, 1], [15, 6]])
+    item_chances['fireball'] = from_dungeon_level([[1000, 1], [15, 6]])
     item_chances['confuse'] = from_dungeon_level([[1, 2], [15, 5]])
 
     choice = random_choice(item_chances)
@@ -290,7 +290,7 @@ def create_item(x, y):
 
     elif choice == 'stone war hammer':
         equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=2)
-        item = Object(x, y, chr(24), 'Stone war hammer ' + name_stat_gen(equipment_component), libtcod.dark_grey, equipment=equipment_component, item=None,
+        item = Object(x, y, chr(24), 'Stone war hammer ' + name_stat_gen(equipment_component), libtcod.darkest_grey, equipment=equipment_component, item=None,
                       always_visible=True)
 
     elif choice == 'bronze war hammer':
