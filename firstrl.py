@@ -226,22 +226,7 @@ class Object:
         #This creates the path needed, in seven trials this is done in play_game loop,
         # load_game() and use() functions.
 
-        #Create list to hold objects that are having their tile set as unwalkable
-        last_list = []
 
-        #Iterate through objects
-        for obj in objects:
-            #If object has a fighter instance, and is less than 2 tiles away from self and is not self or player
-            if obj.fighter and obj.distance_to(self) <= 2 and obj != player and obj != self:
-                #Add this object to the list
-                last_list.append(obj)
-
-        #Mark all is list as blocked
-        for i in last_list:
-            libtcod.map_set_properties(fov_map, i.x, i.y, True, False)
-
-        #Old line (paths correctly but no multiple monsters in tunnels):
-        #self.path = libtcod.path_new_using_map(fov_map)
         self.path = libtcod.path_new_using_function(MAP_WIDTH, MAP_HEIGHT, path_func, self, 1)
 
         #Compute path to target
@@ -253,15 +238,10 @@ class Object:
             #Walk the path
             path_x, path_y = libtcod.path_get(self.path, 0)
 
-            print map[path_x][path_y].blocked
-
             #normalise it to 1 length (preserving direction), then round it and
             #convert to integer so the movement is restricted to the map grid
             dx = path_x - self.x
             dy = path_y - self.y
-
-            print dx
-            print dy
 
 
         else:
@@ -274,9 +254,6 @@ class Object:
             dy = int(round(dy / distance))
 
         self.move(dx, dy)
-
-        for i in last_list:
-            libtcod.map_set_properties(fov_map, i.x, i.y, True, True)
 
     def distance_to(self, other):
         #return the distance to another object
@@ -828,7 +805,7 @@ def monster_move_or_attack(monster):
             monster.move_towards(player.x, player.y)
             #As monster has moved, check_run effects for that monster
             check_run_effects(monster)
-            print 'Pathing'
+
 
         #close enough, attack! (if the player is still alive.)
         elif player.fighter.hp > 0:
@@ -884,15 +861,22 @@ def path_func(xFrom, yFrom, xTo, yTo, self):
 
     global map
 
+    #if libtcod.path_size(self.path) >= 10:
+        #return 0.0
+
+    #Iterate through objects
+    for obj in objects:
+        #If object has a fighter instance, and is less than 2 tiles away from self and is not self or player
+        if obj.fighter and obj.distance_to(self) <= 1:
+            #Add this object to the list
+            if obj.distance_to(player) <= 1 and obj.x == xTo and obj.y == yTo:
+                return 0.0
+
     if libtcod.map_is_walkable(fov_map, xTo, yTo) == True: #open space
         return 1.0 #All good!
 
     elif libtcod.map_is_walkable(fov_map, xTo, yTo) == False:  #wall
         return 0.0 #Not good!
-
-    elif map[xTo][yTo].explored == False:
-        return 0.0
-
 
 
     #if self.distance_to(player) <= 1:
