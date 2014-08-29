@@ -134,7 +134,7 @@ For alpha release:
     - Add ranged combat if not too complex. 
         (0 days - Too complex before alpha, planned out in scrapbook.py.)
     - Implement pathfinding fix
-        (IN PROGRESS - Decided to implement callbacks into pathfinding for future ease, but proving difficult. Ongoing.
+        (DONE - Was a tiny mistake in path_func, still don't entirely understand the error though.)
     - Add simple win condition for alpha release purposes
         (2 days - Will need to create win_screen() on win, make dungeon depth 10 levels, lerp wall/floor color each level to get darker/lighter.)
     

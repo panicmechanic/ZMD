@@ -251,7 +251,7 @@ class Object:
         if not libtcod.path_is_empty(self.path):
 
             #Walk the path
-            path_x, path_y = libtcod.path_walk(self.path, 0)
+            path_x, path_y = libtcod.path_get(self.path, 0)
 
             print map[path_x][path_y].blocked
 
@@ -889,6 +889,11 @@ def path_func(xFrom, yFrom, xTo, yTo, self):
 
     elif libtcod.map_is_walkable(fov_map, xTo, yTo) == False:  #wall
         return 0.0 #Not good!
+
+    elif map[xTo][yTo].explored == False:
+        return 0.0
+
+
 
     #if self.distance_to(player) <= 1:
        #libtcod.map_set_properties(fov_map, self.x, self.y, True, False)
