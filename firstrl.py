@@ -3,6 +3,7 @@ import math
 import textwrap
 import shelve
 import weaponchances
+import monsterchances
 import time
 from weaponchances import create_item
 
@@ -226,6 +227,22 @@ class Object:
         #This creates the path needed, in seven trials this is done in play_game loop,
         # load_game() and use() functions.
 
+        list = []
+        #Iterate through objects
+        for obj in objects:
+            #If object has a fighter instance, and is less than 2 tiles away from self and is not self or player
+            if obj.fighter and obj.distance_to(self) < 2 and obj != self and obj != player:
+                list.append(obj)
+
+            #If object is a fountain and is not blocked already, block it.
+            elif obj.name == 'Fountain' and libtcod.map_is_walkable(fov_map, obj.x, obj.y):
+                libtcod.map_set_properties(fov_map, obj.x, obj.y, True, False)
+
+        for i in list:
+            libtcod.map_set_properties(fov_map, i.x, i.y, True, False)
+
+        print len(list)
+
 
         self.path = libtcod.path_new_using_function(MAP_WIDTH, MAP_HEIGHT, path_func, self, 1)
 
@@ -254,6 +271,12 @@ class Object:
             dy = int(round(dy / distance))
 
         self.move(dx, dy)
+
+        for i in list:
+            libtcod.map_set_properties(fov_map, i.x, i.y, True, True)
+
+
+
 
     def distance_to(self, other):
         #return the distance to another object
@@ -858,32 +881,16 @@ def monster_move_or_attack(monster):
             return 'cancelled'
 
 def path_func(xFrom, yFrom, xTo, yTo, self):
-
     global map
 
-    #if libtcod.path_size(self.path) >= 10:
-        #return 0.0
-
-    #Iterate through objects
-    for obj in objects:
-        #If object has a fighter instance, and is less than 2 tiles away from self and is not self or player
-        if obj.fighter and obj.distance_to(self) <= 1:
-            #Add this object to the list
-            if obj.distance_to(player) <= 1 and obj.x == xTo and obj.y == yTo:
-                return 0.0
+    if self.distance_to(player) < 6 and libtcod.path_size(self.path) >= 10:
+        return 0.0
 
     if libtcod.map_is_walkable(fov_map, xTo, yTo) == True: #open space
         return 1.0 #All good!
 
     elif libtcod.map_is_walkable(fov_map, xTo, yTo) == False:  #wall
         return 0.0 #Not good!
-
-
-    #if self.distance_to(player) <= 1:
-       #libtcod.map_set_properties(fov_map, self.x, self.y, True, False)
-
-    #elif self.distance_to(player) >= 2:
-        #libtcod.map_set_properties(fov_map, self.x, self.y, True, True)
 
 def roll(dice, sides):
     result = 0
@@ -1104,134 +1111,57 @@ def place_objects(room):
     monster_chances['Bull'] = from_dungeon_level([[10, 6], [40, 7], [10, 9]])
     monster_chances['Centaur'] = from_dungeon_level([[5, 6], [20, 7], [30, 9]])
 
-    #maximum number of items per room
-    max_items = from_dungeon_level([[3, 1], [6, 4], [8, 6]])
 
-    #minimum number of item attempts per room
-    min_items = from_dungeon_level([[1, 1], [2, 4], [3, 6]])
+
+    #choose random number of monsters
+
+    #maximum number of monsters per room
+    max_monsters = from_dungeon_level([[2, 1], [3, 4], [5, 6]])
+
+    #TODO: Min_monsters to create minimum danger level.
 
     #choose random number of monsters
     num_monsters = libtcod.random_get_int(0, 0, max_monsters)
-
-    #center coordinates of new room for placing bosses
-    (new_x, new_y) = room.center()
 
     for i in range(num_monsters):
         #choose random spot for this monster
         x = libtcod.random_get_int(0, room.x1 + 1, room.x2 - 1)
         y = libtcod.random_get_int(0, room.y1 + 1, room.y2 - 1)
 
-        #only place it if a tile is not blocked
+        #only place it if the tile is not blocked
         if not is_blocked(x, y):
-            choice = random_choice(monster_chances)
-            if choice == 'Dog':
-                #create an dog
-                fighter_component = Fighter(hp=10, defense_dice=1, defense_sides=5, power_dice=1, power_sides=8, evasion_dice=1, evasion_sides=4, accuracy_dice=2, accuracy_sides=4, xp=400, speed=10,
-                                            death_function=monster_death)
-                ai_component = BasicMonsterAI()
-                monster = Object(x, y, 'd', 'Dog', libtcod.orange, blocks=True, fighter=fighter_component,
-                                 ai=ai_component, description='A large, brown muscular looking dog. His eyes glow red.')
 
-            elif choice == 'Snake':
-                #create a Snake
-                effect_component = Effect('poisoned', duration=5, damage_by_turn=2, base_duration=5)
-                effect_roll = 20
-                fighter_component = Fighter(hp=8, defense_dice=1, defense_sides=3, power_sides=5, power_dice=1, xp=100, speed=10, evasion_dice=1, evasion_sides=3, accuracy_dice=2, accuracy_sides=2, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
-                ai_component = BasicMonsterAI()
-                monster = Object(x, y, 's', 'Snake', libtcod.lime, blocks=True, fighter=fighter_component,
-                                 ai=ai_component,
-                                 description='A light green snake covered in thousands of small, glistening scales, it looks poisonous.')
+            # Set weaponchances functions and variables to work
+            # How to do this in modules?
+            weaponchances.dungeon_level = dungeon_level
+            weaponchances.objects = objects
+            weaponchances.Equipment = Equipment
+            weaponchances.Object = Object
+            weaponchances.Item = Item
+            weaponchances.hunger_level = hunger_level
+            weaponchances.cast_heal = cast_heal
+            weaponchances.cast_lightning = cast_lightning
+            weaponchances.cast_confuse = cast_confuse
+            weaponchances.cast_fireball = cast_fireball
+            weaponchances.message = message
 
-            elif choice == 'Imp':
-                #create an Imp
-                fighter_component = Fighter(hp=5, defense=10, power=7, xp=50, ev=8, acc=9, speed=9,
-                                            death_function=monster_death)
-                ai_component = BasicMonsterAI()
-                monster = Object(x, y, 'i', 'Imp', libtcod.darker_green, blocks=True, fighter=fighter_component,
-                                 ai=ai_component, description='A green Imp, skilled in defensive fighting.')
+            #Set monsterchances stuff
+            monsterchances.dungeon_level = dungeon_level
+            monsterchances.objects = objects
+            monsterchances.Fighter = Fighter
+            monsterchances.Object = Object
+            monsterchances.message = message
+            monsterchances.BasicMonsterAI = BasicMonsterAI
+            monsterchances.monster_death = monster_death
+            monsterchances.Effect = Effect
 
-            elif choice == 'Eagle':
-                #create an eagle
-                fighter_component = Fighter(hp=100, defense=3, power=10, xp=200, ev=20, acc=10, speed=10,
-                                            death_function=monster_death)
-                ai_component = BasicMonsterAI()
-                monster = Object(x, y, 'e', 'Eagle', libtcod.darker_sepia, blocks=True, fighter=fighter_component,
-                                 ai=ai_component,
-                                 description='A huge brown eagle, his muscular wings and razor sharp beak look threatening.')
+            monsterchances.create_monster(x, y)
 
-            elif choice == 'Firefly':
-                #create a glow fly
-                effect_component = Effect('Paralyzed', duration=5, paralyzed=True, base_duration=5)
-                effect_roll = 5
-                fighter_component = Fighter(hp=8, defense_dice=1, defense_sides=3, power_dice=3, power_sides=3, xp=100, speed=9, evasion_dice=1, evasion_sides=3, accuracy_dice=2, accuracy_sides=2, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
-                ai_component = BasicMonsterAI()
-                monster = Object(x, y, 'f', 'Firefly', libtcod.light_green, blocks=True, fighter=fighter_component,
-                                 ai=ai_component,
-                                 description='A small paralytic firefly. He moves very fast, but looks weak.')
+    #maximum number of items per room
+    max_items = from_dungeon_level([[3, 1], [6, 4], [8, 6]])
 
-            elif choice == 'Pygmy':
-                #create a pygmy
-                fighter_component = Fighter(hp=120, defense=6, power=8, xp=250, ev=20, acc=10, speed=10,
-                                            death_function=monster_death)
-                ai_component = BasicMonsterAI()
-                monster = Object(x, y, 'p', 'Chieftain', libtcod.darkest_pink, blocks=True, fighter=fighter_component,
-                                 ai=ai_component,
-                                 description='A Pygmy chieftan, a particularly strong Pygmy who guides the others in matters of warfare. He looks much stronger than the others.')
-                #Generate random number of pygmys
-                num_pygmys = libtcod.random_get_int(0, 1, 6)
-                for i in range(num_pygmys):
-                    #choose random spot for baby boars
-                    x = libtcod.random_get_int(0, monster.x + 2, monster.x - 2)
-                    y = libtcod.random_get_int(0, monster.y + 2, monster.y - 2)
-                    if not is_blocked(x, y):
-                        #create other pygmys
-                        fighter_component = Fighter(hp=100, defense=4, power=4, xp=200, ev=20, acc=10, speed=10,
-                                                    death_function=monster_death)
-                        ai_component = BasicMonsterAI()
-                        other_pygmy = Object(x, y, 'p', 'Pygmy', libtcod.dark_pink, blocks=True,
-                                             fighter=fighter_component, ai=ai_component,
-                                             description='A member of an ancient tribe of warrior midgets, they rarely hunt alone. They carry long spears. His chieftan is sure to be nearby.')
-                        #append the little fuckers
-                        objects.append(other_pygmy)
-
-            elif choice == 'Goat':
-                #create a goat
-                fighter_component = Fighter(hp=140, defense=4, power=5, xp=60, ev=25, acc=10, speed=8,
-                                            death_function=monster_death)
-                ai_component = BasicMonsterAI()
-                monster = Object(x, y, 'g', 'Goat', libtcod.lighter_grey, blocks=True, fighter=fighter_component,
-                                 ai=ai_component,
-                                 description='A goat, with gnarled grey hair and wispy beard. He looks fast.')
-
-            elif choice == 'Bull':
-                #create a bull
-                fighter_component = Fighter(hp=200, defense=1, power=8, xp=250, ev=20, acc=10, speed=10,
-                                            death_function=monster_death)
-                ai_component = BasicMonsterAI()
-                monster = Object(x, y, chr(142), 'Bull', libtcod.light_flame, blocks=True, fighter=fighter_component,
-                                 ai=ai_component,
-                                 description='An enormous bull with two shining horns, they appear as if they have been polished. Perhaps by the bulls long rough tongue. He is extremely muscular and fast.')
-
-            elif choice == 'Crab':
-                #create a crab
-                fighter_component = Fighter(hp=50, defense=6, power=9, xp=50, ev=30, acc=10, speed=12,
-                                            death_function=monster_death)
-                ai_component = BasicMonsterAI()
-                monster = Object(x, y, 'c', 'Crab', libtcod.dark_yellow, blocks=True, fighter=fighter_component,
-                                 ai=ai_component,
-                                 description='A very large yellow crab, he skitters slowly sideways across the floor using his armored legs. He looks tough but slow.')
-
-            elif choice == 'Centaur':
-                #create a centaur
-                fighter_component = Fighter(hp=180, defense=7, power=10, xp=300, ev=20, acc=14, speed=9,
-                                            death_function=monster_death)
-                ai_component = BasicMonsterAI()
-                monster = Object(x, y, 'C', 'Centaur', libtcod.darker_magenta, blocks=True, fighter=fighter_component,
-                                 ai=ai_component,
-                                 description='A mythical creature; half human, half horse. He has the speed of a beast, and the dexterity of a man.')
-
-            objects.append(monster)
-
+    #minimum number of item attempts per room
+    #min_items = from_dungeon_level([[1, 1], [2, 4], [3, 6]])
 
     #choose random number of items
     num_items = libtcod.random_get_int(0, 0, max_items)
@@ -1308,6 +1238,7 @@ def place_special_rooms():  #TODO: Redo the dungeon generation to allow for spec
             decy -= 2
             decoration = Object(decx, decy, chr(159), 'Fountain', libtcod.lighter_blue, blocks=True, decorative=True, always_visible=True)
             objects.append(decoration)
+
 
 
 def render_bar(panel, x, y, total_width, name, value, maximum, bar_color, back_color):
@@ -2253,8 +2184,12 @@ def handle_keys():
             if key_char == '/':
                 for y in range(MAP_HEIGHT):
                     for x in range(MAP_WIDTH):
-                        if map[x][y].blocked == True:
+                        if map[x][y].blocked == True or libtcod.map_is_walkable(fov_map, x, y) == False:
                             map[x][y].debug_blocked = True
+
+                        elif map[x][y].blocked == True or libtcod.map_is_walkable(fov_map, x, y):
+                            map[x][y].debug_blocked = False
+
 
                 for obj in objects:
                     if libtcod.map_is_walkable(fov_map, obj.x, obj.y) == False:
@@ -2592,7 +2527,7 @@ def new_game():
     make_map()
     initialize_fov()
 
-    #This should eventuially be a one time if object.blocks = True and obj.fighter == None
+    #This should eventually be a one time if object.blocks = True and obj.fighter == None
     for obj in objects:
         if obj.name == 'Fountain':
             libtcod.map_set_properties(fov_map, obj.x, obj.y, True, False)

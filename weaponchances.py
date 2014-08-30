@@ -206,7 +206,7 @@ def random_item():  #all item chance totals for a subtype will be self contained
             item_chances['obsidian boots of defense'] = from_dungeon_level([[1, 6]])
 
     return item_chances
-    item_chances = {}
+
 
 
 def create_item(x, y):
@@ -506,6 +506,6 @@ def create_item(x, y):
     item.send_to_back()
     if choice == 'nothing':
         objects.remove(item)
-    item_chances = {}
+
 
     # - Fix eat_food being applied to the player every time a new map is made. Use debug on the eat)hunger function toi figure out why it's being called

@@ -116,7 +116,7 @@ For alpha release:
     - Fix current bugs: None
         (DONE - All fixed.)
     - Move monster gen to new file and add enough monsters for 10 levels
-        (1 day - Simple enough)
+        (PARTIAL - Moved to new file, need to update monsters with new fighter attributes and add some more monsters.)
     - Add 2 more mutations
         (2 days - 1 for each as still no ideas, look at sil's abilities for inspiration and tomes abilities.
             Ideas:
@@ -305,7 +305,8 @@ Make monster drops a chance of a next level item, build an anticipation. http://
     
     e.g potion of permanence/removal - make current effects permanent/remove all effects (rare)  
     
-    e.g. potion of
+- Mutations should be either passive or active (Ares Roar(a) or Ares blessing(+1 power die sides)(p))
+- Switch debug to turn on/off states that will allow additions to functions. 
 
 
 #Done:
