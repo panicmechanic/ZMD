@@ -1,7 +1,6 @@
 import libtcodpy as libtcod
 import weaponchances
 
-
 def random_monster():
 
     #chance of each monsters
@@ -25,8 +24,7 @@ def create_monster(x, y):
 
     if choice == 'Dog':
         #create an dog
-        fighter_component = Fighter(hp=10, defense_dice=1, defense_sides=5, power_dice=1, power_sides=8, evasion_dice=1, evasion_sides=4, accuracy_dice=2, accuracy_sides=4, xp=400, speed=10,
-                                    death_function=monster_death)
+        fighter_component = Fighter(hp=10, defense_dice=1, defense_sides=5, power_dice=1, power_sides=10, evasion_dice=1, evasion_sides=4, accuracy_dice=2, accuracy_sides=4, xp=40, speed=10, death_function=monster_death)
         ai_component = BasicMonsterAI()
         monster = Object(x, y, 'd', 'Dog', libtcod.orange, blocks=True, fighter=fighter_component,
                          ai=ai_component, description='A large, brown muscular looking dog. His eyes glow red.')
@@ -35,24 +33,22 @@ def create_monster(x, y):
         #create a Snake
         effect_component = Effect('poisoned', duration=5, damage_by_turn=2, base_duration=5)
         effect_roll = 20
-        fighter_component = Fighter(hp=8, defense_dice=1, defense_sides=3, power_sides=5, power_dice=1, xp=100, speed=10, evasion_dice=1, evasion_sides=3, accuracy_dice=2, accuracy_sides=2, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
+        fighter_component = Fighter(hp=20, defense_dice=1, defense_sides=4, power_dice=1, power_sides=9, evasion_dice=1, evasion_sides=8, accuracy_dice=2, accuracy_sides=6, xp=60, speed=8, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
         ai_component = BasicMonsterAI()
         monster = Object(x, y, 's', 'Snake', libtcod.lime, blocks=True, fighter=fighter_component,
                          ai=ai_component,
-                         description='A light green snake covered in thousands of small, glistening scales, it looks poisonous.')
+                         description='A light green snake covered in thousands of small, glistening scales, it looks fast and poisonous.')
 
     elif choice == 'Imp':
         #create an Imp
-        fighter_component = Fighter(hp=5, defense=10, power=7, xp=50, ev=8, acc=9, speed=9,
-                                    death_function=monster_death)
+        fighter_component = Fighter(hp=25, defense_dice=2, defense_sides=3, power_dice=2, power_sides=8, evasion_dice=1, evasion_sides=6, accuracy_dice=2, accuracy_sides=6, xp=80, speed=10, death_function=monster_death)
         ai_component = BasicMonsterAI()
         monster = Object(x, y, 'i', 'Imp', libtcod.darker_green, blocks=True, fighter=fighter_component,
                          ai=ai_component, description='A green Imp, skilled in defensive fighting.')
 
     elif choice == 'Eagle':
         #create an eagle
-        fighter_component = Fighter(hp=100, defense=3, power=10, xp=200, ev=20, acc=10, speed=10,
-                                    death_function=monster_death)
+        fighter_component = Fighter(hp=40, defense_dice=2, defense_sides=8, power_dice=3, power_sides=6, evasion_dice=1, evasion_sides=7, accuracy_dice=3, accuracy_sides=8, xp=120, speed=10, death_function=monster_death)
         ai_component = BasicMonsterAI()
         monster = Object(x, y, 'e', 'Eagle', libtcod.darker_sepia, blocks=True, fighter=fighter_component,
                          ai=ai_component,
@@ -61,17 +57,16 @@ def create_monster(x, y):
     elif choice == 'Firefly':
         #create a glow fly
         effect_component = Effect('Paralyzed', duration=5, paralyzed=True, base_duration=5)
-        effect_roll = 5
-        fighter_component = Fighter(hp=8, defense_dice=1, defense_sides=3, power_dice=3, power_sides=3, xp=100, speed=9, evasion_dice=1, evasion_sides=3, accuracy_dice=2, accuracy_sides=2, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
+        effect_roll = 10
+        fighter_component = Fighter(hp=10, defense_dice=1, defense_sides=2, power_dice=1, power_sides=8, evasion_dice=1, evasion_sides=4, accuracy_dice=2, accuracy_sides=10, xp=100, speed=5, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
         ai_component = BasicMonsterAI()
         monster = Object(x, y, 'f', 'Firefly', libtcod.light_green, blocks=True, fighter=fighter_component,
                          ai=ai_component,
-                         description='A small paralytic firefly. He moves very fast, but looks weak.')
+                         description='A small paralytic firefly. He moves very fast, but looks weak.', )
 
     elif choice == 'Pygmy':
         #create a pygmy
-        fighter_component = Fighter(hp=120, defense=6, power=8, xp=250, ev=20, acc=10, speed=10,
-                                    death_function=monster_death)
+        fighter_component = Fighter(hp=70, defense_dice=4, defense_sides=6, power_dice=3, power_sides=10, evasion_dice=2, evasion_sides=8, accuracy_dice=3, accuracy_sides=8, xp=200, speed=10, death_function=monster_death)
         ai_component = BasicMonsterAI()
         monster = Object(x, y, 'p', 'Chieftain', libtcod.darkest_pink, blocks=True, fighter=fighter_component,
                          ai=ai_component,
@@ -84,8 +79,7 @@ def create_monster(x, y):
             y = libtcod.random_get_int(0, monster.y + 2, monster.y - 2)
             if not is_blocked(x, y):
                 #create other pygmys
-                fighter_component = Fighter(hp=100, defense=4, power=4, xp=200, ev=20, acc=10, speed=10,
-                                            death_function=monster_death)
+                fighter_component = Fighter(hp=50, defense_dice=3, defense_sides=6, power_dice=2, power_sides=10, evasion_dice=1, evasion_sides=8, accuracy_dice=3, accuracy_sides=6, xp=150, speed=10, death_function=monster_death)
                 ai_component = BasicMonsterAI()
                 other_pygmy = Object(x, y, 'p', 'Pygmy', libtcod.dark_pink, blocks=True,
                                      fighter=fighter_component, ai=ai_component,
@@ -95,38 +89,34 @@ def create_monster(x, y):
 
     elif choice == 'Goat':
         #create a goat
-        fighter_component = Fighter(hp=140, defense=4, power=5, xp=60, ev=25, acc=10, speed=8,
-                                    death_function=monster_death)
+        fighter_component = Fighter(hp=70, defense_dice=1, defense_sides=8, power_dice=4, power_sides=6, evasion_dice=3, evasion_sides=6, accuracy_dice=5, accuracy_sides=4, xp=180, speed=10, death_function=monster_death)
         ai_component = BasicMonsterAI()
         monster = Object(x, y, 'g', 'Goat', libtcod.lighter_grey, blocks=True, fighter=fighter_component,
                          ai=ai_component,
-                         description='A goat, with gnarled grey hair and wispy beard. He looks fast.')
+                         description='A goat, with gnarled grey hair and wispy beard. He looks fast and tough.')
 
     elif choice == 'Bull':
         #create a bull
-        fighter_component = Fighter(hp=200, defense=1, power=8, xp=250, ev=20, acc=10, speed=10,
-                                    death_function=monster_death)
+        fighter_component = Fighter(hp=100, defense_dice=1, defense_sides=10, power_dice=5, power_sides=8, evasion_dice=3, evasion_sides=5, accuracy_dice=4, accuracy_sides=5, xp=250, speed=8, death_function=monster_death)
         ai_component = BasicMonsterAI()
         monster = Object(x, y, chr(142), 'Bull', libtcod.light_flame, blocks=True, fighter=fighter_component,
                          ai=ai_component,
                          description='An enormous bull with two shining horns, they appear as if they have been polished. Perhaps by the bulls long rough tongue. He is extremely muscular and fast.')
 
-    elif choice == 'Crab':
+    elif choice == 'Giant Crab':
         #create a crab
-        fighter_component = Fighter(hp=50, defense=6, power=9, xp=50, ev=30, acc=10, speed=12,
-                                    death_function=monster_death)
+        fighter_component = Fighter(hp=100, defense_dice=5, defense_sides=10, power_dice=3, power_sides=5, evasion_dice=1, evasion_sides=4, accuracy_dice=5, accuracy_sides=6, xp=125, speed=12, death_function=monster_death)
         ai_component = BasicMonsterAI()
-        monster = Object(x, y, 'c', 'Crab', libtcod.dark_yellow, blocks=True, fighter=fighter_component,
+        monster = Object(x, y, 'c', 'Giant Crab', libtcod.dark_yellow, blocks=True, fighter=fighter_component,
                          ai=ai_component,
-                         description='A very large yellow crab, he skitters slowly sideways across the floor using his armored legs. He looks tough but slow.')
+                         description='A very, very large yellow crab, he skitters slowly sideways across the floor using his armored legs. He looks tough but slow.')
 
     elif choice == 'Centaur':
         #create a centaur
-        fighter_component = Fighter(hp=180, defense=7, power=10, xp=300, ev=20, acc=14, speed=9,
-                                    death_function=monster_death)
+        fighter_component = Fighter(hp=125, defense_dice=1, defense_sides=5, power_dice=5, power_sides=5, evasion_dice=4, evasion_sides=7, accuracy_dice=6, accuracy_sides=10, xp=300, speed=9, death_function=monster_death)
         ai_component = BasicMonsterAI()
         monster = Object(x, y, 'C', 'Centaur', libtcod.darker_magenta, blocks=True, fighter=fighter_component,
                          ai=ai_component,
-                         description='A mythical creature; half human, half horse. He has the speed of a beast, and the dexterity of a man.')
+                         description='A mythical creature; half human, half horse. He is incredibly accurate and quite fast.')
 
     objects.append(monster)

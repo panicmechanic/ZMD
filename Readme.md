@@ -175,16 +175,24 @@ For alpha release:
         
     28/08/14 Pathfinding is almost fixed, one bug still exists, but is too severe to ignore so work continues. Also 
                 added debug keys for seeing blocked and pathed tiles. Fixed warhammer elec bug.
-                Revamped torch for mutations tomorrow. Changed mutation effect attributes to be non specific.
-                
+                Revamped torch for mutations tomorrow. Changed mutation effect attributes to be non specific.                
         TOTAL DAYS LEFT = 6.5 (7)
         ALPHA RELEASE DATE = 4th September
+        
+    30/08/14 Created monsterchances.py, updated monsters and item in weaponchances.py with new attributes.
+                    
+        TOTAL DAYS LEFT = 4.5 (5)
+        ALPHA RELEASE DATE = 5th September
         
     
         
 #Remaining major TODO (in rough order):
 
 - More groups
+- Give weapons a strength requirement (maybe? this might make it too complex, but would give each weapon category a use 
+
+    e.g warhammers need strength and are powerful, axes need dex and are fast, etc. etc.
+    
 - Add new potions for new skills
 - Would be really cool to find thematic ways to give the player chances to train. This could remove the need for xp entirely.
     
@@ -307,6 +315,7 @@ Make monster drops a chance of a next level item, build an anticipation. http://
     
 - Mutations should be either passive or active (Ares Roar(a) or Ares blessing(+1 power die sides)(p))
 - Switch debug to turn on/off states that will allow additions to functions. 
+- Use imported weaponchances/monsterchances items in firstrl as jumping off point for breaking it up into modules
 
 
 #Done:

@@ -1446,38 +1446,6 @@ def make_map():
     objects.append(stairs)
     stairs.send_to_back()  # so it's drawn below the monsters
 
-    #Roll for boss and create if roll >= 7
-    roll = libtcod.random_get_int(0, 0, 10)
-    if roll >= 6 and dungeon_level == 2:
-        boar_mother(new_x, new_y)
-
-
-def boar_mother(x, y):
-    global map, rooms
-    fighter_component = Fighter(hp=35, defense=2, power=7, xp=400, ev=20, acc=10, speed=10,
-                                death_function=monster_death)
-    ai_component = BasicMonsterAI()
-    boar = Object(x, y, 'B', 'Giant Boar Mother', libtcod.darker_red, blocks=True, fighter=fighter_component,
-                  ai=ai_component, description='A big angry ')
-    #Generate random number of baby boars
-    num_babies = libtcod.random_get_int(0, 15, 35)
-    #append boar before it is used to generate babies
-    objects.append(boar)
-    for i in range(num_babies):
-        #choose random spot for baby boars
-        x = libtcod.random_get_int(0, boar.x + 2, boar.x - 2)
-        y = libtcod.random_get_int(0, boar.y + 2, boar.y - 2)
-        if not is_blocked(x, y):
-            #create baby boars
-            fighter_component = Fighter(hp=2, defense=0, power=3, xp=5, ev=1, acc=10, speed=10,
-                                        death_function=monster_death)
-            ai_component = BasicMonsterAI()
-            monster = Object(x, y, 'b', 'Baby boar', libtcod.darkest_red, blocks=True, fighter=fighter_component,
-                             ai=ai_component, description='A baby boar, how cute.')
-            #append the little fuckers
-            objects.append(monster)
-
-
 def menu(header, options, width):
     if len(options) > 26: raise ValueError('Cannot have a menu with more than 26 options.')
 
@@ -1905,7 +1873,7 @@ def display_damage(self):
         #For each char entry in list1, set a foreground colour, the character for that tile.
         #also increase count to reflect change
         for i in list1:
-            libtcod.console_set_default_foreground(con, libtcod.white)
+            libtcod.console_set_default_foreground(con, libtcod.yellow)
 
             libtcod.console_put_char(con, self.x + count, self.y, str(i), libtcod.BKGND_SCREEN)
             count += 1
@@ -2525,6 +2493,7 @@ def new_game():
     hunger_level = HUNGER_TOTAL
     #generate map
     make_map()
+
     initialize_fov()
 
     #This should eventually be a one time if object.blocks = True and obj.fighter == None
