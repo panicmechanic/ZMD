@@ -122,6 +122,9 @@ FOV_TORCHX = 0.0
 FOV_INIT = False
 NOISE = libtcod.noise_new(1)
 
+#Effects toggle
+HERMES_TIMESLIP = False
+
 
 
 class Tile:
@@ -765,8 +768,8 @@ class Effect:
     #an effect that can be applied to the character, yielding bonuses or nerfs
     def __init__(self, effect_name=None, duration=0, turns_passed=0, base_duration=0, strength_effect=0, power_effect_dice=0, dexterity_effect=0, stealth_effect=0, will_effect=0, power_effect_sides=0, defense_effect_dice=0, defense_effect_sides=0, evasion_effect_dice=0, evasion_effect_sides=0, accuracy_effect_dice=0, accuracy_effect_sides=-0,
                  max_hp_effect=0, applied_times=1, confused=False, burning=False, damage_by_turn=None, paralyzed=None,
-                 fatal_alert=False, mutation=False, m_loop=0, m_loop_turn=0, m_elec=False, m_count=0,
-                 m_trigger=5, m_damage=0, forget=False, blind=False):
+                 fatal_alert=False, mutation=False, m_loop=0, m_loop_turn=0, m_elec=False, m_h_timeslip=False, m_a_roar=False, m_count=0,
+                 m_trigger=5, m_damage=0, m_cast_effect=None, forget=False, blind=False):
         self.effect_name = effect_name
         self.duration = duration
         self.turns_passed = turns_passed
@@ -792,16 +795,22 @@ class Effect:
         self.fatal_alert = fatal_alert
         self.is_active = False
         self.mutation = mutation
-        #TODO: Remove references to elec except for m_elec to use these attributes for multiple mutations
+        #For counting down an active effect to become inactive - TODO: rename this to something clearer
         self.m_loop = m_loop
         self.m_loop_turn = m_loop_turn
+
         self.m_elec = m_elec
+        self.m_h_timeslip = m_h_timeslip
+        self.m_a_roar = m_a_roar
+        #Counting the charging of an effect
         self.m_count = m_count
         self.m_trigger = m_trigger
         self.m_damage = m_damage
+        self.m_cast_effect = m_cast_effect
 
         self.forget = forget
         self.blind = blind
+
 
 
 def monster_move_or_attack(monster):
@@ -893,7 +902,7 @@ def roll(dice, sides):
 
 def check_run_effects(obj):
     global fov_recompute
-    global TORCH_RADIUS, ELEC_FIRING
+    global TORCH_RADIUS, ELEC_FIRING, torch_color, torch_light_color
 
     # Check for effects, if there is 1 or more and their turns_passed value is not == duration, increase its turn_passed value by one, if it is equal to duration remove it.
     if obj.fighter.effects is not None:
@@ -968,6 +977,57 @@ def check_run_effects(obj):
 
             #If it is a mutation
             elif eff.mutation == True:
+
+                if eff.m_h_timeslip == True:
+
+                    #If the effect is active, changed by handle_keys calling an effect with 'a'.
+                    if eff.is_active == True:
+                        #If it's the first turn
+                        if eff.m_loop_turn == 0:
+                            message('You feel yourself speed up!')
+                            player.fighter.speed = player.fighter.speed/2
+                        eff.m_loop_turn += 1
+                        #If it's the last turn
+                        if eff.m_loop_turn > eff.m_loop:#
+                            message('You feel yourself slow back down.')
+                            eff.is_active = False
+                            player.fighter.speed = player.fighter.speed*2
+                            eff.m_loop_turn = 0
+                            eff.m_count = 0
+
+                    if eff.m_count < eff.m_trigger:
+                        eff.m_count += 1
+
+                #Ares roar: +1 power dice
+                if eff.m_a_roar == True:
+
+                    #If the effect is active, changed by handle_keys calling an effect with 'a'.
+                    if eff.is_active == True:
+                        #If it's the first turn
+                        if eff.m_loop_turn == 0:
+                            message('You let loose a dreadful roar of fury, your torch burns bright red!')
+                            player.fighter.base_power_dice += 1
+                            #Change torch colors
+                            torch_color = libtcod.red
+                            #darker torch color for foreground
+                            torch_light_color = libtcod.dark_flame
+                        eff.m_loop_turn += 1
+                        #If it's the last turn
+                        if eff.m_loop_turn > eff.m_loop:#
+                            message('You feel normal again.')
+                            eff.is_active = False
+                            player.fighter.base_power_dice -= 1
+                            eff.m_loop_turn = 0
+                            eff.m_count = 0
+                            #Change torch colors
+                            torch_color = libtcod.light_flame
+                            #darker torch color for foreground
+                            torch_light_color = libtcod.light_flame
+
+                    if eff.m_count < eff.m_trigger:
+                        eff.m_count += 1
+
+
                 if eff.m_elec == True:
                     #Each application halves the turns needed to charge
                     real_trigger = eff.m_trigger / eff.applied_times
@@ -1063,7 +1123,6 @@ def roll_for(list):
         roll_total += libtcod.random_get_int(0, 1, list[1])
 
     return roll_total
-
 
 def count_turns(turn_duration):  #Returns a true value when no_of_turns has passed
     global turn_increment, turn_5
@@ -1300,6 +1359,27 @@ def get_names_under_mouse():
 
     names = ', '.join(names)  #join the names, seperated by commas
     return names.capitalize()
+
+def mutation_menu(header):
+    charged_list = []
+    for e in player.fighter.effects:
+        if e.mutation == True and e.m_count >= e.m_trigger:
+            charged_list.append(e)
+
+    if len(charged_list) == 0:
+        options = ['You have no charged powers.']
+
+    elif len(charged_list) >= 1:
+        options = [e.effect_name for e in charged_list]
+
+    index = menu(header, options, INVENTORY_WIDTH)
+
+    #if an item was chosen, return it
+    if index is None or len(charged_list) == 0:
+        return None
+
+    effect = charged_list[index]
+    return effect
 
 
 def description_menu(header):
@@ -2122,6 +2202,15 @@ def handle_keys():
                 if chosen_item is not None:
                     chosen_item.use()
 
+            #Cast/apply mutations
+            if key_char == 'a':
+                effect = mutation_menu('Choose a charged power to apply')
+
+                if effect is not None:
+                    effect.is_active = True
+                    check_run_effects(player)
+                    render_all()
+
             #debug
             if key_char == '[':
                 player.fighter.hp = player.fighter.max_hp
@@ -2200,7 +2289,7 @@ def handle_keys():
                     '\nExperience to level up: ' + str(level_up_xp) + '\n\nHP: ' + str(
                         player.fighter.max_hp) + '\nStrength: ' + str(
                         player.fighter.strength) + '\nDexterity: ' + str(player.fighter.dexterity) + '\nStealth: ' + str(
-                        player.fighter.stealth) + '\nWill: ' + str(player.fighter.will), CHARACTER_SCREEN_WIDTH)
+                        player.fighter.stealth) + '\nWill: ' + str(player.fighter.will) + '\nSpeed: ' + str(player.fighter.speed), CHARACTER_SCREEN_WIDTH)
 
             return 'didnt-take-turn'
 
@@ -2247,7 +2336,7 @@ def player_rest():
             message('You rest to regain all of your health', libtcod.green)
 
 
-def get_player_effects():  # Get player effects and return them in pargraphed strings
+def get_player_effects():  # Get player effects and return them in paragraphed strings
 
     list_effects = []
     for e in player.fighter.effects:
@@ -2504,6 +2593,8 @@ def new_game():
     #player.fighter.add_effect(Effect('cruelly hurt', duration=5, damage_by_turn=10), 'Game developer')
     #player.fighter.add_effect(Effect('Defense buffed', duration=50, defense_effect_dice=2, defense_effect_sides=2), 'Game developer')
     #player.fighter.add_effect(Effect('Blind', duration=10, #blind=True), 'Game developer')
+
+    #player.fighter.add_effect(Effect('Hermes Timeslip', mutation=True, m_h_timeslip=True, m_cast_effect=cast_hermes_timeslip(), m_loop=10, m_trigger=30), 'Game developer')
     game_state = 'playing'
 
 
@@ -2765,14 +2856,14 @@ def check_level_up():
                 message('You sit, contemplating nothing, and everything. Your inner strength grows. (+1 Will)', libtcod.white)
 
         #Add a random mutation
-        level_mutate = (3, 7, 9, 12)
+        level_mutate = (2, 7, 9, 12)
         for i in level_mutate:
             if player.level == i:
                 #This will eventually be a pick a random mutation function
-                player.fighter.add_effect(
-                    Effect(effect_name='electric power', mutation=True, m_elec=True, m_trigger=125,
-                           m_damage=150),
-                    'For your valiant effort you have earned the gods favour, they convene and offer you')
+                #player.fighter.add_effect(Effect(effect_name='electric power', mutation=True, m_elec=True, m_trigger=125, m_damage=150), 'For your valiant effort you have earned the gods favour, they convene and offer you')
+
+                #player.fighter.add_effect(Effect('Hermes Timeslip', mutation=True, m_h_timeslip=True, m_loop=25, m_trigger=100), 'The gods convene and offer you ')
+                player.fighter.add_effect(Effect('Ares Roar', mutation=True, m_a_roar=True, m_loop=10, m_trigger=10), 'The gods convene and offer you')
 
 
 def random_choice_index(chances):  #choose one option from list of chances, returning its index

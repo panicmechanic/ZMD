@@ -24,7 +24,7 @@ def create_monster(x, y):
 
     if choice == 'Dog':
         #create an dog
-        fighter_component = Fighter(hp=10, defense_dice=1, defense_sides=5, power_dice=1, power_sides=10, evasion_dice=1, evasion_sides=4, accuracy_dice=2, accuracy_sides=4, xp=40, speed=10, death_function=monster_death)
+        fighter_component = Fighter(hp=10, defense_dice=1, defense_sides=5, power_dice=1, power_sides=10, evasion_dice=1, evasion_sides=4, accuracy_dice=2, accuracy_sides=4, xp=400, speed=10, death_function=monster_death)
         ai_component = BasicMonsterAI()
         monster = Object(x, y, 'd', 'Dog', libtcod.orange, blocks=True, fighter=fighter_component,
                          ai=ai_component, description='A large, brown muscular looking dog. His eyes glow red.')

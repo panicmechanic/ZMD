@@ -88,18 +88,17 @@ Damage player 10 hit points - '#'
         Shadow training (stealth)- Improve stealth, defense improve speed
         Meditation (will)        - Improve accuracy, perception checks, skill helps mutations
               
-- Fix pathing to walk as close as possible if in fov and path is blocked.***
-- Torch colours and back/fore colours are still not displayed right, check all values.
+
+
 - Figure out how to make color_flash work
 - Add description to box with auto wrap
 - Give description window and character/level up window borders.
-
-- go_to_last_seen functionality is broken.    
 - Make inventory a combination of equipped and other inventory
 - Move passable set from monster_move_or_attack() to move()
 - Create an extra map to store pathfinding in without monster blocks.
 - Add an effect to increase stealth for every adjacent wall to player - sneaking   
 - Seems I can't apply an effect to monsters? (When attempting to apply burning effect to monsters with cast_fireball())
+
 
 #Alpha TODO:
 
@@ -116,12 +115,12 @@ For alpha release:
     - Fix current bugs: None
         (DONE - All fixed.)
     - Move monster gen to new file and add enough monsters for 10 levels
-        (Done - Moved to new file, updated monsters + items with new attributes. Need to add more monsters
-    - Add 2 more mutations
-        (2 days - 1 for each as still no ideas, look at sil's abilities for inspiration and tomes abilities.
+        (DONE - Moved to new file, updated monsters + items with new attributes. Need to add more monsters
+    - Add 1 more mutations
+        (DONE - 1 for each as still no ideas, look at sil's abilities for inspiration and tomes abilities.
             Ideas:
-            Hermes Timeslip - Doubles your speed for 10 turns (lvl1)
-            Ares roar - Gives you an extra power die for 5 turns (lvl1)
+            Hermes Timeslip - Doubles your speed for 10 turns (lvl1) ADDED
+            Ares roar - Gives you an extra power die for 5 turns (lvl1) ADDED
             Apollo's Blessing - Doubles your stealth for 200 turns (lvl1)
             How to order these without having ten keys? A single key that brings up a menu if more than one is charged?
             Should change the torch color for some of these "Your torch glows red.."
@@ -180,15 +179,21 @@ For alpha release:
         ALPHA RELEASE DATE = 4th September
         
     30/08/14 Created monsterchances.py, updated monsters and item in weaponchances.py with new attributes.
-                Still need to add more monsters.
-                    
+                Still need to add more monsters. Pathfinding was fixed (almost entirely this time!).                    
         TOTAL DAYS LEFT = 4.5 (5)
         ALPHA RELEASE DATE = 5th September
+        
+    31/08/14 Added hermes timeslip mutation and Ares roar, working on creating systems necessary to support 
+                passive/active mutations, will need an effect attribute to specify which. 
+                Also made torch color change with ares roar, will be useful for illustrating effects clearly.                
+        TOTAL DAYS LEFT = 2.5 (3)
+        ALPHA RELEASE DATE = 3rd September
         
     
         
 #Remaining major TODO (in rough order):
 
+- Tidy up code, game is starting to feel sluggish.
 - More groups
 - Give weapons a strength requirement (maybe? this might make it too complex, but would give each weapon category a use 
 
@@ -321,6 +326,14 @@ Make monster drops a chance of a next level item, build an anticipation. http://
 - Mutations should be either passive or active (Ares Roar(a) or Ares blessing(+1 power die sides)(p))
 - Switch debug to turn on/off states that will allow additions to functions. 
 - Use imported weaponchances/monsterchances items in firstrl as jumping off point for breaking it up into modules
+- Fire system - check here: http://doryen.eptalys.net/2010/11/treeburners-fire-propagation/
+- Implement some knid of better gui to show active/passive mutations, maybe a loading icon illustrating length of time until cooldown.
+    
+    Or it could be another seperate list in mutations, and if charged they have an [C] next to their name
+    
+    Also need to add colors to mutation messages
+    
+- Page of mssages could be displayed same way as messages are currently, but with the height of window as the length of a 'page'
 
 
 #Done:
