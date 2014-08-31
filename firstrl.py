@@ -226,7 +226,6 @@ class Object:
 
         #This creates the path needed, in seven trials this is done in play_game loop,
         # load_game() and use() functions.
-
         list = []
         #Iterate through objects
         for obj in objects:
@@ -241,9 +240,6 @@ class Object:
         for i in list:
             libtcod.map_set_properties(fov_map, i.x, i.y, True, False)
 
-        print len(list)
-
-
         self.path = libtcod.path_new_using_function(MAP_WIDTH, MAP_HEIGHT, path_func, self, 1)
 
         #Compute path to target
@@ -254,6 +250,8 @@ class Object:
 
             #Walk the path
             path_x, path_y = libtcod.path_get(self.path, 0)
+            #If next step is blocked, like in
+            #if is_blocked(path_x, path_y):
 
             #normalise it to 1 length (preserving direction), then round it and
             #convert to integer so the movement is restricted to the map grid
@@ -274,9 +272,6 @@ class Object:
 
         for i in list:
             libtcod.map_set_properties(fov_map, i.x, i.y, True, True)
-
-
-
 
     def distance_to(self, other):
         #return the distance to another object
@@ -841,7 +836,7 @@ def monster_move_or_attack(monster):
         #if we have an old path, follow it
 
         #If path is not empty and the distance to the player is greater than 2
-        if monster.path != None and monster.path is not libtcod.path_is_empty(monster.path):
+        if monster.path != None and libtcod.path_is_empty(monster.path) == False:
 
             nextx, nexty = libtcod.path_walk(monster.path, True)
 
@@ -2607,10 +2602,9 @@ def shift_run(object, x, y):
 
     #Set a variable to check for in the while loop
     fov_danger = False
-
-
     #Create a count to vary speed of render
     count = 0
+    #Loop
     while fov_danger == False:
 
         #Check for monsters inside the players fov.
@@ -2618,20 +2612,16 @@ def shift_run(object, x, y):
             if libtcod.map_is_in_fov(fov_map, obj.x, obj.y) and obj.name != 'player' and obj.fighter and obj.fighter.hp > 0:
                 message('You see a ' + str(obj.name) + '.')
                 fov_danger=True
-
-        #TODO: Add an if statement to break if the player presses a key
-        #if key.vk != None:
-            #fov_danger=True
+                break
 
         #Trigger movement
-        if count >= 1:
+        if count >= 1 and fov_danger==False:
+
             #Move player
             object.move(x, y)
             #Loop for the players speed for his move
             check_by_turn(player.fighter.speed)
             check_run_effects(player)
-
-
 
             #Render FOV and flush console
             fov_recompute=True
@@ -2639,8 +2629,7 @@ def shift_run(object, x, y):
             libtcod.console_flush()
             count = 0
 
-
-
+        #TODO: Add an if statement to break if the player presses a key
 
         #If is blocked, stop the run
         if is_blocked(object.x + x, object.y + y):

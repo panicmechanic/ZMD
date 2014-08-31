@@ -116,7 +116,7 @@ For alpha release:
     - Fix current bugs: None
         (DONE - All fixed.)
     - Move monster gen to new file and add enough monsters for 10 levels
-        (PARTIAL - Moved to new file, need to update monsters with new fighter attributes and add some more monsters.)
+        (Done - Moved to new file, updated monsters + items with new attributes. Need to add more monsters
     - Add 2 more mutations
         (2 days - 1 for each as still no ideas, look at sil's abilities for inspiration and tomes abilities.
             Ideas:
@@ -134,7 +134,7 @@ For alpha release:
     - Add ranged combat if not too complex. 
         (0 days - Too complex before alpha, planned out in scrapbook.py.)
     - Implement pathfinding fix
-        (DONE - Was a tiny mistake in path_func, still don't entirely understand the error though.)
+        (DONE - Was a couple of mistakes in path_func.)
     - Add simple win condition for alpha release purposes
         (2 days - Will need to create win_screen() on win, make dungeon depth 10 levels, lerp wall/floor color each level to get darker/lighter.)
     
@@ -180,6 +180,7 @@ For alpha release:
         ALPHA RELEASE DATE = 4th September
         
     30/08/14 Created monsterchances.py, updated monsters and item in weaponchances.py with new attributes.
+                Still need to add more monsters.
                     
         TOTAL DAYS LEFT = 4.5 (5)
         ALPHA RELEASE DATE = 5th September
@@ -193,7 +194,11 @@ For alpha release:
 
     e.g warhammers need strength and are powerful, axes need dex and are fast, etc. etc.
     
-- Add new potions for new skills
+- Add new potions for new attributes
+
+- Create gas system - each tile has gas=0 attribute, when one tile has gas and the other doesnt make them even unless below a certain number
+- Shift_run needs a keypress to stop function
+- Water on map
 - Would be really cool to find thematic ways to give the player chances to train. This could remove the need for xp entirely.
     
     E.g you are captured by harpies, after disptaching them you save a prisoner who offers you a special type of 
