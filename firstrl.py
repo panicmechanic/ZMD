@@ -250,8 +250,6 @@ class Object:
 
             #Walk the path
             path_x, path_y = libtcod.path_get(self.path, 0)
-            #If next step is blocked, like in
-            #if is_blocked(path_x, path_y):
 
             #normalise it to 1 length (preserving direction), then round it and
             #convert to integer so the movement is restricted to the map grid
