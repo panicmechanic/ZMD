@@ -231,6 +231,7 @@ For alpha release:
     
     new rooms, and if map[x][y].run_block == True stop the shift_run. Will need to change
     the make_map function.
+- Improve menus, they are ugly ass.
 - Make inventory a list in the fighter class so monsters can have them.
 - Make monsters drop items in inventory based on a roll from inventory but use system like other 
 - Fix pathfinding- look at example code in library.

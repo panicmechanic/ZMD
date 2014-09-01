@@ -6,6 +6,7 @@ import weaponchances
 import monsterchances
 import time
 from weaponchances import create_item
+import prefab_map
 
 # BORDER VARIABLES
 
@@ -1449,85 +1450,132 @@ def make_map():
     global map, objects, stairs, dungeon_level, rooms
     #the list of objects with just the player
     objects = [player]
-    #fill map with "blocked" tiles
-    map = [[Tile(True)
-            for y in range(MAP_HEIGHT)]
-           for x in range(MAP_WIDTH)]
 
-    rooms = []
+    #If it's the last dungeon, load a special map
+    if dungeon_level == 1:
 
-    num_rooms = 0
+        map1 = prefab_map.lol
 
-    place_special_rooms()
+        lines = len(map1)
+        columns = len(map1[0])
+        print lines
+        print columns
 
-    for r in range(MAX_ROOMS):
-        #random width and height
-        w = libtcod.random_get_int(0, ROOM_MIN_SIZE, ROOM_MAX_SIZE)
-        h = libtcod.random_get_int(0, ROOM_MIN_SIZE, ROOM_MAX_SIZE)
-        #random position without going out of the boundaries of the map
-        x = libtcod.random_get_int(0, 0, MAP_WIDTH - w - 2)
-        y = libtcod.random_get_int(0, 0, MAP_HEIGHT - h - 2)
 
-        #"Rect" class makes rectangles easier to work with
-        new_room = Rect(x, y, w, h)
+        map = [[Tile(True)
+                for y in range(lines)]
+               for x in range(columns)]
 
-        #run through the other rooms and see if they intersect
-        failed = False
-        for other_room in rooms:
-            if new_room.intersect(other_room):
-                failed = True
-                break
 
-        if not failed:
-            #this means there are no intersections, so this room is valid
 
-            #"paint" it to the map's tiles
-            create_room(new_room)
+        for y in range(0, lines, 1):
+            for x in range(0, 52, 1):
+                print y
+                print x
+                print map1[x][y]
 
-            #add some contents to this room, such as monsters as long as it is not the first room
-            if num_rooms != 0:
-                place_objects(new_room)
 
-            #center coordinates of new room, will be useful later
-            (new_x, new_y) = new_room.center()
+                if map1[x][y] == " ": # wall
+                    map[x][y].block_sight = False
 
-            if num_rooms == 0:
-                #this is the first room, where the player starts at
-                player.x = new_x
-                player.y = new_y
-            else:
-                #all rooms after the first:
-                #connect it to the previous room with a tunnel
+                elif map1[x][y] == '@':
+                    player.x = x
+                    player.y = y
 
-                #center coordinates of previous room
-                (prev_x, prev_y) = rooms[num_rooms - 1].center()
+                elif map1[x][y] == 'C':
+                    fighter_component = Fighter(hp=125, defense_dice=1, defense_sides=5, power_dice=5, power_sides=5, evasion_dice=4, evasion_sides=7, accuracy_dice=6, accuracy_sides=10, xp=300, speed=9, death_function=monster_death)
+                    ai_component = BasicMonsterAI()
+                    monster = Object(x, y, 'C', 'Centaur', libtcod.darker_magenta, blocks=True, fighter=fighter_component, ai=ai_component, description='A mythical creature; half human, half horse. He is incredibly accurate and quite fast.')
+                    objects.append(monster)
+                elif map1[x][y] == 'M':
+                    fighter_component = Fighter(hp=125, defense_dice=1, defense_sides=5, power_dice=5, power_sides=5, evasion_dice=4, evasion_sides=7, accuracy_dice=6, accuracy_sides=10, xp=300, speed=9, death_function=monster_death)
+                    ai_component = BasicMonsterAI()
+                    monster = Object(x, y, 'C', 'Centaur', libtcod.darker_magenta, blocks=True, fighter=fighter_component, ai=ai_component, description='A mythical creature; half human, half horse. He is incredibly accurate and quite fast.')
+                    objects.append(monster)
+                elif map1[x][y] == 'Z':
+                    fighter_component = Fighter(hp=125, defense_dice=1, defense_sides=5, power_dice=5, power_sides=5, evasion_dice=4, evasion_sides=7, accuracy_dice=6, accuracy_sides=10, xp=300, speed=9, death_function=monster_death)
+                    ai_component = BasicMonsterAI()
+                    monster = Object(x, y, 'C', 'Centaur', libtcod.darker_magenta, blocks=True, fighter=fighter_component, ai=ai_component, description='A mythical creature; half human, half horse. He is incredibly accurate and quite fast.')
+                    objects.append(monster)
 
-                #draw a coin (random number that is either 0 or 1)
-                if libtcod.random_get_int(0, 0, 1) == 1:
-                    #first move horizontally, then vertically
-                    create_h_tunnel(prev_x, new_x, prev_y)
-                    create_v_tunnel(prev_y, new_y, new_x)
+    else:
+        #fill map with "blocked" tiles
+        map = [[Tile(True)
+                for y in range(MAP_HEIGHT)]
+               for x in range(MAP_WIDTH)]
+
+
+        rooms = []
+
+        num_rooms = 0
+
+        place_special_rooms()
+
+        for r in range(MAX_ROOMS):
+            #random width and height
+            w = libtcod.random_get_int(0, ROOM_MIN_SIZE, ROOM_MAX_SIZE)
+            h = libtcod.random_get_int(0, ROOM_MIN_SIZE, ROOM_MAX_SIZE)
+            #random position without going out of the boundaries of the map
+            x = libtcod.random_get_int(0, 0, MAP_WIDTH - w - 2)
+            y = libtcod.random_get_int(0, 0, MAP_HEIGHT - h - 2)
+
+            #"Rect" class makes rectangles easier to work with
+            new_room = Rect(x, y, w, h)
+
+            #run through the other rooms and see if they intersect
+            failed = False
+            for other_room in rooms:
+                if new_room.intersect(other_room):
+                    failed = True
+                    break
+
+            if not failed:
+                #this means there are no intersections, so this room is valid
+
+                #"paint" it to the map's tiles
+                create_room(new_room)
+
+                #add some contents to this room, such as monsters as long as it is not the first room
+                if num_rooms != 0:
+                    place_objects(new_room)
+
+                #center coordinates of new room, will be useful later
+                (new_x, new_y) = new_room.center()
+
+                if num_rooms == 0:
+                    #this is the first room, where the player starts at
+                    player.x = new_x
+                    player.y = new_y
                 else:
-                    #first move vertically, then horizontally
-                    create_v_tunnel(prev_y, new_y, prev_x)
-                    create_h_tunnel(prev_x, new_x, new_y)
+                    #all rooms after the first:
+                    #connect it to the previous room with a tunnel
 
-            #finally, append the new room to the list
-            rooms.append(new_room)
+                    #center coordinates of previous room
+                    (prev_x, prev_y) = rooms[num_rooms - 1].center()
 
-            # TODO: Get this to work, currently calls it's pick_up_function like eat_food does, have to
-            # Press 'y' over and over after starting a new game as It appears to hang.
+                    #draw a coin (random number that is either 0 or 1)
+                    if libtcod.random_get_int(0, 0, 1) == 1:
+                        #first move horizontally, then vertically
+                        create_h_tunnel(prev_x, new_x, prev_y)
+                        create_v_tunnel(prev_y, new_y, new_x)
+                    else:
+                        #first move vertically, then horizontally
+                        create_v_tunnel(prev_y, new_y, prev_x)
+                        create_h_tunnel(prev_x, new_x, new_y)
 
-            #roll_lever = libtcod.random_get_int(0, 0, 1)
-            #if roll_lever == 1:
-            #create_inscribed_lever(new_x-1, new_y+1)
+                #finally, append the new room to the list
+                rooms.append(new_room)
 
-            num_rooms += 1
+                #roll_lever = libtcod.random_get_int(0, 0, 1)
+                #if roll_lever == 1:
+                #create_inscribed_lever(new_x-1, new_y+1)
 
-    #create stairs at the center of the last room
-    stairs = Object(new_x, new_y, '>', 'stairs', libtcod.white, always_visible=True)
-    objects.append(stairs)
-    stairs.send_to_back()  # so it's drawn below the monsters
+                num_rooms += 1
+
+        #create stairs at the center of the last room
+        stairs = Object(new_x, new_y, '>', 'stairs', libtcod.white, always_visible=True)
+        objects.append(stairs)
+        stairs.send_to_back()  # so it's drawn below the monsters
 
 def menu(header, options, width, type):
 
@@ -2118,6 +2166,9 @@ def player_move_or_attack(dx, dy):
             player.move(dx, dy)
             fov_recompute = True
             outcome = 'moved'
+
+    print player.x
+    print player.y
 
 
     return outcome
