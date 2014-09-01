@@ -1462,37 +1462,40 @@ def make_map():
         print columns
 
 
-        map = [[Tile(True)
-                for y in range(lines)]
-               for x in range(columns)]
+        map = [[Tile(False)
+                for y in range(MAP_HEIGHT)]
+               for x in range(MAP_WIDTH)]
+
+        print map1[52][1]
 
 
+        for y in range(0, MAP_HEIGHT, 1):
+            for x in range(0, MAP_WIDTH, 1):
 
-        for y in range(0, lines, 1):
-            for x in range(0, 52, 1):
-                print y
                 print x
-                print map1[x][y]
+                print y
+                if map1[y][x] == "#": # wall
 
+                    map[x][y].block_sight = True
+                    map[x][y].blocked = True
 
-                if map1[x][y] == " ": # wall
-                    map[x][y].block_sight = False
-
-                elif map1[x][y] == '@':
+                elif map1[y][x] == '@':
                     player.x = x
                     player.y = y
+                    print y
+                    print x
 
-                elif map1[x][y] == 'C':
+                elif map1[y][x] == 'C':
                     fighter_component = Fighter(hp=125, defense_dice=1, defense_sides=5, power_dice=5, power_sides=5, evasion_dice=4, evasion_sides=7, accuracy_dice=6, accuracy_sides=10, xp=300, speed=9, death_function=monster_death)
                     ai_component = BasicMonsterAI()
                     monster = Object(x, y, 'C', 'Centaur', libtcod.darker_magenta, blocks=True, fighter=fighter_component, ai=ai_component, description='A mythical creature; half human, half horse. He is incredibly accurate and quite fast.')
                     objects.append(monster)
-                elif map1[x][y] == 'M':
+                elif map1[y][x] == 'M':
                     fighter_component = Fighter(hp=125, defense_dice=1, defense_sides=5, power_dice=5, power_sides=5, evasion_dice=4, evasion_sides=7, accuracy_dice=6, accuracy_sides=10, xp=300, speed=9, death_function=monster_death)
                     ai_component = BasicMonsterAI()
                     monster = Object(x, y, 'C', 'Centaur', libtcod.darker_magenta, blocks=True, fighter=fighter_component, ai=ai_component, description='A mythical creature; half human, half horse. He is incredibly accurate and quite fast.')
                     objects.append(monster)
-                elif map1[x][y] == 'Z':
+                elif map1[y][x] == 'Z':
                     fighter_component = Fighter(hp=125, defense_dice=1, defense_sides=5, power_dice=5, power_sides=5, evasion_dice=4, evasion_sides=7, accuracy_dice=6, accuracy_sides=10, xp=300, speed=9, death_function=monster_death)
                     ai_component = BasicMonsterAI()
                     monster = Object(x, y, 'C', 'Centaur', libtcod.darker_magenta, blocks=True, fighter=fighter_component, ai=ai_component, description='A mythical creature; half human, half horse. He is incredibly accurate and quite fast.')
