@@ -108,8 +108,8 @@ Damage player 10 hit points - '#'
         WindowsError: exception: access violation writing 0x00001310
         
 - Electric power doesn#t show up anymore under the hp and hunger bars
-        
-        maybe use icons instead for the powers.
+- Create throne room for zeus.     
+- Maybe use icons instead for the powers.
 
 #Alpha TODO:
 
@@ -201,7 +201,11 @@ For alpha release:
                 Also made torch color change with ares roar, will be useful for illustrating effects clearly.                
         TOTAL DAYS LEFT = 2.5 (3)
         ALPHA RELEASE DATE = 3rd September
-        
+    
+    01/09/14 Add new function to make_map to allow it to handle prefabricated maps. Still need to create Zeus, and win screen on his death_function.
+                Working on new win_screen now.
+        TOTAL DAYS LEFT = 2.5 (3)
+        ALPHA RELEASE DATE = 3rd September
     
         
 #Remaining major TODO (in rough order):

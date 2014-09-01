@@ -1452,7 +1452,7 @@ def make_map():
     objects = [player]
 
     #If it's the last dungeon, load a special map
-    if dungeon_level == 1:
+    if dungeon_level == 10:
 
         map1 = prefab_map.lol
 
@@ -2516,6 +2516,11 @@ def player_death(player):
     #file = shelve.open('highscores', 'n')
     #file[''] = xp_total
 
+def zeus_death(monster):
+    global game_state
+    game_state = 'complete'
+
+
 
 def monster_death(monster):
     #transform it into a corpse! it doesn't block, can't be attacked and doesn't move.
@@ -2747,6 +2752,8 @@ def play_game():
             save_game()
             break
 
+        #if game_state == 'complete':
+
         #handle paralysis
         if player_action == 'paralyzed' and game_state == 'playing':
             check_by_turn(player.fighter.speed)
@@ -2799,8 +2806,17 @@ def shift_run(object, x, y):
         #Increment the count
         count += 1
 
+def win_screen():
+    img = libtcod.image_load(win_screen.png)
+    while not libtcod.console_is_window_closed():
+        #show the background image, at twice the regular console resolution
+        libtcod.image_blit_2x(img, 0, 0, 0)
+
+        #show the game's title, and some credits
+        libtcod.console_set_default_foreground(0, libtcod.black)
+
 def main_menu():
-    img = libtcod.image_load('zeus1.png')
+    img = libtcod.image_load('win_screen.png')
 
     while not libtcod.console_is_window_closed():
         #show the background image, at twice the regular console resolution
