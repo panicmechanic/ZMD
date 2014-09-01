@@ -43,6 +43,7 @@ MSG_WIDTH = SCREEN_WIDTH - BAR_WIDTH - 1
 MSG_HEIGHT = PANEL_HEIGHT - 1
 INVENTORY_WIDTH = 50
 LEVEL_SCREEN_WIDTH = 40
+MUTATION_SCREEN_WIDTH = 80
 CHARACTER_SCREEN_WIDTH = 25
 EFFECTS_GUI = 4
 
@@ -980,6 +981,12 @@ def check_run_effects(obj):
 
                 if eff.m_h_timeslip == True:
 
+                    #The trigger halves for each application (TODO: Up to a maximum of three times, or 3 levels, alternatively, change the amount by which it decreases by each application)
+                    real_trigger = eff.m_trigger / eff.applied_times
+                    #Increment the charging count
+                    if eff.m_count < real_trigger:
+                        eff.m_count += 1
+
                     #If the effect is active, changed by handle_keys calling an effect with 'a'.
                     if eff.is_active == True:
                         #If it's the first turn
@@ -1000,6 +1007,10 @@ def check_run_effects(obj):
 
                 #Ares roar: +1 power dice
                 if eff.m_a_roar == True:
+
+                    real_trigger = eff.m_trigger / eff.applied_times
+                    if eff.m_count < real_trigger:
+                        eff.m_count += 1
 
                     #If the effect is active, changed by handle_keys calling an effect with 'a'.
                     if eff.is_active == True:
@@ -1024,8 +1035,7 @@ def check_run_effects(obj):
                             #darker torch color for foreground
                             torch_light_color = libtcod.light_flame
 
-                    if eff.m_count < eff.m_trigger:
-                        eff.m_count += 1
+
 
 
                 if eff.m_elec == True:
@@ -1372,7 +1382,7 @@ def mutation_menu(header):
     elif len(charged_list) >= 1:
         options = [e.effect_name for e in charged_list]
 
-    index = menu(header, options, INVENTORY_WIDTH)
+    index = menu(header, options, INVENTORY_WIDTH, 1)
 
     #if an item was chosen, return it
     if index is None or len(charged_list) == 0:
@@ -1398,7 +1408,7 @@ def description_menu(header):
     else:
         options = [object.name for object in names]
 
-    index = menu(header, options, INVENTORY_WIDTH)
+    index = menu(header, options, INVENTORY_WIDTH, 1)
 
     #if an item was chosen, return it
     if index is None or len(names) == 0: return None
@@ -1519,7 +1529,8 @@ def make_map():
     objects.append(stairs)
     stairs.send_to_back()  # so it's drawn below the monsters
 
-def menu(header, options, width):
+def menu(header, options, width, type):
+
     if len(options) > 26: raise ValueError('Cannot have a menu with more than 26 options.')
 
     #calculate the total height for the header (afer auto wrap) and one line per option
@@ -1533,7 +1544,7 @@ def menu(header, options, width):
 
     #print the header, with auto wrap, baby.
     libtcod.console_set_default_foreground(window, libtcod.white)
-    libtcod.console_print_rect_ex(window, 0, 0, width, height, libtcod.BKGND_NONE, libtcod.LEFT, header)
+    libtcod.console_print_rect_ex(window, width/2, 0, width, height, libtcod.BKGND_NONE, libtcod.CENTER, header)
 
     #print all the options
     y = header_height
@@ -1544,9 +1555,14 @@ def menu(header, options, width):
         y += 1
         letter_index += 1
 
-    #blit the contents of "window" to the root console
-    x = SCREEN_WIDTH / 2 - width / 2
-    y = SCREEN_HEIGHT / 2 - height / 2
+    if type == 1:
+        #blit the contents of "window" to the root console in the map screen
+        x = MAP_WIDTH / 2 - width / 2
+        y = MAP_HEIGHT / 2 - height / 2
+    elif type == 0:
+        #Blit to screen sceen
+        x = SCREEN_WIDTH / 2 - width / 2
+        y = SCREEN_HEIGHT / 2 - height / 2
     libtcod.console_blit(window, 0, 0, width, height, 0, x, y, 1.0, 0.7)
 
     #present the root console to the player and wait for keypress
@@ -1576,14 +1592,14 @@ def inventory_menu(
                 text = text + ' (on ' + item.equipment.slot + ')'
             options.append(text)
 
-    index = menu(header, options, INVENTORY_WIDTH)
+    index = menu(header, options, INVENTORY_WIDTH, 1)
 
     #if an item was chosen, return it
     if index is None or len(inventory) == 0: return None
     return inventory[index].item
 
 def msgbox(text, width=50):
-    menu(text, [], width)  #use menu() as a sort of "message box"
+    menu(text, [], width, 1)  #use menu() as a sort of "message box"
 
 
 def render_all():
@@ -2742,7 +2758,7 @@ def main_menu():
                                  'ZEUS MUST DIE')
 
         #show options and wait for the player's choice
-        choice = menu('', ['Play a new game', 'Continue last game', 'Quit'], 24)
+        choice = menu('', ['Play a new game', 'Continue last game', 'Quit'], 24, 0)
 
         if choice == 0:  #new game
             new_game()
@@ -2826,44 +2842,60 @@ def check_level_up():
         player.level += 1
         #TOTAL_XP += player.fighter.xp
         player.fighter.xp -= level_up_xp
-        message('Your battle prowess grows! You have reached level ' + str(player.level) + '!', libtcod.yellow)
-        choice = None
-        while choice == None:  #keep asking until a choice is made
-            render_all()
-            choice = menu('Chronos blesses you with a moments rest. Your thoughts turn to training, which discipline will you practice?\n',
-                          ['Sleeping (+20 HP)',
-                           'Calisthenics (+1 Strength)',
-                           'Gymnastics (+1 Dexterity)',
-                           'Shadow training (+1 Stealth)',
-                           'Meditation (+1 Will)'], LEVEL_SCREEN_WIDTH)
 
-            # May be better to leave evasion and accuracy out of the players hands, to keep it simple
-            if choice == 0:
-                player.fighter.max_hp += 20
-                player.fighter.hp += 20
-                message('You forget about training and get some well earned rest. (+20HP)', libtcod.white)
-            elif choice == 1:
-                player.fighter.strength += 1
-                message('You practice your advanced calisthenics routines, your muscles grow. (+1 Strength)', libtcod.white)
-            elif choice == 2:
-                player.fighter.dexterity += 1
-                message('You practice your gymnastics skills using the rocks around you, your body quickens. (+1 Dexterity)', libtcod.white)
-            elif choice == 3:
-                player.fighter.stealth +=1
-                message('You practice the ancient art as taught to you by your master, you fade further into the shadows. (+1 Stealth)', libtcod.white)
-            elif choice == 4:
-                player.fighter.will +=1
-                message('You sit, contemplating nothing, and everything. Your inner strength grows. (+1 Will)', libtcod.white)
 
         #Add a random mutation
-        level_mutate = (2, 7, 9, 12)
+        level_mutate = (2, 3, 4, 5, 12,)
         for i in level_mutate:
             if player.level == i:
-                #This will eventually be a pick a random mutation function
-                #player.fighter.add_effect(Effect(effect_name='electric power', mutation=True, m_elec=True, m_trigger=125, m_damage=150), 'For your valiant effort you have earned the gods favour, they convene and offer you')
+                message('Your battle prowess grows! You have reached level ' + str(player.level) + '!', libtcod.yellow)
+                choice = None
 
-                #player.fighter.add_effect(Effect('Hermes Timeslip', mutation=True, m_h_timeslip=True, m_loop=25, m_trigger=100), 'The gods convene and offer you ')
-                player.fighter.add_effect(Effect('Ares Roar', mutation=True, m_a_roar=True, m_loop=10, m_trigger=10), 'The gods convene and offer you')
+                #Prepare the current effects data, for presentation
+                a_roar = 'Ares Roar (+1 Power side for 10 turns), 250 TURNS/COOLDOWN'
+                h_timeslip = 'Hermes Timeslip (Doubles speed for 10 turns), 300T/CD'
+                e_power = 'Electric Power (Deal 150 damage to a random enemy in range) 300T/CD'
+                for e in player.fighter.effects:
+                    if e.mutation == True:
+
+                        if e.m_a_roar == True:
+                            if e.applied_times == 1:
+                                a_roar = 'Ares Roar (+1 Power side for 20 turns), 200 TURNS/COOLDOWN'
+                            elif e.applied_times == 2:
+                                a_roar = 'Ares Roar (+1 Power side for 30 turns), 125 TURNS/COOLDOWN'
+                            else:
+                                a_roar = 'Ares Roar cannot be enhanced further.'
+
+                        if e.m_h_timeslip == True:
+                            if e.applied_times == 1:
+                                h_timeslip = 'Hermes Timeslip (Doubles speed for 15 turns), 200T/CD'
+                            elif e.applied_times == 2:
+                                h_timeslip == 'Hermes Timeslip (Doubles speed for 20 turns), 100T/CD'
+                            else:
+                                h_timeslip = 'Hermes Timeslip cannot be enhanced further.'
+
+                        if e.m_elec == True:
+                            if e.applied_times == 1:
+                                e_power = 'Electric Power (Deal 250 damage to a random enemy in range) 150T/CD'
+                            elif e.applied_times == 2:
+                                e_power = 'Electric Power (Deal 350 damage to a random enemy in range) 80T/CD'
+                            else:
+                                e_power = 'Electric Power cannot be enhanced further.'
+
+                while choice == None:  #keep asking until a choice is made
+                    render_all()
+
+                    choice = menu('Your bravery has earned the gods favour, they offer you a power, which do you choose?\n', [a_roar, h_timeslip, e_power], MUTATION_SCREEN_WIDTH, 1)
+
+                    # May be better to leave evasion and accuracy out of the players hands, to keep it simple
+                    if choice == 0:
+                        player.fighter.add_effect(Effect('Ares Roar', mutation=True, m_a_roar=True, m_loop=10, m_trigger=10), 'The gods convene and offer you')
+                    elif choice == 1:
+                        player.fighter.add_effect(Effect('Hermes Timeslip', mutation=True, m_h_timeslip=True, m_loop=25, m_trigger=100), 'The gods convene and offer you ')
+                    elif choice == 2:
+                        #TODO: Remove the string and put it in the above function instead to stop message error
+                        player.fighter.add_effect(Effect('Electric Power', mutation=True, m_elec=True, m_trigger=125, m_damage=150), 'For your valiant effort you have earned the gods favour, they convene and offer you')
+
 
 
 def random_choice_index(chances):  #choose one option from list of chances, returning its index

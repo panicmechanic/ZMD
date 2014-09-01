@@ -98,7 +98,18 @@ Damage player 10 hit points - '#'
 - Create an extra map to store pathfinding in without monster blocks.
 - Add an effect to increase stealth for every adjacent wall to player - sneaking   
 - Seems I can't apply an effect to monsters? (When attempting to apply burning effect to monsters with cast_fireball())
-
+- Weird message bug when you take a second power at level 7
+- Weird noise bug, maybe switch to normal lighting:
+            
+            File "C:/Users/SABER/PycharmProjects/ZMD/firstrl.py", line 1753, in render_all
+            NOISE = libtcod.noise_new(1, 1.0, 1.0)
+          File "C:\Users\SABER\PycharmProjects\ZMD\libtcodpy.py", line 1484, in noise_new
+            return _lib.TCOD_noise_new(dim, c_float(h), c_float(l), random)
+        WindowsError: exception: access violation writing 0x00001310
+        
+- Electric power doesn#t show up anymore under the hp and hunger bars
+        
+        maybe use icons instead for the powers.
 
 #Alpha TODO:
 
@@ -136,6 +147,8 @@ For alpha release:
         (DONE - Was a couple of mistakes in path_func.)
     - Add simple win condition for alpha release purposes
         (2 days - Will need to create win_screen() on win, make dungeon depth 10 levels, lerp wall/floor color each level to get darker/lighter.)
+    - Clear out minor bugs above:
+        (1 day)
     
     ALPHA UPDATE:
     19/08/14 (started countdown):    
@@ -193,6 +206,7 @@ For alpha release:
         
 #Remaining major TODO (in rough order):
 
+- Update readme with images, updated guide, organise with anchors and add link to most recent build. Tidy notes.  
 - Tidy up code, game is starting to feel sluggish.
 - More groups
 - Give weapons a strength requirement (maybe? this might make it too complex, but would give each weapon category a use 
@@ -378,7 +392,7 @@ Make monster drops a chance of a next level item, build an anticipation. http://
 - Fixed monster pathfinding to last seen location, fixed load functionality, created monster_move_or_attack
 - Added hunger bar, fixed eat_food() to not exceed 800. 800 should probably be a global value.
 - Fixed check_run_effects to properly remove effects, display them correctly. Also made 
-    function message player when lethal effect is no longer true.
+            function message player when lethal effect is no longer true.
 - Fixed check_run_effects to reset turns_passed to 0 when effect is removed.
 - Added roll_for_effect to allow fighters to apply an effect to another fighter.
 - Added poison bar, moved dungeon level to char info
@@ -422,7 +436,7 @@ the player from acheiving mastery easily.
 
 There should be many different level types for you to interact with, providing a great
 variety of challenges and problems to solve with brains or brawn as you continue your
-journey, creating your own odyssey as you go.
+journey. There shuold be 10 levels, the first 5(?) randomised terrain, the last 5(?) ascending Mt. Olympus.
 
 Repetitive tasks (such as grinding) should be kept to a minimum, including those necessary
 to cross the dungeon, hot keys like fire/grab/open should be less than 5 and ideally use 
