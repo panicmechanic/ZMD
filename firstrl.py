@@ -494,13 +494,10 @@ class Fighter:
 
                 elif i.mutation == True and i.effect_name == Effect.effect_name and Effect.mutation == True:
                     i.applied_times += 1
-                    duplicate=True
 
-                    message('The gods have blessed your ' + Effect.effect_name + ' further!',
-                            libtcod.white)
 
             #Else, if a duplicate has not been found.
-            if duplicate==False:
+            if duplicate==False and Effect.mutation == False:
                 #Add the effect
                 self.effects.append(Effect)
                 #Tell the play what happened
@@ -1452,7 +1449,7 @@ def make_map():
     objects = [player]
 
     #If it's the last dungeon, load a special map
-    if dungeon_level == 10:
+    if dungeon_level == 1:
 
         map1 = prefab_map.lol
 
@@ -1496,9 +1493,9 @@ def make_map():
                     monster = Object(x, y, 'C', 'Centaur', libtcod.darker_magenta, blocks=True, fighter=fighter_component, ai=ai_component, description='A mythical creature; half human, half horse. He is incredibly accurate and quite fast.')
                     objects.append(monster)
                 elif map1[y][x] == 'Z':
-                    fighter_component = Fighter(hp=125, defense_dice=1, defense_sides=5, power_dice=5, power_sides=5, evasion_dice=4, evasion_sides=7, accuracy_dice=6, accuracy_sides=10, xp=300, speed=9, death_function=monster_death)
+                    fighter_component = Fighter(hp=500, defense_dice=10, defense_sides=5, power_dice=10, power_sides=5, evasion_dice=5, evasion_sides=7, accuracy_dice=10, accuracy_sides=10, xp=0, speed=10, death_function=zeus_death)
                     ai_component = BasicMonsterAI()
-                    monster = Object(x, y, 'C', 'Centaur', libtcod.darker_magenta, blocks=True, fighter=fighter_component, ai=ai_component, description='A mythical creature; half human, half horse. He is incredibly accurate and quite fast.')
+                    monster = Object(x, y, 'Z', 'Zeus', libtcod.white, blocks=True, fighter=fighter_component, ai=ai_component, description='A god, and according to some townfolk a bit of a prick.')
                     objects.append(monster)
 
     else:
@@ -2296,6 +2293,7 @@ def handle_keys():
                 player.fighter.max_hp = 1000
                 player.fighter.base_defense_sides = 1000
                 player.fighter.base_power_sides = 1000
+                player.fighter.base_accuracy_sides = 1000
 
             #debug
             if key_char == '#':
@@ -2365,8 +2363,11 @@ def handle_keys():
 
 
 def player_rest():
+    global fov_recompute
     carry_on = True
     while carry_on == True:
+
+        #render_all()
         if player.fighter.hp <= player.fighter.max_hp:
 
             for obj in objects:
@@ -2390,6 +2391,8 @@ def player_rest():
         if carry_on == True:
             check_by_turn(player.fighter.speed)
             check_run_effects(player)
+            #fov_recompute=True
+
 
         if player.fighter.hp == (player.fighter.max_hp / 2) - 1:
             carry_on = False
@@ -2517,8 +2520,7 @@ def player_death(player):
     #file[''] = xp_total
 
 def zeus_death(monster):
-    global game_state
-    game_state = 'complete'
+    win_screen()
 
 
 
@@ -2674,7 +2676,7 @@ def new_game():
 
 
     #a warm welcoming message!
-    message('Zeus is a dick! Go fuck him up.', libtcod.white)
+    message('Zeus is a dick. Mess his shit up.', libtcod.white)
 
     #initial equipment: a dagger
     equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=1)
@@ -2807,13 +2809,20 @@ def shift_run(object, x, y):
         count += 1
 
 def win_screen():
-    img = libtcod.image_load(win_screen.png)
+    img = libtcod.image_load('zeus1.png')
+
     while not libtcod.console_is_window_closed():
         #show the background image, at twice the regular console resolution
-        libtcod.image_blit_2x(img, 0, 0, 0)
+        libtcod.image_blit_2x(img, con, 0, 0)
 
         #show the game's title, and some credits
-        libtcod.console_set_default_foreground(0, libtcod.black)
+        libtcod.console_set_default_foreground(con, libtcod.black)
+        libtcod.console_print_ex(con, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 20, libtcod.BKGND_NONE, libtcod.CENTER,
+                                 'ZEUS IS DEAD.')
+        libtcod.console_blit(con, 0, 0, MAP_WIDTH, MAP_HEIGHT, 0, 0, 0)
+
+
+
 
 def main_menu():
     img = libtcod.image_load('win_screen.png')
@@ -2913,18 +2922,51 @@ def check_level_up():
         #TOTAL_XP += player.fighter.xp
         player.fighter.xp -= level_up_xp
 
+        message('Your battle prowess grows! You have reached level ' + str(player.level) + '!', libtcod.yellow)
+        choice = None
+        while choice == None:  #keep asking until a choice is made
+            render_all()
+            choice = menu('Chronos blesses you with a moments rest. Your thoughts turn to training, which discipline will you practice?\n',
+                          ['Sleeping (+20 HP)',
+                           'Calisthenics (+1 Strength)',
+                           'Gymnastics (+1 Dexterity)',
+                           'Shadow training (+1 Stealth)',
+                           'Meditation (+1 Will)'], LEVEL_SCREEN_WIDTH, 1)
+
+            # May be better to leave evasion and accuracy out of the players hands, to keep it simple
+            if choice == 0:
+                player.fighter.max_hp += 20
+                player.fighter.hp += 20
+                message('You forget about training and get some well earned rest. (+20HP)', libtcod.white)
+            elif choice == 1:
+                player.fighter.strength += 1
+                message('You practice your advanced calisthenics routines, your muscles grow. (+1 Strength)', libtcod.white)
+            elif choice == 2:
+                player.fighter.dexterity += 1
+                message('You practice your gymnastics skills using the rocks around you, your body quickens. (+1 Dexterity)', libtcod.white)
+            elif choice == 3:
+                player.fighter.stealth +=1
+                message('You practice the ancient art as taught to you by your master, you fade further into the shadows. (+1 Stealth)', libtcod.white)
+            elif choice == 4:
+                player.fighter.will +=1
+                message('You sit, contemplating nothing, and everything. Your inner strength grows. (+1 Will)', libtcod.white)
+
+
 
         #Add a random mutation
-        level_mutate = (2, 3, 4, 5, 12,)
+        level_mutate = (3, 5, 7, 9, 11,)
         for i in level_mutate:
             if player.level == i:
-                message('Your battle prowess grows! You have reached level ' + str(player.level) + '!', libtcod.yellow)
+
                 choice = None
 
                 #Prepare the current effects data, for presentation
                 a_roar = 'Ares Roar (+1 Power side for 10 turns), 250 TURNS/COOLDOWN'
                 h_timeslip = 'Hermes Timeslip (Doubles speed for 10 turns), 300T/CD'
                 e_power = 'Electric Power (Deal 150 damage to a random enemy in range) 300T/CD'
+                roar_done = False
+                timeslip_done = False
+                elec_done = False
                 for e in player.fighter.effects:
                     if e.mutation == True:
 
@@ -2935,6 +2977,7 @@ def check_level_up():
                                 a_roar = 'Ares Roar (+1 Power side for 30 turns), 125 TURNS/COOLDOWN'
                             else:
                                 a_roar = 'Ares Roar cannot be enhanced further.'
+                                roar_done = True
 
                         if e.m_h_timeslip == True:
                             if e.applied_times == 1:
@@ -2943,6 +2986,7 @@ def check_level_up():
                                 h_timeslip == 'Hermes Timeslip (Doubles speed for 20 turns), 100T/CD'
                             else:
                                 h_timeslip = 'Hermes Timeslip cannot be enhanced further.'
+                                timeslip_done = True
 
                         if e.m_elec == True:
                             if e.applied_times == 1:
@@ -2951,6 +2995,7 @@ def check_level_up():
                                 e_power = 'Electric Power (Deal 350 damage to a random enemy in range) 80T/CD'
                             else:
                                 e_power = 'Electric Power cannot be enhanced further.'
+                                elec_done = True
 
                 while choice == None:  #keep asking until a choice is made
                     render_all()
@@ -2958,13 +3003,15 @@ def check_level_up():
                     choice = menu('Your bravery has earned the gods favour, they offer you a power, which do you choose?\n', [a_roar, h_timeslip, e_power], MUTATION_SCREEN_WIDTH, 1)
 
                     # May be better to leave evasion and accuracy out of the players hands, to keep it simple
-                    if choice == 0:
+                    if choice == 0 and roar_done != True:
                         player.fighter.add_effect(Effect('Ares Roar', mutation=True, m_a_roar=True, m_loop=10, m_trigger=10), 'The gods convene and offer you')
-                    elif choice == 1:
+                    elif choice == 1 and timeslip_done != True:
                         player.fighter.add_effect(Effect('Hermes Timeslip', mutation=True, m_h_timeslip=True, m_loop=25, m_trigger=100), 'The gods convene and offer you ')
-                    elif choice == 2:
+                    elif choice == 2 and elec_done != True:
                         #TODO: Remove the string and put it in the above function instead to stop message error
                         player.fighter.add_effect(Effect('Electric Power', mutation=True, m_elec=True, m_trigger=125, m_damage=150), 'For your valiant effort you have earned the gods favour, they convene and offer you')
+
+                render_all()
 
 
 
@@ -3034,6 +3081,7 @@ def check_by_turn(speed):
                     obj.fighter.heal(heal)
                     #Reset counter to 0
                     obj.fighter.heal_counter = 0
+
 
 
                 #If the speed value is equal to the speed counter

@@ -5,11 +5,11 @@ def random_monster():
 
     #chance of each monsters
     monster_chances = {}
-    monster_chances['Dog'] = 30  #Dog always spawns, even if all other monsters have 0 chance
-    monster_chances['Snake'] = weaponchances.from_dungeon_level([[3, 1], [5, 3], [50, 7]])
+    monster_chances['Dog'] = weaponchances.from_dungeon_level([[30, 1], [5, 3], [50, 7], [0, 8]])
+    monster_chances['Snake'] = weaponchances.from_dungeon_level([[30, 1], [5, 3], [0, 7]])
     monster_chances['Imp'] = weaponchances.from_dungeon_level([[50, 2], [30, 5], [50, 7]])
     monster_chances['Firefly'] = weaponchances.from_dungeon_level([[3, 1], [30, 3], [60, 7]])
-    monster_chances['Crab'] = weaponchances.from_dungeon_level([[1, 2], [30, 3], [60, 7]])
+    monster_chances['Giant Crab'] = weaponchances.from_dungeon_level([[1, 2], [30, 3], [60, 7]])
     monster_chances['Goat'] = weaponchances.from_dungeon_level([[15, 2], [30, 8], [60, 10]])
     monster_chances['Eagle'] = weaponchances.from_dungeon_level([[15, 5], [30, 8], [60, 10]])
     monster_chances['Pygmy'] = weaponchances.from_dungeon_level([[10, 5], [40, 8], [50, 10]])
@@ -24,7 +24,7 @@ def create_monster(x, y):
 
     if choice == 'Dog':
         #create an dog
-        fighter_component = Fighter(hp=10, defense_dice=1, defense_sides=5, power_dice=1, power_sides=10, evasion_dice=1, evasion_sides=4, accuracy_dice=2, accuracy_sides=4, xp=400, speed=10, death_function=monster_death)
+        fighter_component = Fighter(hp=10, defense_dice=1, defense_sides=5, power_dice=1, power_sides=10, evasion_dice=1, evasion_sides=4, accuracy_dice=2, accuracy_sides=4, xp=40, speed=10, death_function=monster_death)
         ai_component = BasicMonsterAI()
         monster = Object(x, y, 'd', 'Dog', libtcod.orange, blocks=True, fighter=fighter_component,
                          ai=ai_component, description='A large, brown muscular looking dog. His eyes glow red.')

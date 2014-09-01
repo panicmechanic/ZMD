@@ -140,13 +140,13 @@ For alpha release:
     - Create 'blind' effect
         (DONE - working)
     - Create 'burning' effect
-        (0.5 days - Simple, every turn set a random orange colour too)
+        (0 days - Pushed back to after alpha)
     - Add ranged combat if not too complex. 
         (0 days - Too complex before alpha, planned out in scrapbook.py.)
     - Implement pathfinding fix
         (DONE - Was a couple of mistakes in path_func.)
     - Add simple win condition for alpha release purposes
-        (2 days - Will need to create win_screen() on win, make dungeon depth 10 levels, lerp wall/floor color each level to get darker/lighter.)
+        (DONE - Simple win_screen and death condition for when I put a zeus monster on the map.
     - Clear out minor bugs above:
         (1 day)
     
@@ -203,16 +203,19 @@ For alpha release:
         ALPHA RELEASE DATE = 3rd September
     
     01/09/14 Add new function to make_map to allow it to handle prefabricated maps. Still need to create Zeus, and win screen on his death_function.
-                Working on new win_screen now.
+                Finished a very simple win screen. Just need to add it to a zeus monster on the final level.
+                Win_screen is bugged.
         TOTAL DAYS LEFT = 2.5 (3)
         ALPHA RELEASE DATE = 3rd September
     
         
 #Remaining major TODO (in rough order):
 
+- Create 'burning' effect
 - Update readme with images, updated guide, organise with anchors and add link to most recent build. Tidy notes.  
 - Tidy up code, game is starting to feel sluggish.
-- More groups
+- More groups of monsters
+- Make player_rest render_all every X turns, to smooth it out.
 - Give weapons a strength requirement (maybe? this might make it too complex, but would give each weapon category a use 
 
     e.g warhammers need strength and are powerful, axes need dex and are fast, etc. etc.
