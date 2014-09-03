@@ -250,7 +250,7 @@ class Object:
                     #Iterate through objects
                     for obj in objects:
                         #If object has a fighter instance, and is less than 2 tiles away from self and is not self or player
-                        if obj.fighter and obj.distance_to(self) <= 2 and obj != self and obj != player:
+                        if obj.fighter and obj.distance_to(self) <= 3 and obj != self and obj != player:
                             list.append(obj)
 
                         #TODO: Put this in init somewhere
@@ -267,7 +267,7 @@ class Object:
                         libtcod.path_compute(self.path, self.x, self.y, target_x, target_y)
 
                         #vector from this object to the target, and distance
-                        if not libtcod.path_is_empty(self.path) and libtcod.path_size(self.path) < 6:
+                        if not libtcod.path_is_empty(self.path) and libtcod.path_size(self.path) <= 6:
 
                             #Walk the path
                             path_x, path_y = libtcod.path_get(self.path, 0)

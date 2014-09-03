@@ -64,9 +64,6 @@ Damage player 10 hit points - '#'
 - Electric power doesn't show up anymore under the hp and hunger bars
 - Make sure monsters will surround you completely.
 
-
-
-
 #Alpha TODO:
 
 For alpha release:
@@ -202,6 +199,7 @@ For alpha release:
 - Create gas system - each tile has gas=0 attribute, when one tile has gas and the other doesnt make them even unless below a certain number
 - Shift_run needs a keypress to stop function
 - Water on map
+- Update monster ai's
 - Finish lever object
 - 'Drunk' Effect for styrs and player, make them move randomly, and occasionally stumble several tiles in one direction.
 - Add gui bar for eff in monster.effects to display effects like burning, poisoned, confused, paralysed.
