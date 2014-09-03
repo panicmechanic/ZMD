@@ -60,56 +60,10 @@ Damage player 10 hit points - '#'
 
 #Minor TODO/bugs:
 
-- Finish lever object
-- Rough balancing
-- Change cast_fireball to apply a burning effect to all inside range for 5 turns. 
-- Add gui bar for eff in monster.effects to display effects like burning, poisoned, confused, paralysed.
-
-- Problem with warhammer splatter and lightning mutation making it not fire - give take_damage another variable, weapon.
- 
-    If it is war hammer, and the damage will kill the monster, give it the splatter effect in a function.
-- Make bottom right box display info under mouse on mouse over
-- Give all monsters a speed and heal_rate
-- Stun effect
-- Give an @property value to speed, accuracy, evasion
-- Implement stealth by giving fighters a detection and stealth value 
-- Give fighters an awareness value equal to sleeping, wandering, aware. If monster is in fov and distance < 10
- 
-    roll stealth/detection and raise awareness 1 level. While sleeping cannot wander.
-    
-- Fix name_stat_gen() and make iterate_through_list() print each item with auto wrap.      
-
-- Still some minor bugs to iron out to roll, level up needs changing which will probably require adding the following:
-
-        Skills (set default speed to 100):
-    
-        Calisthenics (strength)  - Increase attack (power sides by 1), increase ranged range. 
-        Gymnastics (dexterity)   - Increase acc/ev, small boost to speed
-        Shadow training (stealth)- Improve stealth, defense improve speed
-        Meditation (will)        - Improve accuracy, perception checks, skill helps mutations
-              
-
-
-- Figure out how to make color_flash work
-- Add description to box with auto wrap
-- Give description window and character/level up window borders.
-- Make inventory a combination of equipped and other inventory
-- Move passable set from monster_move_or_attack() to move()
-- Create an extra map to store pathfinding in without monster blocks.
-- Add an effect to increase stealth for every adjacent wall to player - sneaking   
-- Seems I can't apply an effect to monsters? (When attempting to apply burning effect to monsters with cast_fireball())
-- Weird message bug when you take a second power at level 7
-- Weird noise bug, maybe switch to normal lighting:
-            
-            File "C:/Users/SABER/PycharmProjects/ZMD/firstrl.py", line 1753, in render_all
-            NOISE = libtcod.noise_new(1, 1.0, 1.0)
-          File "C:\Users\SABER\PycharmProjects\ZMD\libtcodpy.py", line 1484, in noise_new
-            return _lib.TCOD_noise_new(dim, c_float(h), c_float(l), random)
-        WindowsError: exception: access violation writing 0x00001310
-        
-- Electric power doesn#t show up anymore under the hp and hunger bars
+- Weird message bug when you take a second power at level 7       
+- Electric power doesn't show up anymore under the hp and hunger bars
 - Create throne room for zeus.     
-- Maybe use icons instead for the powers.
+
 
 #Alpha TODO:
 
@@ -147,8 +101,8 @@ For alpha release:
         (DONE - Was a couple of mistakes in path_func.)
     - Add simple win condition for alpha release purposes
         (DONE - Simple win_screen and death condition for when I put a zeus monster on the map.
-    - Clear out minor bugs above:
-        (1 day)
+    - Clear out minor bugs above and playtest:
+        (2 days)
     
     ALPHA UPDATE:
     19/08/14 (started countdown):    
@@ -204,14 +158,35 @@ For alpha release:
     
     01/09/14 Add new function to make_map to allow it to handle prefabricated maps. Still need to create Zeus, and win screen on his death_function.
                 Finished a very simple win screen. Just need to add it to a zeus monster on the final level.
-                Win_screen is bugged.
-        TOTAL DAYS LEFT = 2.5 (3)
-        ALPHA RELEASE DATE = 3rd September
+                Win_screen is bugged.                
+                NEED TO DO PATHING!
+        TOTAL DAYS LEFT = 1 (1)
+        ALPHA RELEASE DATE = 2nd September
+        
+    02/09/14 Fixed win_screen to something simpler. Just need to do some playtesting and fix bugs, couple days.
+        TOTAL DAYS LEFT = 2 (2)
+        ALPHA RELEASE DATE = 2nd September
     
         
 #Remaining major TODO (in rough order):
 
+- A couple monsters should have a torch
+- Zeus needs different AI
+- Add description to box with auto wrap
+- Seems I can't apply an effect to monsters? (When attempting to apply burning effect to monsters with cast_fireball())
+
+    check it out
+- Give description window and character/level up window borders.
+- Make inventory a combination of equipped and other inventory
+- Add an effect to increase stealth for every adjacent wall to player - sneaking   
+- Maybe use icons instead for the powers.
+- Stun effect
 - Create 'burning' effect
+- Implement stealth by giving fighters a detection and stealth value
+- Give fighters an awareness value equal to sleeping, wandering, aware. If monster is in fov and distance < 10
+ 
+    roll stealth/detection and raise awareness 1 level. While sleeping cannot wander.
+
 - Update readme with images, updated guide, organise with anchors and add link to most recent build. Tidy notes.  
 - Tidy up code, game is starting to feel sluggish.
 - More groups of monsters
@@ -225,6 +200,11 @@ For alpha release:
 - Create gas system - each tile has gas=0 attribute, when one tile has gas and the other doesnt make them even unless below a certain number
 - Shift_run needs a keypress to stop function
 - Water on map
+- Finish lever object
+- Add gui bar for eff in monster.effects to display effects like burning, poisoned, confused, paralysed.
+     
+- Fix name_stat_gen() to print all relevant info and sides neatly (how?!)             
+- Figure out how to make color_flash work
 - Would be really cool to find thematic ways to give the player chances to train. This could remove the need for xp entirely.
     
     E.g you are captured by harpies, after disptaching them you save a prisoner who offers you a special type of 
@@ -232,6 +212,7 @@ For alpha release:
     training, boosting your stats much more than a level up. Maybe giving you a mutation too.
 - Need a fire key for mutations, and a box to list available mutations that are charged and ready to fire
 - Place items in clusters, define level of clusters pwr dungeon level
+- Add camera with ability to set/change zoom level
 - Fix description box by putting it in panel2 and include a new function to describe acc, speed, danger etc.
 - Pathfinding will need an overhaul
 - Add variables to tiles at the entrances and exits to tunnels, and on entering 
@@ -249,9 +230,10 @@ For alpha release:
 - Add click messages to see page of messages, rather than delete them, 
     append them to a new list, to be displayed on click + current game_msgs
 - Add objects x 3/5/1 in inventory and floor
+- Add game to indiedb
 - Break up firstrl.py into modules, move modules that are called for by weaponchances
     into new files as directed from reddit post.
-- Scent tracking~
+- Scent tracking
 - Mutations/Godly powers
 - Click-to-path for map and GUI
 - Save maps and add upward stairs.
@@ -355,10 +337,18 @@ Make monster drops a chance of a next level item, build an anticipation. http://
     
     Also need to add colors to mutation messages
     
-- Page of mssages could be displayed same way as messages are currently, but with the height of window as the length of a 'page'
+- Page of messages could be displayed same way as messages are currently, but with the height of window as the length of a 'page'
+
+        Skills (set default speed to 100):
+    
+        Calisthenics (strength)  - Increase attack (power sides by 1), increase ranged range. 
+        Gymnastics (dexterity)   - Increase acc/ev, small boost to speed
+        Shadow training (stealth)- Improve stealth, defense improve speed
+        Meditation (will)        - Improve accuracy, perception checks, skill helps mutations
 
 
 #Done:
+
 
 - Added debug keys to show blocked tiles, and paths.
 - Added skills, currently:

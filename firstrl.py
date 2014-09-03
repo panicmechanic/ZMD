@@ -125,7 +125,7 @@ FOV_INIT = False
 NOISE = libtcod.noise_new(1)
 
 #Effects toggle
-HERMES_TIMESLIP = False
+#HERMES_TIMESLIP = False
 
 
 
@@ -492,7 +492,7 @@ class Fighter:
                     message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you further!',
                             libtcod.white)
 
-                elif i.mutation == True and i.effect_name == Effect.effect_name and Effect.mutation == True:
+                elif i.mutation == True and i.effect_name == Effect.effect_name:
                     i.applied_times += 1
 
 
@@ -1449,7 +1449,7 @@ def make_map():
     objects = [player]
 
     #If it's the last dungeon, load a special map
-    if dungeon_level == 1:
+    if dungeon_level == 10:
 
         map1 = prefab_map.lol
 
@@ -1469,8 +1469,7 @@ def make_map():
         for y in range(0, MAP_HEIGHT, 1):
             for x in range(0, MAP_WIDTH, 1):
 
-                print x
-                print y
+                #TODO: Find a way to put this is prefab_map.py
                 if map1[y][x] == "#": # wall
 
                     map[x][y].block_sight = True
@@ -1479,8 +1478,8 @@ def make_map():
                 elif map1[y][x] == '@':
                     player.x = x
                     player.y = y
-                    print y
-                    print x
+                    stairs = Object(x, y, ',', 'stairs', libtcod.white, always_visible=True)
+                    objects.append(stairs)
 
                 elif map1[y][x] == 'C':
                     fighter_component = Fighter(hp=125, defense_dice=1, defense_sides=5, power_dice=5, power_sides=5, evasion_dice=4, evasion_sides=7, accuracy_dice=6, accuracy_sides=10, xp=300, speed=9, death_function=monster_death)
@@ -1490,13 +1489,24 @@ def make_map():
                 elif map1[y][x] == 'M':
                     fighter_component = Fighter(hp=125, defense_dice=1, defense_sides=5, power_dice=5, power_sides=5, evasion_dice=4, evasion_sides=7, accuracy_dice=6, accuracy_sides=10, xp=300, speed=9, death_function=monster_death)
                     ai_component = BasicMonsterAI()
-                    monster = Object(x, y, 'C', 'Centaur', libtcod.darker_magenta, blocks=True, fighter=fighter_component, ai=ai_component, description='A mythical creature; half human, half horse. He is incredibly accurate and quite fast.')
+                    monster = Object(x, y, 'M', 'Medusa', libtcod.darker_magenta, blocks=True, fighter=fighter_component, ai=ai_component, description='A mythical creature; half human, half horse. He is incredibly accurate and quite fast.')
                     objects.append(monster)
                 elif map1[y][x] == 'Z':
                     fighter_component = Fighter(hp=500, defense_dice=10, defense_sides=5, power_dice=10, power_sides=5, evasion_dice=5, evasion_sides=7, accuracy_dice=10, accuracy_sides=10, xp=0, speed=10, death_function=zeus_death)
                     ai_component = BasicMonsterAI()
                     monster = Object(x, y, 'Z', 'Zeus', libtcod.white, blocks=True, fighter=fighter_component, ai=ai_component, description='A god, and according to some townfolk a bit of a prick.')
                     objects.append(monster)
+                elif map1[y][x] == '=':
+                    throne_piece = Object(x, y, '=', 'Throne', libtcod.gold, always_visible=True, blocks=True)
+                    objects.append(throne_piece)
+                elif map1[y][x] == '^':
+                    throne_piece = Object(x, y, '^', 'Throne', libtcod.dark_flame, always_visible=True, blocks=True)
+                    objects.append(throne_piece)
+                elif map1[y][x] == '':
+                    throne_piece = Object(x, y, '^', 'Throne', libtcod.dark_flame, always_visible=True, blocks=True)
+                    objects.append(throne_piece)
+
+
 
     else:
         #fill map with "blocked" tiles
@@ -2347,8 +2357,10 @@ def handle_keys():
 
             if key_char == '>':
                 #go down stairs, if the player is on them
-                if stairs.x == player.x and stairs.y == player.y:
+                if stairs.x == player.x and stairs.y == player.y and dungeon_level != 10:
                     next_level()
+                else:
+                    message("You can't use these stairs, they're broken.")
 
             if key_char == 'c':
                 level_up_xp = LEVEL_UP_BASE + player.level * LEVEL_UP_FACTOR
@@ -2520,7 +2532,22 @@ def player_death(player):
     #file[''] = xp_total
 
 def zeus_death(monster):
-    win_screen()
+    global game_state
+    message('Zeus dies!',
+            libtcod.gold)
+    monster.char = '%'
+    monster.color = libtcod.darkest_red
+    monster.blocks = False
+    monster.fighter = None
+    monster.ai = None
+    monster.name = 'Remains of ' + monster.name
+    monster.send_to_back()
+    #Remove path
+    monster.path = None
+    #Set tile to not block paths
+    libtcod.map_set_properties(fov_map, monster.x, monster.y, True, True)
+    render_all()
+    game_state = 'complete'
 
 
 
@@ -2705,9 +2732,9 @@ def initialize_fov():
 
 
 def play_game():
-    global key, mouse, turn_increment, heal_rate, fov_recompute, refresh_count
+    global key, mouse, turn_increment, heal_rate, fov_recompute, refresh_count, game_state
 
-    player_action = None
+
     mouse = libtcod.Mouse()
     key = libtcod.Key()
 
@@ -2731,7 +2758,6 @@ def play_game():
 
         check_level_up()
 
-        #this is where the re-write for speed needs to start
 
         #handles keys and exit game if needed
         player_action = handle_keys()
@@ -2753,6 +2779,11 @@ def play_game():
         if player_action == 'exit':
             save_game()
             break
+
+        if game_state == 'complete':
+            completed = win_screen()
+            if completed == True:
+                break
 
         #if game_state == 'complete':
 
@@ -2809,23 +2840,29 @@ def shift_run(object, x, y):
         count += 1
 
 def win_screen():
-    img = libtcod.image_load('zeus1.png')
+
 
     while not libtcod.console_is_window_closed():
         #show the background image, at twice the regular console resolution
-        libtcod.image_blit_2x(img, con, 0, 0)
+
 
         #show the game's title, and some credits
-        libtcod.console_set_default_foreground(con, libtcod.black)
-        libtcod.console_print_ex(con, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 20, libtcod.BKGND_NONE, libtcod.CENTER,
-                                 'ZEUS IS DEAD.')
-        libtcod.console_blit(con, 0, 0, MAP_WIDTH, MAP_HEIGHT, 0, 0, 0)
+        libtcod.console_set_default_foreground(0, libtcod.white)
+        libtcod.console_print_ex(0, MAP_WIDTH / 2, MAP_HEIGHT / 2 - 6, libtcod.BKGND_NONE, libtcod.CENTER,
+                                 'ZEUS IS DEAD! CONGRATULATIONS. \nSORRY I DONT HAVE SOMETHING NICER TO SHOW YOU. \nBUT REALLY, GOOD JOB BUDDY.\n\nMAYBE TAKE A SCREENSHOT OR SOMETHING.')
 
+        #show options and wait for the player's choice
+        choice = menu('', ['Quit to main menu'], 24, 1)
 
+        if choice == 0:  #new game
+            break
+
+    return True
 
 
 def main_menu():
-    img = libtcod.image_load('win_screen.png')
+
+    img = libtcod.image_load('new_title.png')
 
     while not libtcod.console_is_window_closed():
         #show the background image, at twice the regular console resolution
@@ -2833,8 +2870,6 @@ def main_menu():
 
         #show the game's title, and some credits
         libtcod.console_set_default_foreground(0, libtcod.black)
-        libtcod.console_print_ex(0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 4, libtcod.BKGND_NONE, libtcod.CENTER,
-                                 'ZEUS MUST DIE')
 
         #show options and wait for the player's choice
         choice = menu('', ['Play a new game', 'Continue last game', 'Quit'], 24, 0)
@@ -3189,27 +3224,12 @@ def add_bones(x, y):
 ################
 #INITIALISATION#
 ################
-libtcod.console_set_custom_font("terminal8x12_gs_ro.png", libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_ASCII_INROW)
+libtcod.console_set_custom_font("terminal8x12.png", libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_ASCII_INROW)
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'python/First RL', False)
 libtcod.sys_set_fps(LIMIT_FPS)
 con = libtcod.console_new(MAP_WIDTH, MAP_HEIGHT)
 panel = libtcod.console_new(SCREEN_WIDTH, PANEL_HEIGHT)
 msgs = libtcod.console_new(MSG_WIDTH, PANEL_HEIGHT)
 panel2 = libtcod.console_new(PANEL2_WIDTH, SCREEN_HEIGHT)
+win = libtcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
 main_menu()
-
-#To do:
-
-#- MAJOR: Add conversation system for effects
-#- MAJOR URGENT NEXT ISSUE: Maybe also implement scent tracking as well - http://codeumbra.eu/complete-roguelike-tutorial-using-c-and-libtcod-extra-3-scent-tracking
-
-# - MAJOR, URGENT?: Implement ascii/tileset option, create artwork using that pixel editor
-
-
-#- Decide on features needed for an alpha release to get feedback and playtesting. New menu/UI, a few more items, more monsters,
-# some click to move functionality, skills (think sil) and mutations. Keep it simple, play tggw to get some idea of what
-#is need for a release. Add new scrolls, new effects, fix evasion. Then work towards those features exclusively.
-# Gotta fix that bread bug before a playable alpha.
-#- Add new UI to right hand bar, one box for mouse over description, another for a list of enemies and their health bars
-#with mouse-over-to-target functionality
-
