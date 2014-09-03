@@ -112,7 +112,8 @@ def random_item():  #all item chance totals for a subtype will be self contained
     item_chances = {}
     if rand_type == 0:  # Spawn a weapon
         #WEAPON CHANCES - Will have to be called each time for i in range
-        rand_weapon_type = libtcod.random_get_int(0, 0, 2)  # Weapon types, starts at 0, Swords,
+        rand_weapon_type = libtcod.random_get_int(0, 1, 2)  # Weapon types, starts at 0, Swords,
+
 
         if rand_weapon_type == 0:  # Swords
             item_chances['nothing'] = 10

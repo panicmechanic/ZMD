@@ -110,7 +110,7 @@ torch_color = libtcod.light_flame
 #darker torch color for foreground
 torch_light_color = libtcod.light_flame
 #Torch alpha
-torch_alpha = 0.6
+torch_alpha = 0.5
 #TODO: Change this value slgihtly to add a better flicker
 
 
@@ -131,7 +131,7 @@ NOISE = libtcod.noise_new(1)
 
 class Tile:
     # a tile of the map, and its properties
-    def __init__(self, blocked, block_sight=None, diff_color=None, color_flash=None, color_set=None, color_fore=None, debug_blocked=False, debug_path=False):
+    def __init__(self, blocked, block_sight=None, diff_color=[], color_flash=None, color_set=None, color_fore=None, debug_blocked=False, debug_path=False):
         self.blocked = blocked
         self.diff_color = diff_color
 
@@ -561,7 +561,7 @@ class Fighter:
 
                     #color the floor with blood
                     libtcod.console_set_char_background(con, target.x, target.y, libtcod.darker_red, libtcod.BKGND_SET)
-                    map[target.x][target.y].diff_color = libtcod.darker_red
+                    map[target.x][target.y].diff_color = [libtcod.darkest_red, libtcod.dark_red]
                     message('You deal a devastating critical blow to the ' + str(target.name) + '!', libtcod.white)
 
                     #Size of critical boost, later will roll for this damage
@@ -813,6 +813,7 @@ class Effect:
 
 
 def monster_move_or_attack(monster):
+    global dungeon_level
     #If the monster is in the players FOV, monster can see player.
     if libtcod.map_is_in_fov(fov_map, monster.x, monster.y):  #If the monster is in the players FOV
 
@@ -820,9 +821,18 @@ def monster_move_or_attack(monster):
         #if monster.char == 'p' and monster.distance_to(player) <= 2:
             #if player.fighter.hp > 0:
                 #monster.fighter.attack(player)
+        if monster.name == 'Zeus':
+
+            if monster.distance_to(player) < 2 and player.fighter.hp > 0:
+                monster.fighter.attack(player)
+                check_run_effects(monster)
+            elif monster.distance_to(player) <= 8:
+                monster.move_towards(player.x, player.y)
+                #As monster has moved, check_run effects for that monster
+                check_run_effects(monster)
 
         #move towards player if far away
-        if monster.distance_to(player) >= 2:
+        elif monster.distance_to(player) >= 2:
             #compute how to reach the player
 
             #Move monster
@@ -833,9 +843,15 @@ def monster_move_or_attack(monster):
 
         #close enough, attack! (if the player is still alive.)
         elif player.fighter.hp > 0:
-            monster.fighter.attack(player)
+            if monster.name == 'Cerebus':
+                monster.fighter.attack(player)
+                monster.fighter.attack(player)
+                monster.fighter.attack(player)
+                check_run_effects(monster)
+            else:
+                monster.fighter.attack(player)
 
-            check_run_effects(monster)
+                check_run_effects(monster)
 
     else:
         #the player cannot see the monster
@@ -856,28 +872,28 @@ def monster_move_or_attack(monster):
                 print 'no nextx or nexty line 770'
 
         #stop boar and baby boars and pygmys from wandering
-        elif not monster.char == 'B' or monster.char == 'b' or monster.char == 'p':
+        #elif monster.char != 'p' or dungeon_level != 1:
             #path is empty, wander randomly
-            rand_direction = libtcod.random_get_int(0, 1, 12)
-            if rand_direction == 1:
-                monster.move(-1, 1)
-            elif rand_direction == 2:
-                monster.move(0, 1)
-            elif rand_direction == 3:
-                monster.move(1, 1)
-            elif rand_direction == 4:
-                monster.move(-1, 0)
-            elif rand_direction == 5:
-                monster.move(1, 0)
-            elif rand_direction == 6:
-                monster.move(-1, -1)
-            elif rand_direction == 7:
-                monster.move(0, -1)
-            elif rand_direction == 8:
-                monster.move(1, -1)
-            else:
-                #Don't wander
-                monster.move(0, 0)
+            #rand_direction = libtcod.random_get_int(0, 1, 12)
+            #if rand_direction == 1:
+                #monster.move(-1, 1)
+            #elif rand_direction == 2:
+             #   monster.move(0, 1)
+           # elif rand_direction == 3:
+        #        monster.move(1, 1)
+         #   elif rand_direction == 4:
+        #        monster.move(-1, 0)
+       #     elif rand_direction == 5:
+      ##          monster.move(1, 0)
+        #    elif rand_direction == 6:
+        #        monster.move(-1, -1)
+      #      elif rand_direction == 7:
+        #        monster.move(0, -1)
+      #      elif rand_direction == 8:
+       #         monster.move(1, -1)
+       #     else:
+        #        #Don't wander
+        #        monster.move(0, 0)
         else:
             return 'cancelled'
 
@@ -1069,7 +1085,7 @@ def check_run_effects(obj):
                                 fired_times += 1
 
                                 #Set map.diff_color to darkest_grey. This order is important.
-                                map[obj.x][obj.y].diff_color = libtcod.darker_grey
+                                map[obj.x][obj.y].diff_color = [libtcod.darker_grey, libtcod.dark_grey]
 
 
                             ELEC_FIRING = False
@@ -1152,31 +1168,14 @@ def create_room(room):
 
 
 def place_objects(room):
-    #maximum number of monsters per room
-    max_monsters = from_dungeon_level([[2, 1], [3, 4], [5, 6]])
+
 
     #TODO: Min_monsters to create minimum danger level.
-
-
-    #chance of each monsters
-    monster_chances = {}
-    monster_chances['Dog'] = 30  #Dog always spawns, even if all other monsters have 0 chance
-    monster_chances['Snake'] = from_dungeon_level([[3, 1], [5, 3], [50, 7]])
-    monster_chances['Imp'] = from_dungeon_level([[50, 2], [30, 5], [50, 7]])
-    monster_chances['Firefly'] = from_dungeon_level([[3, 1], [30, 3], [60, 7]])
-    monster_chances['Crab'] = from_dungeon_level([[1, 2], [30, 3], [60, 7]])
-    monster_chances['Goat'] = from_dungeon_level([[15, 2], [30, 8], [60, 10]])
-    monster_chances['Eagle'] = from_dungeon_level([[15, 5], [30, 8], [60, 10]])
-    monster_chances['Pygmy'] = from_dungeon_level([[10, 5], [40, 8], [50, 10]])
-    monster_chances['Bull'] = from_dungeon_level([[10, 6], [40, 7], [10, 9]])
-    monster_chances['Centaur'] = from_dungeon_level([[5, 6], [20, 7], [30, 9]])
-
-
 
     #choose random number of monsters
 
     #maximum number of monsters per room
-    max_monsters = from_dungeon_level([[2, 1], [3, 4], [5, 6]])
+    max_monsters = from_dungeon_level([[3, 1], [5, 4], [7, 6]])
 
     #TODO: Min_monsters to create minimum danger level.
 
@@ -1371,14 +1370,16 @@ def get_names_under_mouse():
 def mutation_menu(header):
     charged_list = []
     for e in player.fighter.effects:
-        if e.mutation == True and e.m_count >= e.m_trigger:
+        if e.mutation == True:
             charged_list.append(e)
 
     if len(charged_list) == 0:
         options = ['You have no charged powers.']
 
     elif len(charged_list) >= 1:
-        options = [e.effect_name for e in charged_list]
+        options = []
+        for e in charged_list:
+            options.append(str(e.effect_name) + ' ' + str(e.m_count) + '/' + str(e.m_trigger))
 
     index = menu(header, options, INVENTORY_WIDTH, 1)
 
@@ -1453,17 +1454,13 @@ def make_map():
 
         map1 = prefab_map.lol
 
-        lines = len(map1)
-        columns = len(map1[0])
-        print lines
-        print columns
+
 
 
         map = [[Tile(False)
                 for y in range(MAP_HEIGHT)]
                for x in range(MAP_WIDTH)]
 
-        print map1[52][1]
 
 
         for y in range(0, MAP_HEIGHT, 1):
@@ -1471,9 +1468,9 @@ def make_map():
 
                 #TODO: Find a way to put this is prefab_map.py
                 if map1[y][x] == "#": # wall
-
                     map[x][y].block_sight = True
                     map[x][y].blocked = True
+
 
                 elif map1[y][x] == '@':
                     player.x = x
@@ -1482,31 +1479,60 @@ def make_map():
                     objects.append(stairs)
 
                 elif map1[y][x] == 'C':
-                    fighter_component = Fighter(hp=125, defense_dice=1, defense_sides=5, power_dice=5, power_sides=5, evasion_dice=4, evasion_sides=7, accuracy_dice=6, accuracy_sides=10, xp=300, speed=9, death_function=monster_death)
+                    fighter_component = Fighter(hp=125, defense_dice=1, defense_sides=5, power_dice=8, power_sides=6, evasion_dice=6, evasion_sides=8, accuracy_dice=10, accuracy_sides=6, xp=600, speed=9, death_function=monster_death)
                     ai_component = BasicMonsterAI()
-                    monster = Object(x, y, 'C', 'Centaur', libtcod.darker_magenta, blocks=True, fighter=fighter_component, ai=ai_component, description='A mythical creature; half human, half horse. He is incredibly accurate and quite fast.')
+                    monster = Object(x, y, 'C', 'Cerebus', libtcod.darker_red, blocks=True, fighter=fighter_component, ai=ai_component, description='An enormous three headed dog, usually guarding the gates of hell itself')
                     objects.append(monster)
                 elif map1[y][x] == 'M':
-                    fighter_component = Fighter(hp=125, defense_dice=1, defense_sides=5, power_dice=5, power_sides=5, evasion_dice=4, evasion_sides=7, accuracy_dice=6, accuracy_sides=10, xp=300, speed=9, death_function=monster_death)
+                    fighter_component = Fighter(hp=125, defense_dice=8, defense_sides=5, power_dice=9, power_sides=10, evasion_dice=8, evasion_sides=5, accuracy_dice=10, accuracy_sides=10, xp=600, speed=9, death_function=monster_death)
                     ai_component = BasicMonsterAI()
-                    monster = Object(x, y, 'M', 'Medusa', libtcod.darker_magenta, blocks=True, fighter=fighter_component, ai=ai_component, description='A mythical creature; half human, half horse. He is incredibly accurate and quite fast.')
+                    #TODO: Give medusa paralysis
+                    monster = Object(x, y, 'M', 'Medusa', libtcod.black, blocks=True, fighter=fighter_component, ai=ai_component, description='A monstrous woman with snakes growing form her scalp like hair, she can paralyze you.')
                     objects.append(monster)
                 elif map1[y][x] == 'Z':
+                    throne_piece = Object(x, y, chr(216), 'Throne', libtcod.brass, always_visible=True, blocks=False)
+                    objects.append(throne_piece)
+                    throne_piece.send_to_back()
+                    map[x][y].diff_color = [libtcod.gold, libtcod.brass]
                     fighter_component = Fighter(hp=500, defense_dice=10, defense_sides=5, power_dice=10, power_sides=5, evasion_dice=5, evasion_sides=7, accuracy_dice=10, accuracy_sides=10, xp=0, speed=10, death_function=zeus_death)
                     ai_component = BasicMonsterAI()
                     monster = Object(x, y, 'Z', 'Zeus', libtcod.white, blocks=True, fighter=fighter_component, ai=ai_component, description='A god, and according to some townfolk a bit of a prick.')
                     objects.append(monster)
                 elif map1[y][x] == '=':
-                    throne_piece = Object(x, y, '=', 'Throne', libtcod.gold, always_visible=True, blocks=True)
+                    throne_piece = Object(x, y, '=', 'Pillar', libtcod.dark_grey, always_visible=True, blocks=True)
                     objects.append(throne_piece)
-                elif map1[y][x] == '^':
-                    throne_piece = Object(x, y, '^', 'Throne', libtcod.dark_flame, always_visible=True, blocks=True)
-                    objects.append(throne_piece)
-                elif map1[y][x] == '':
-                    throne_piece = Object(x, y, '^', 'Throne', libtcod.dark_flame, always_visible=True, blocks=True)
-                    objects.append(throne_piece)
+                    throne_piece.send_to_back()
+                    map[x][y].diff_color = [libtcod.lighter_grey, libtcod.lightest_grey]
 
-
+                elif map1[y][x] == ']':
+                    throne_piece = Object(x, y, chr(184), 'Throne', libtcod.gold, always_visible=True, blocks=True)
+                    objects.append(throne_piece)
+                    throne_piece.send_to_back()
+                    map[x][y].diff_color = [libtcod.lighter_grey, libtcod.lightest_grey]
+                elif map1[y][x] == '[':
+                    throne_piece = Object(x, y, chr(213), 'Throne', libtcod.gold, always_visible=True, blocks=True)
+                    objects.append(throne_piece)
+                    throne_piece.send_to_back()
+                    map[x][y].diff_color = [libtcod.lighter_grey, libtcod.lightest_grey]
+                elif map1[y][x] == '*':
+                    throne_piece = Object(x, y, '*', 'Throne', libtcod.dark_flame, always_visible=True, blocks=True)
+                    objects.append(throne_piece)
+                    throne_piece.send_to_back()
+                elif map1[y][x] == '-':
+                    throne_piece = Object(x, y, chr(178), 'Path', libtcod.dark_amber, always_visible=True, blocks=False)
+                    objects.append(throne_piece)
+                    throne_piece.send_to_back()
+                    map[x][y].diff_color = [libtcod.darkest_amber, libtcod.dark_amber]
+                elif map1[y][x] == '0':
+                    throne_piece = Object(x, y, chr(186), 'Pillar', libtcod.dark_grey, always_visible=True, blocks=False)
+                    objects.append(throne_piece)
+                    throne_piece.send_to_back()
+                    map[x][y].diff_color = [libtcod.lighter_grey, libtcod.lightest_grey]
+                elif map1[y][x] == '1':
+                    throne_piece = Object(x, y, chr(210), 'Pillar', libtcod.dark_grey, always_visible=True, blocks=True)
+                    objects.append(throne_piece)
+                    throne_piece.send_to_back()
+                    map[x][y].diff_color = [libtcod.lighter_grey, libtcod.lightest_grey]
 
     else:
         #fill map with "blocked" tiles
@@ -1681,10 +1707,16 @@ def render_all():
                 visible = libtcod.map_is_in_fov(fov_map, x, y)
                 wall = map[x][y].block_sight
 
-                #If the tile has not yet had its color_set value set, set it using perlin noise.
+                #If the tile has not yet had its color_set value set, set it using lerp.
                 if map[x][y].color_set == None:
 
-                    if wall == True:
+                    if map[x][y].diff_color != []:
+                        base = map[x][y].diff_color[1]
+                        light = map[x][y].diff_color[0]
+                        base_char = color_char_set_dark_ground
+                        light_char = color_char_dark_ground
+
+                    elif wall == True:
                         base = color_set_wall_dark
                         light = color_dark_wall
                         base_char = color_char_set_dark_wall
@@ -1709,13 +1741,16 @@ def render_all():
                     #if it's not explored right now, the player can only see it if it's explored
                     if map[x][y].explored:
                         if wall:
+
                             #Use lerped and stored variable for this tiles background color
                             libtcod.console_set_char_background(con, x, y, map[x][y].color_set, libtcod.BKGND_SET)
                             #Use lerped and stored variable for this tiles foreground color
                             libtcod.console_set_default_foreground(con, map[x][y].color_fore)
                             #Set character
                             libtcod.console_put_char(con, x, y, WALL_CHAR, libtcod.BKGND_SCREEN)
+
                         else:
+
                             #Use lerped and stored variable for this tiles background color
                             libtcod.console_set_char_background(con, x, y, map[x][y].color_set, libtcod.BKGND_SET)
                             #Use lerped and stored variable for this tiles foreground color
@@ -1728,39 +1763,22 @@ def render_all():
                     #it's visible
                     if wall:
 
-                        #Use lerped and stored variable for this tiles foreground color
-                        libtcod.console_set_default_foreground(con, map[x][y].color_fore)
                         libtcod.console_put_char(con, x, y, WALL_CHAR, libtcod.BKGND_SCREEN)
 
-                        #Set base and light for torch noise lerp at end
-                        base = color_dark_wall
-                        light = color_light_wall
-                        base_char = color_char_set_dark_wall
-                        light_char = color_char_dark_wall
+                    #Else it is floor
+                    else:
+                        libtcod.console_put_char(con, x, y, FLOOR_CHAR, libtcod.BKGND_SCREEN)
 
-                    #Is ground, if map.diff_color is not None, render the color instead
-                    elif map[x][y].diff_color is not None:
-                        libtcod.console_set_char_background(con, x, y, map[x][y].diff_color, libtcod.BKGND_SET)
 
-                        #If flash is true, render it once, then set to false, this shouldn't work as wait_for_spacekey()
-                        #uses render_all() in its while loop. Problem lies elsewhere I think.
-                    elif map[x][y].color_flash is not None:
+                    #elif map[x][y].color_flash is not None:
 
                         #Make the color blue flash for one render
-                        libtcod.console_set_char_background(con, x, y, map[x][y].color_flash, libtcod.BKGND_SET)
+                        #libtcod.console_set_char_background(con, x, y, map[x][y].color_flash, libtcod.BKGND_SET)
 
                         #Immediately set to false to ensure this only runs once
-                        map[x][y].color_flash = None
+                        #map[x][y].color_flash = None
 
 
-                    #Else it is floor and has no diff_color value and should be set to the default color
-                    else:
-
-                        libtcod.console_put_char(con, x, y, FLOOR_CHAR, libtcod.BKGND_SCREEN)
-                        base = color_dark_ground
-                        light = color_light_ground
-                        base_char = color_char_set_dark_ground
-                        light_char = color_char_dark_wall
 
                     #############
                     #TORCH NOISE#
@@ -1788,13 +1806,7 @@ def render_all():
                         elif l > 1.6:
                             l = 1.6
 
-                        #Lerp tiles
-                        if map[x][y].diff_color is not None:
-                            #TODO: Make torch light change have an alpha, to make coloring easier.
-                            light = libtcod.color_lerp(map[x][y].diff_color, torch_color, l)
-                            light_char = libtcod.color_lerp(map[x][y].color_fore, map[x][y].color_fore+torch_light_color, l)
-
-                        elif wall:
+                        if wall:
                             light = libtcod.color_lerp(map[x][y].color_set, map[x][y].color_set+torch_color, l)
                             light_char = libtcod.color_lerp(map[x][y].color_fore, map[x][y].color_fore+torch_light_color, l)
 
@@ -2272,21 +2284,26 @@ def handle_keys():
                         break
 
             if key_char == 'i':
+                if player.fighter.paralysis == True:
+                            message('You are paralyzed and cannot move!', libtcod.white)
                 #show the inventory; if an item is selected, use it.
                 #\n is a line break to keep a space between header and options
-                chosen_item = inventory_menu('Press the key next to an item to use it, or any other to cancel.\n')
 
-                if chosen_item is not None:
-                    chosen_item.use()
+                else:
+                    chosen_item = inventory_menu('Press the key next to an item to use it, or any other to cancel.\n')
+                    if chosen_item is not None:
+                        chosen_item.use()
 
             #Cast/apply mutations
             if key_char == 'a':
                 effect = mutation_menu('Choose a charged power to apply')
 
-                if effect is not None:
+                if effect is not None and effect.m_count >= effect.m_trigger:
                     effect.is_active = True
                     check_run_effects(player)
                     render_all()
+                else:
+                    message('This power is not charged or works passively.')
 
             #debug
             if key_char == '[':
@@ -2541,7 +2558,7 @@ def zeus_death(monster):
     monster.fighter = None
     monster.ai = None
     monster.name = 'Remains of ' + monster.name
-    monster.send_to_back()
+
     #Remove path
     monster.path = None
     #Set tile to not block paths
@@ -2575,22 +2592,22 @@ def monster_death(monster):
                         gib = Object(x, y, '%', 'guts', libtcod.darker_red, blocks=False,
                                      description='Remains of a squashed ' + str(monster.name) + '.')
                         libtcod.console_set_char_background(con, x, y, libtcod.dark_red, libtcod.BKGND_SET)
-                        map[x][y].diff_color = libtcod.dark_red
+                        map[x][y].diff_color = [libtcod.darkest_red, libtcod.dark_red]
                     if roll == 1:
                         gib = Object(x, y, "^", 'sinew', libtcod.dark_red, blocks=False,
                                      description='Remains of a squashed ' + str(monster.name) + '.')
                         libtcod.console_set_char_background(con, x, y, libtcod.darker_red, libtcod.BKGND_SET)
-                        map[x][y].diff_color = libtcod.darker_red
+                        map[x][y].diff_color = [libtcod.darkest_red, libtcod.dark_red]
                     if roll == 2:
                         gib = Object(x, y, '$', 'guts', libtcod.darker_purple, blocks=False,
                                      description='Remains of a squashed ' + str(monster.name) + '.')
                         libtcod.console_set_char_background(con, x, y, libtcod.darkest_red, libtcod.BKGND_SET)
-                        map[x][y].diff_color = libtcod.darkest_red
+                        map[x][y].diff_color = [libtcod.darkest_red, libtcod.dark_red]
                     if roll == 3:
                         gib = Object(x, y, '/', 'broken bone', libtcod.white, blocks=False,
                                      description='Remains of a squashed ' + str(monster.name) + '.')
                         libtcod.console_set_char_background(con, x, y, libtcod.dark_red, libtcod.BKGND_SET)
-                        map[x][y].diff_color = libtcod.dark_red
+                        map[x][y].diff_color = [libtcod.darkest_red, libtcod.dark_red]
 
                     #append gib and send it to back
                     objects.append(gib)
@@ -3039,12 +3056,12 @@ def check_level_up():
 
                     # May be better to leave evasion and accuracy out of the players hands, to keep it simple
                     if choice == 0 and roar_done != True:
-                        player.fighter.add_effect(Effect('Ares Roar', mutation=True, m_a_roar=True, m_loop=10, m_trigger=10), 'The gods convene and offer you')
+                        player.fighter.add_effect(Effect('Ares Roar', mutation=True, m_a_roar=True, m_loop=10, m_trigger=200), 'The gods convene and offer you')
                     elif choice == 1 and timeslip_done != True:
-                        player.fighter.add_effect(Effect('Hermes Timeslip', mutation=True, m_h_timeslip=True, m_loop=25, m_trigger=100), 'The gods convene and offer you ')
+                        player.fighter.add_effect(Effect('Hermes Timeslip', mutation=True, m_h_timeslip=True, m_loop=25, m_trigger=200), 'The gods convene and offer you ')
                     elif choice == 2 and elec_done != True:
                         #TODO: Remove the string and put it in the above function instead to stop message error
-                        player.fighter.add_effect(Effect('Electric Power', mutation=True, m_elec=True, m_trigger=125, m_damage=150), 'For your valiant effort you have earned the gods favour, they convene and offer you')
+                        player.fighter.add_effect(Effect('Electric Power', mutation=True, m_elec=True, m_trigger=150, m_damage=150), 'For your valiant effort you have earned the gods favour, they convene and offer you')
 
                 render_all()
 

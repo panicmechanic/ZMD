@@ -6,9 +6,10 @@ def random_monster():
     #chance of each monsters
     monster_chances = {}
     monster_chances['Dog'] = weaponchances.from_dungeon_level([[30, 1], [5, 3], [50, 7], [0, 8]])
-    monster_chances['Snake'] = weaponchances.from_dungeon_level([[30, 1], [5, 3], [0, 7]])
-    monster_chances['Imp'] = weaponchances.from_dungeon_level([[50, 2], [30, 5], [50, 7]])
-    monster_chances['Firefly'] = weaponchances.from_dungeon_level([[3, 1], [30, 3], [60, 7]])
+    monster_chances['Snake'] = weaponchances.from_dungeon_level([[1, 1], [5, 3], [0, 7]])
+    monster_chances['Imp'] = weaponchances.from_dungeon_level([[5, 1], [30, 5], [50, 7]])
+    monster_chances['Faun'] = weaponchances.from_dungeon_level([[30, 1], [30, 5], [50, 7]])
+    monster_chances['Wasp'] = weaponchances.from_dungeon_level([[1, 1], [30, 3], [60, 7]])
     monster_chances['Giant Crab'] = weaponchances.from_dungeon_level([[1, 2], [30, 3], [60, 7]])
     monster_chances['Goat'] = weaponchances.from_dungeon_level([[15, 2], [30, 8], [60, 10]])
     monster_chances['Eagle'] = weaponchances.from_dungeon_level([[15, 5], [30, 8], [60, 10]])
@@ -33,7 +34,7 @@ def create_monster(x, y):
         #create a Snake
         effect_component = Effect('poisoned', duration=5, damage_by_turn=2, base_duration=5)
         effect_roll = 20
-        fighter_component = Fighter(hp=20, defense_dice=1, defense_sides=4, power_dice=1, power_sides=9, evasion_dice=1, evasion_sides=8, accuracy_dice=2, accuracy_sides=6, xp=60, speed=8, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
+        fighter_component = Fighter(hp=20, defense_dice=1, defense_sides=4, power_dice=1, power_sides=5, evasion_dice=1, evasion_sides=8, accuracy_dice=2, accuracy_sides=6, xp=60, speed=8, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
         ai_component = BasicMonsterAI()
         monster = Object(x, y, 's', 'Snake', libtcod.lime, blocks=True, fighter=fighter_component,
                          ai=ai_component,
@@ -41,10 +42,17 @@ def create_monster(x, y):
 
     elif choice == 'Imp':
         #create an Imp
-        fighter_component = Fighter(hp=25, defense_dice=2, defense_sides=3, power_dice=2, power_sides=8, evasion_dice=1, evasion_sides=6, accuracy_dice=2, accuracy_sides=6, xp=80, speed=10, death_function=monster_death)
+        fighter_component = Fighter(hp=25, defense_dice=2, defense_sides=2, power_dice=2, power_sides=6, evasion_dice=1, evasion_sides=8, accuracy_dice=2, accuracy_sides=6, xp=80, speed=10, death_function=monster_death)
         ai_component = BasicMonsterAI()
-        monster = Object(x, y, 'i', 'Imp', libtcod.darker_green, blocks=True, fighter=fighter_component,
+        monster = Object(x, y, 'i', 'Imp', libtcod.light_green, blocks=True, fighter=fighter_component,
                          ai=ai_component, description='A green Imp, skilled in defensive fighting.')
+
+    elif choice == 'Faun':
+        #create a Satyr
+        fighter_component = Fighter(hp=15, defense_dice=1, defense_sides=1, power_dice=1, power_sides=8, evasion_dice=1, evasion_sides=3, accuracy_dice=1, accuracy_sides=7, xp=30, speed=10, death_function=monster_death)
+        ai_component = BasicMonsterAI()
+        monster = Object(x, y, 'f', 'Faun', libtcod.light_chartreuse, blocks=True, fighter=fighter_component,
+                         ai=ai_component, description="A small goat-man hybrid. He is drunk, like angry drunk.")
 
     elif choice == 'Eagle':
         #create an eagle
@@ -54,15 +62,15 @@ def create_monster(x, y):
                          ai=ai_component,
                          description='A huge brown eagle, his muscular wings and razor sharp beak look threatening.')
 
-    elif choice == 'Firefly':
+    elif choice == 'Wasp':
         #create a glow fly
         effect_component = Effect('Paralyzed', duration=5, paralyzed=True, base_duration=5)
         effect_roll = 10
         fighter_component = Fighter(hp=10, defense_dice=1, defense_sides=2, power_dice=1, power_sides=8, evasion_dice=1, evasion_sides=4, accuracy_dice=2, accuracy_sides=10, xp=100, speed=5, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
         ai_component = BasicMonsterAI()
-        monster = Object(x, y, 'f', 'Firefly', libtcod.light_green, blocks=True, fighter=fighter_component,
+        monster = Object(x, y, 'w', 'Wasp', libtcod.light_yellow, blocks=True, fighter=fighter_component,
                          ai=ai_component,
-                         description='A small paralytic firefly. He moves very fast, but looks weak.', )
+                         description='A small paralytic wasp. He moves very fast, but looks weak.', )
 
     elif choice == 'Pygmy':
         #create a pygmy

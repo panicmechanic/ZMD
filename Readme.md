@@ -62,7 +62,8 @@ Damage player 10 hit points - '#'
 
 - Weird message bug when you take a second power at level 7       
 - Electric power doesn't show up anymore under the hp and hunger bars
-- Create throne room for zeus.     
+
+
 
 
 #Alpha TODO:
@@ -196,11 +197,12 @@ For alpha release:
     e.g warhammers need strength and are powerful, axes need dex and are fast, etc. etc.
     
 - Add new potions for new attributes
-
+- Find/create/blend a new ascii tileset
 - Create gas system - each tile has gas=0 attribute, when one tile has gas and the other doesnt make them even unless below a certain number
 - Shift_run needs a keypress to stop function
 - Water on map
 - Finish lever object
+- 'Drunk' Effect for styrs and player, make them move randomly, and occasionally stumble several tiles in one direction.
 - Add gui bar for eff in monster.effects to display effects like burning, poisoned, confused, paralysed.
      
 - Fix name_stat_gen() to print all relevant info and sides neatly (how?!)             
@@ -220,6 +222,7 @@ For alpha release:
     new rooms, and if map[x][y].run_block == True stop the shift_run. Will need to change
     the make_map function.
 - Improve menus, they are ugly ass.
+- Differentiate weapons
 - Make inventory a list in the fighter class so monsters can have them.
 - Make monsters drop items in inventory based on a roll from inventory but use system like other 
 - Fix pathfinding- look at example code in library.
@@ -349,7 +352,7 @@ Make monster drops a chance of a next level item, build an anticipation. http://
 
 #Done:
 
-
+- Added prefabbed maps
 - Added debug keys to show blocked tiles, and paths.
 - Added skills, currently:
 
@@ -430,7 +433,8 @@ great foes, avoid traps, solve puzzles, gather legendary items and battle mythic
 
 The game seeks to (eventually) have a focus on combat, with tight mechanics and realisism.
 The game should be short, around 3-5 hours to win, but have enough breadth and depth to keep
-the player from acheiving mastery easily.
+the player from acheiving mastery easily. It should include bonus levels with a similar mechanic to
+DCSS's wings.
 
 There should be many different level types for you to interact with, providing a great
 variety of challenges and problems to solve with brains or brawn as you continue your
