@@ -49,19 +49,20 @@ Damage player 10 hit points - '#'
 - Autorest
 - Flash damage on hit
 - Godly mutations
+- Speed system
+- Shift-run
 
 #Features TODO:
 
 - Mouse to path
-- Autoexplore/Shift run
-- Turn system
-- Speed system
+- Autoexplore
 - Scent tracking
 
 #Minor TODO/bugs:
 
 - Weird message bug when you take a second power at level 7       
 - Electric power doesn't show up anymore under the hp and hunger bars
+- Make sure monsters will surround you completely.
 
 
 

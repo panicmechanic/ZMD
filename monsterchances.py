@@ -51,7 +51,7 @@ def create_monster(x, y):
         #create a Satyr
         fighter_component = Fighter(hp=15, defense_dice=1, defense_sides=1, power_dice=1, power_sides=8, evasion_dice=1, evasion_sides=3, accuracy_dice=1, accuracy_sides=7, xp=30, speed=10, death_function=monster_death)
         ai_component = BasicMonsterAI()
-        monster = Object(x, y, 'f', 'Faun', libtcod.light_chartreuse, blocks=True, fighter=fighter_component,
+        monster = Object(x, y, 'f', 'Faun', libtcod.dark_yellow, blocks=True, fighter=fighter_component,
                          ai=ai_component, description="A small goat-man hybrid. He is drunk, like angry drunk.")
 
     elif choice == 'Eagle':

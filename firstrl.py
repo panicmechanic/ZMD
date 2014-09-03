@@ -232,19 +232,6 @@ class Object:
         #This creates the path needed, in seven trials this is done in play_game loop,
         # load_game() and use() functions.
         list = []
-        #Iterate through objects
-        for obj in objects:
-            #If object has a fighter instance, and is less than 2 tiles away from self and is not self or player
-            if obj.fighter and obj.distance_to(self) < 2 and obj != self and obj != player:
-                list.append(obj)
-
-            #If object is a fountain and is not blocked already, block it.
-            elif obj.name == 'Fountain' and libtcod.map_is_walkable(fov_map, obj.x, obj.y):
-                libtcod.map_set_properties(fov_map, obj.x, obj.y, True, False)
-
-        for i in list:
-            libtcod.map_set_properties(fov_map, i.x, i.y, True, False)
-
         self.path = libtcod.path_new_using_function(MAP_WIDTH, MAP_HEIGHT, path_func, self, 1)
 
         #Compute path to target
@@ -255,6 +242,40 @@ class Object:
 
             #Walk the path
             path_x, path_y = libtcod.path_get(self.path, 0)
+
+            for obj in objects:
+                #If next step is blocked
+                if obj.x == path_x and obj.y == path_y:
+
+                    #Iterate through objects
+                    for obj in objects:
+                        #If object has a fighter instance, and is less than 2 tiles away from self and is not self or player
+                        if obj.fighter and obj.distance_to(self) <= 2 and obj != self and obj != player:
+                            list.append(obj)
+
+                        #TODO: Put this in init somewhere
+                        #If object is a fountain and is not blocked already, block it.
+                        #elif obj.name == 'Fountain' and libtcod.map_is_walkable(fov_map, obj.x, obj.y):
+                            #libtcod.map_set_properties(fov_map, obj.x, obj.y, True, False)
+
+                        for i in list:
+                            libtcod.map_set_properties(fov_map, i.x, i.y, True, False)
+
+                        self.path = libtcod.path_new_using_function(MAP_WIDTH, MAP_HEIGHT, path_func, self, 1)
+
+                        #Compute path to target
+                        libtcod.path_compute(self.path, self.x, self.y, target_x, target_y)
+
+                        #vector from this object to the target, and distance
+                        if not libtcod.path_is_empty(self.path) and libtcod.path_size(self.path) < 6:
+
+                            #Walk the path
+                            path_x, path_y = libtcod.path_get(self.path, 0)
+
+                        #Path is still emptry
+                        else:
+                            #do nothing
+                            pass
 
             #normalise it to 1 length (preserving direction), then round it and
             #convert to integer so the movement is restricted to the map grid
@@ -272,9 +293,9 @@ class Object:
             dy = int(round(dy / distance))
 
         self.move(dx, dy)
-
-        for i in list:
-            libtcod.map_set_properties(fov_map, i.x, i.y, True, True)
+        if list != []:
+            for i in list:
+                libtcod.map_set_properties(fov_map, i.x, i.y, True, True)
 
     def distance_to(self, other):
         #return the distance to another object
@@ -899,9 +920,6 @@ def monster_move_or_attack(monster):
 
 def path_func(xFrom, yFrom, xTo, yTo, self):
     global map
-
-    if self.distance_to(player) < 6 and libtcod.path_size(self.path) >= 10:
-        return 0.0
 
     if libtcod.map_is_walkable(fov_map, xTo, yTo) == True: #open space
         return 1.0 #All good!
