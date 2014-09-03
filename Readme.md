@@ -61,8 +61,8 @@ Damage player 10 hit points - '#'
 #Minor TODO/bugs:
 
 - Weird message bug when you take a second power at level 7       
-- Electric power doesn't show up anymore under the hp and hunger bars
-- Make sure monsters will surround you completely.
+
+
 
 #Alpha TODO:
 
@@ -101,7 +101,7 @@ For alpha release:
     - Add simple win condition for alpha release purposes
         (DONE - Simple win_screen and death condition for when I put a zeus monster on the map.
     - Clear out minor bugs above and playtest:
-        (2 days)
+        (1 day) Bugs cleared.
     
     ALPHA UPDATE:
     19/08/14 (started countdown):    
@@ -164,13 +164,22 @@ For alpha release:
         
     02/09/14 Fixed win_screen to something simpler. Just need to do some playtesting and fix bugs, couple days.
         TOTAL DAYS LEFT = 2 (2)
-        ALPHA RELEASE DATE = 2nd September
+        ALPHA RELEASE DATE = 4th September
+    
+    03/09/14 Fixed most bugs. Just some playtesting now
+        TOTAL DAYS LEFT = 1 (1)
+        ALPHA RELEASE DATE = 4th September
+    
     
         
 #Remaining major TODO (in rough order):
 
+- Make game save frequently.
+- Fix diff_color to change tile color after tthe maps color_set has been set. Somehow.
+    Need a lerp_color_and_set function to lerp and replace color_set on creation.
 - A couple monsters should have a torch
 - Zeus needs different AI
+- Electric power doesn't show up anymore under the hp and hunger bars, need to find a way to show that info easily.
 - Add description to box with auto wrap
 - Seems I can't apply an effect to monsters? (When attempting to apply burning effect to monsters with cast_fireball())
 

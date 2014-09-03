@@ -699,6 +699,7 @@ class Item:
             return
         elif self.food_value != None:
             player.fighter.player_eat_food(self)
+            inventory.remove(self.owner)
         #just call the "use function" if it is defined
         elif self.use_function is None:
             message('The ' + self.owner.name + ' cannot be used.')
@@ -1468,7 +1469,7 @@ def make_map():
     objects = [player]
 
     #If it's the last dungeon, load a special map
-    if dungeon_level == 10:
+    if dungeon_level == 1:
 
         map1 = prefab_map.lol
 
@@ -1782,6 +1783,7 @@ def render_all():
                     if wall:
 
                         libtcod.console_put_char(con, x, y, WALL_CHAR, libtcod.BKGND_SCREEN)
+
 
                     #Else it is floor
                     else:
@@ -2207,10 +2209,6 @@ def player_move_or_attack(dx, dy):
             fov_recompute = True
             outcome = 'moved'
 
-    print player.x
-    print player.y
-
-
     return outcome
 
 
@@ -2302,6 +2300,7 @@ def handle_keys():
                         break
 
             if key_char == 'i':
+                save_game()
                 if player.fighter.paralysis == True:
                             message('You are paralyzed and cannot move!', libtcod.white)
                 #show the inventory; if an item is selected, use it.
@@ -2314,7 +2313,9 @@ def handle_keys():
 
             #Cast/apply mutations
             if key_char == 'a':
+                save_game()
                 effect = mutation_menu('Choose a charged power to apply')
+
 
                 if effect is not None and effect.m_count >= effect.m_trigger:
                     effect.is_active = True
@@ -2610,22 +2611,22 @@ def monster_death(monster):
                         gib = Object(x, y, '%', 'guts', libtcod.darker_red, blocks=False,
                                      description='Remains of a squashed ' + str(monster.name) + '.')
                         libtcod.console_set_char_background(con, x, y, libtcod.dark_red, libtcod.BKGND_SET)
-                        map[x][y].diff_color = [libtcod.darkest_red, libtcod.dark_red]
+                        map[x][y].color_set = color
                     if roll == 1:
                         gib = Object(x, y, "^", 'sinew', libtcod.dark_red, blocks=False,
                                      description='Remains of a squashed ' + str(monster.name) + '.')
                         libtcod.console_set_char_background(con, x, y, libtcod.darker_red, libtcod.BKGND_SET)
-                        map[x][y].diff_color = [libtcod.darkest_red, libtcod.dark_red]
+                        map[x][y].color_set = color
                     if roll == 2:
                         gib = Object(x, y, '$', 'guts', libtcod.darker_purple, blocks=False,
                                      description='Remains of a squashed ' + str(monster.name) + '.')
                         libtcod.console_set_char_background(con, x, y, libtcod.darkest_red, libtcod.BKGND_SET)
-                        map[x][y].diff_color = [libtcod.darkest_red, libtcod.dark_red]
+                        map[x][y].color_set = color
                     if roll == 3:
                         gib = Object(x, y, '/', 'broken bone', libtcod.white, blocks=False,
                                      description='Remains of a squashed ' + str(monster.name) + '.')
                         libtcod.console_set_char_background(con, x, y, libtcod.dark_red, libtcod.BKGND_SET)
-                        map[x][y].diff_color = [libtcod.darkest_red, libtcod.dark_red]
+                        map[x][y].color_set = color
 
                     #append gib and send it to back
                     objects.append(gib)
@@ -3170,6 +3171,7 @@ def check_by_turn(speed):
         if turn_increment == 5:
             turn_increment -= 5
             turn_5 += 1
+
 
     if hunger_level <= 0:
         message('You are starving!', libtcod.light_red)
