@@ -248,6 +248,7 @@ class Object:
                 #If next step is blocked
                 if obj.x == path_x and obj.y == path_y:
 
+
                     #Iterate through objects
                     for obj in objects:
                         #If object has a fighter instance, and is less than 2 tiles away from self and is not self or player
@@ -277,6 +278,7 @@ class Object:
                         else:
                             #do nothing
                             pass
+
 
             #normalise it to 1 length (preserving direction), then round it and
             #convert to integer so the movement is restricted to the map grid
