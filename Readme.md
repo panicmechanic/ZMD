@@ -1,4 +1,6 @@
-#Zeus must die - A python roguelike based on the libtcod tutorial.
+![Splash screen][splash]
+
+Zeus must die - A python roguelike based on the libtcod tutorial.
 
 Originally just a way for me to learn python, as it grew I decided to manage the project
 properly and get it on GitHub. Any help/advice is greatly appreciated.
@@ -462,3 +464,5 @@ The game takes inspiration from Brogue, Sil, Angband and DCSS, and aims to be si
 intuitive, while providing deep and rewarding functionality through the complex systems
 synonymous with roguelikes(such as combat, effects, speed and random generation). It currently uses 
 an experience point system, although this may change in the future.
+
+[splash]: http://i.imgur.com/XvWxZTB.png
