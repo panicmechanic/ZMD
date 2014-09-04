@@ -51,9 +51,7 @@ Character stats - 'c'
 
 Use godly powers - 'a'
 
-
-
-#Features:
+###Features:
 
 - 10 levels of macedonian mayhem
 - 1 bearded god
@@ -77,8 +75,11 @@ Use godly powers - 'a'
 - Speed system
 - Alt-run
 - A pretty torch
+![prettytorch][]
 
-#Features TODO:
+![Progress][beforeafter]
+
+###Features TODO:
 
 - Mouse to path
 - Autoexplore
@@ -86,11 +87,9 @@ Use godly powers - 'a'
 
 #Minor TODO/bugs:
 
-- None
-
-   
+- Organise major TODO into segments for working   
         
-#Remaining major TODO (in rough order):
+###Remaining major TODO (in rough order):
 
 - Add a version number on title screen
 - Find a way to make weapons less accurate the weaker the player is, and more accurate the stronger the player is. 
@@ -283,7 +282,7 @@ Make monster drops a chance of a next level item, build an anticipation. http://
     sword+shield=defensive close range, spear+sword = melee/ranged mix, spear only = fast agressive (need to be benefits to keeping a free hand for spear) 
 
 
-#Done:
+###Done:
 
 - Added prefabbed maps
 - Added debug keys to show blocked tiles, and paths.
@@ -354,7 +353,7 @@ Make monster drops a chance of a next level item, build an anticipation. http://
 - Added character info box to panel2, discarded irrelevant/duplicated information like xp.
 
 
-#Mission statement:
+###Mission statement:
 
 
 
@@ -382,7 +381,9 @@ intuitive, while providing deep and rewarding functionality through the complex 
 synonymous with roguelikes(such as combat, effects, speed and random generation). It currently uses 
 an experience point system, although this may change in the future.
 
-#Alpha Schedule (now finished and kept for posterity):
+##Beyond here lies nothing useful.
+
+####Alpha Schedule (now finished and kept for posterity):
 
 For alpha release:
     
@@ -493,3 +494,5 @@ For alpha release:
 [splash]: http://i.imgur.com/XvWxZTB.png
 [Click here to download]: https://www.dropbox.com/s/jvdlk87q8xjelvl/ZMD.rar?dl=1
 [here]: https://github.com/panicmechanic/ZMd#mission-statement
+[beforeafter]: http://i.imgur.com/NoJgaX5.png
+[prettytorch]: http://i.imgur.com/OXcnCeo.png
