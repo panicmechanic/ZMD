@@ -84,15 +84,44 @@ Use godly powers - 'a'
 
 ![Progress][beforeafter]
 
-###Features TODO:
+###Mission statement:
 
-- Mouse to path
-- Autoexplore
-- Scent tracking
+ZMD is a roguelike in which you play an ancient Greek gladiator, hunting a beserk Zeus.
+You seek retribution and will have to journey to the top of Mount Olympus to claim your
+prize. On the way you will encounter many different randomised level types; forests,
+dungeons, the sea of the dead and the infamous Mt. Olympus. You will have to outwit
+great foes, avoid traps, solve puzzles, gather legendary items and battle mythic monsters.
+
+The game seeks to (eventually) have a focus on combat, with tight mechanics and realisism.
+The game should be short, around 3-5 hours to win, but have enough breadth and depth to keep
+the player from acheiving mastery easily. It should include bonus levels with a similar mechanic to
+DCSS's wings.
+
+There should be many different level types for you to interact with, providing a great
+variety of challenges and problems to solve with brains or brawn as you continue your
+journey. There should be 10 levels, the first 5(?) randomised terrain, the last 5(?) ascending Mt. Olympus.
+
+Repetitive tasks (such as grinding) should be kept to a minimum, including those necessary
+to cross the dungeon, hot keys like fire/grab/open should be less than 5 and ideally use 
+a universal hotkey system.
+
+The game takes inspiration from Brogue, Sil, Angband and DCSS, and aims to be simple and relatively
+intuitive, while providing deep and rewarding functionality through the complex systems
+synonymous with roguelikes(such as combat, effects, speed and random generation). It currently uses 
+an experience point system, although this may change in the future.
+
+##Media:
+
+![prettytorch][] 
+
+![aresroar][]
 
 #Minor TODO/bugs:
 
 - Organise major TODO into segments for working   
+- There are 2 critical bugs; one related to save_game trying to save map and running out of memory
+    
+    and the other is fov_recompute causing a windows access error.
         
 ###Remaining major TODO (in rough order):
 
@@ -357,38 +386,6 @@ Make monster drops a chance of a next level item, build an anticipation. http://
 - Added a new GUI to the right, displays monster.fighter hp bars when in FOV
 - Added character info box to panel2, discarded irrelevant/duplicated information like xp.
 
-
-###Mission statement:
-
-ZMD is a roguelike in which you play an ancient Greek gladiator, hunting a beserk Zeus.
-You seek retribution and will have to journey to the top of Mount Olympus to claim your
-prize. On the way you will encounter many different randomised level types; forests,
-dungeons, the sea of the dead and the infamous Mt. Olympus. You will have to outwit
-great foes, avoid traps, solve puzzles, gather legendary items and battle mythic monsters.
-
-The game seeks to (eventually) have a focus on combat, with tight mechanics and realisism.
-The game should be short, around 3-5 hours to win, but have enough breadth and depth to keep
-the player from acheiving mastery easily. It should include bonus levels with a similar mechanic to
-DCSS's wings.
-
-There should be many different level types for you to interact with, providing a great
-variety of challenges and problems to solve with brains or brawn as you continue your
-journey. There shuold be 10 levels, the first 5(?) randomised terrain, the last 5(?) ascending Mt. Olympus.
-
-Repetitive tasks (such as grinding) should be kept to a minimum, including those necessary
-to cross the dungeon, hot keys like fire/grab/open should be less than 5 and ideally use 
-a universal hotkey system.
-
-The game takes inspiration from Brogue, Sil, Angband and DCSS, and aims to be simple and relatively
-intuitive, while providing deep and rewarding functionality through the complex systems
-synonymous with roguelikes(such as combat, effects, speed and random generation). It currently uses 
-an experience point system, although this may change in the future.
-
-##Media:
-
-![prettytorch][] 
-
-![aresroar][]
 
 ##Beyond here lies nothing useful.
 
