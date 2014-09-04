@@ -75,7 +75,8 @@ Use godly powers - 'a'
 - Speed system
 - Alt-run
 - A pretty torch
-![prettytorch][]
+
+![prettytorch][] ![aresroar][]
 
 ![Progress][beforeafter]
 
@@ -496,3 +497,4 @@ For alpha release:
 [here]: https://github.com/panicmechanic/ZMd#mission-statement
 [beforeafter]: http://i.imgur.com/NoJgaX5.png
 [prettytorch]: http://i.imgur.com/OXcnCeo.png
+[aresroar]: http://imgur.com/VBmyMqy.png
