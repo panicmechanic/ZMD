@@ -413,6 +413,12 @@ class Fighter:
         bonus_dice += (sum(effect.power_effect_dice for effect in self.effects))
         bonus_sides += (sum(effect.power_effect_sides for effect in self.effects))
 
+        #No lower than 1
+        if bonus_dice <= 1:
+            bonus_dice = 1
+        if bonus_sides <= 1:
+            bonus_sides = 1
+
         #Create list with dice and sides as it's two entries
         dice_sides = []
         dice_sides.append(bonus_dice)
@@ -429,6 +435,12 @@ class Fighter:
         #Need to integrate effects below
         bonus_dice += (sum(effect.defense_effect_dice for effect in self.effects))
         bonus_sides += (sum(effect.defense_effect_sides for effect in self.effects))
+
+        #No lower than 1
+        if bonus_dice <= 1:
+            bonus_dice = 1
+        if bonus_sides <= 1:
+            bonus_sides = 1
 
         dice_sides = []
         dice_sides.append(bonus_dice)
@@ -450,11 +462,17 @@ class Fighter:
     def evasion(self): #return actual evasion
         bonus_dice = (sum(equipment.evasion_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_evasion_dice))
         #Add all equipment + one point for each in dexterity
-        bonus_sides = (sum(equipment.evasion_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_evasion_sides)+(self.dexterity))
+        bonus_sides = (sum(equipment.evasion_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_evasion_sides)+(self.dexterity/2))
 
         #Need to integrate effects below
         bonus_dice += (sum(effect.evasion_effect_dice for effect in self.effects))
         bonus_sides += (sum(effect.evasion_effect_sides for effect in self.effects))
+
+        #No lower than 1
+        if bonus_dice <= 1:
+            bonus_dice = 1
+        if bonus_sides <= 1:
+            bonus_sides = 1
 
         dice_sides = []
         dice_sides.append(bonus_dice)
@@ -467,11 +485,17 @@ class Fighter:
         #Equipment bonus, plus one die for every five points of strength
         bonus_dice = (sum(equipment.accuracy_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_accuracy_dice)+(self.strength/5))
         #Adds all equipped, all effects, plus one for every point of dexterity
-        bonus_sides = (sum(equipment.accuracy_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_accuracy_sides)+(self.dexterity))
+        bonus_sides = (sum(equipment.accuracy_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_accuracy_sides)+(self.dexterity/2))
 
         #Need to integrate effects below
         bonus_dice += (sum(effect.accuracy_effect_dice for effect in self.effects))
         bonus_sides += (sum(effect.accuracy_effect_sides for effect in self.effects))
+
+        #No lower than 1
+        if bonus_dice <= 1:
+            bonus_dice = 1
+        if bonus_sides <= 1:
+            bonus_sides = 1
 
         dice_sides = []
         dice_sides.append(bonus_dice)
@@ -742,7 +766,7 @@ class Item:
 
 class Equipment:
     #an object that can be equipped, yielding bonuses. Automatically adds the Item component
-    def __init__(self, slot, weapon=False, ranged=False, strength_bonus=0, dexterity_bonus=0, stealth_bonus=0, will_bonus=0, power_bonus_dice=0, power_bonus_sides=0, defense_bonus_dice=0, defense_bonus_sides=0, evasion_bonus_dice=0, evasion_bonus_sides=0, accuracy_bonus_dice=0, accuracy_bonus_sides=0, max_hp_bonus=0):
+    def __init__(self, slot, weapon=False, ranged=False, strength_bonus=0, dexterity_bonus=0, stealth_bonus=0, will_bonus=0, power_bonus_dice=0, power_bonus_sides=0, defense_bonus_dice=0, defense_bonus_sides=0, evasion_bonus_dice=0, evasion_bonus_sides=0, accuracy_bonus_dice=0, accuracy_bonus_sides=0, max_hp_bonus=0, req_strength=0):
         self.weapon = weapon
         self.ranged = ranged
         self.strength_bonus = strength_bonus
@@ -758,6 +782,7 @@ class Equipment:
         self.accuracy_bonus_dice = accuracy_bonus_dice
         self.accuracy_bonus_sides = accuracy_bonus_sides
         self.max_hp_bonus = max_hp_bonus
+        self.req_strength = req_strength
 
         self.slot = slot
         self.is_equipped = False
@@ -1222,6 +1247,7 @@ def place_objects(room):
             weaponchances.cast_confuse = cast_confuse
             weaponchances.cast_fireball = cast_fireball
             weaponchances.message = message
+            weaponchances.player = player
 
             #Set monsterchances stuff
             monsterchances.dungeon_level = dungeon_level
@@ -1469,7 +1495,7 @@ def make_map():
     objects = [player]
 
     #If it's the last dungeon, load a special map
-    if dungeon_level == 1:
+    if dungeon_level == 10:
 
         map1 = prefab_map.lol
 
@@ -2340,6 +2366,9 @@ def handle_keys():
                 player.fighter.base_defense_sides = 1000
                 player.fighter.base_power_sides = 1000
                 player.fighter.base_accuracy_sides = 1000
+
+            if key_char == ';':
+                player.fighter.xp += 400
 
             #debug
             if key_char == '#':

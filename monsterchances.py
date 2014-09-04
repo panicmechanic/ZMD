@@ -65,7 +65,7 @@ def create_monster(x, y):
     elif choice == 'Wasp':
         #create a glow fly
         effect_component = Effect('Paralyzed', duration=5, paralyzed=True, base_duration=5)
-        effect_roll = 10
+        effect_roll = 5
         fighter_component = Fighter(hp=10, defense_dice=1, defense_sides=2, power_dice=1, power_sides=8, evasion_dice=1, evasion_sides=4, accuracy_dice=2, accuracy_sides=10, xp=100, speed=5, cast_effect=effect_component, cast_roll=effect_roll, death_function=monster_death)
         ai_component = BasicMonsterAI()
         monster = Object(x, y, 'w', 'Wasp', libtcod.light_yellow, blocks=True, fighter=fighter_component,

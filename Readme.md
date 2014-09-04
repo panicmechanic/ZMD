@@ -174,6 +174,7 @@ For alpha release:
         
 #Remaining major TODO (in rough order):
 
+- Make ability to switch between hands for attack
 - Make game save frequently.
 - Fix diff_color to change tile color after tthe maps color_set has been set. Somehow.
     Need a lerp_color_and_set function to lerp and replace color_set on creation.
