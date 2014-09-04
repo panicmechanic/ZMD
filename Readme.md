@@ -174,6 +174,9 @@ For alpha release:
         
 #Remaining major TODO (in rough order):
 
+- Find a way to make weapons less accurate the weaker the player is, and more accurate the stronger the player is. 
+
+    Probably a new @property calculated by equipment class.
 - Make ability to switch between hands for attack
 - Make game save frequently.
 - A couple monsters should have a torch

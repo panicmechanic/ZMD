@@ -14,7 +14,7 @@ def from_dungeon_level(table):
 def name_stat_gen(equipment_component):
     name = []
     if equipment_component.power_bonus_dice != None:
-        name.append('(' + str(equipment_component.power_bonus_dice) + ',' + str(equipment_component.power_bonus_sides) + ')[' + str(equipment_component.req_strength) + ']')
+        name.append('(' + str(equipment_component.power_bonus_dice) + ',' + str(equipment_component.power_bonus_sides) + ')[' + str(equipment_component.acc_penalty) + ']')
     #if equipment_component.defense_bonus != None:
         #name.append('Def: ' + str(equipment_component.defense_bonus) + '/')
     #if equipment_component.accuracy_bonus != None:
@@ -207,7 +207,7 @@ def create_item(x, y):
         #Accuracy penalty
         req=3
         #Equipment component
-        equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=2, req_strength=req, accuracy_bonus_sides=-req)
+        equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=2, acc_penalty=req, accuracy_bonus_sides=-req)
         #Item
         item = Object(x, y, '/', name_stat_gen(equipment_component) + ' Wooden Kopis sword', libtcod.light_flame, equipment=equipment_component, item=None,
                       always_visible=True)

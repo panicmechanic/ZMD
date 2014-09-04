@@ -774,7 +774,7 @@ class Item:
 
 class Equipment:
     #an object that can be equipped, yielding bonuses. Automatically adds the Item component
-    def __init__(self, slot, weapon=False, ranged=False, strength_bonus=0, dexterity_bonus=0, stealth_bonus=0, will_bonus=0, power_bonus_dice=0, power_bonus_sides=0, defense_bonus_dice=0, defense_bonus_sides=0, evasion_bonus_dice=0, evasion_bonus_sides=0, accuracy_bonus_dice=0, accuracy_bonus_sides=0, max_hp_bonus=0, req_strength=0):
+    def __init__(self, slot, weapon=False, ranged=False, strength_bonus=0, dexterity_bonus=0, stealth_bonus=0, will_bonus=0, power_bonus_dice=0, power_bonus_sides=0, defense_bonus_dice=0, defense_bonus_sides=0, evasion_bonus_dice=0, evasion_bonus_sides=0, accuracy_bonus_dice=0, accuracy_bonus_sides=0, max_hp_bonus=0, acc_penalty=0):
         self.weapon = weapon
         self.ranged = ranged
         self.strength_bonus = strength_bonus
@@ -790,7 +790,7 @@ class Equipment:
         self.accuracy_bonus_dice = accuracy_bonus_dice
         self.accuracy_bonus_sides = accuracy_bonus_sides
         self.max_hp_bonus = max_hp_bonus
-        self.req_strength = req_strength
+        self.acc_penalty = acc_penalty
 
         self.slot = slot
         self.is_equipped = False
