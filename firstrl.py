@@ -527,23 +527,25 @@ class Fighter:
             #Iterate through them
             for i in self.effects:
                 #If an effect with the same name already exists and duplicate hasn't been changed, add its duration to the existing copy.
-                if i.mutation == False and i.effect_name == Effect.effect_name and duplicate==False:
+                if i.effect_name == Effect.effect_name and duplicate==False:
                     #Update variable to stop the iteration through self.effects, as we've found a copy already. This stops duplication.
                     duplicate=True
-                    #Increase this effects duration rather than adding multiple effects, could be done either way but this is simpler.
-                    i.duration += Effect.base_duration
-                    #Increase the variable applied_times which is used in other functions like render_bar() to show how many times poison has been applied
-                    i.applied_times += 1
-                    #Tell the player what happened
-                    message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you further!',
-                            libtcod.white)
 
-                elif i.mutation == True and i.effect_name == Effect.effect_name and duplicate==False:
-                    i.applied_times += 1
+                    if i.mutation == False:
+                        #Increase this effects duration rather than adding multiple effects, could be done either way but this is simpler.
+                        i.duration += Effect.base_duration
+                        #Increase the variable applied_times which is used in other functions like render_bar() to show how many times poison has been applied
+                        i.applied_times += 1
+                        #Tell the player what happened
+                        message('The ' + object_origin_name + ' has ' + Effect.effect_name + ' you further!',
+                                libtcod.white)
+
+                    elif i.mutation == True:
+                        i.applied_times += 1
 
 
             #Else, if a duplicate has not been found.
-            if duplicate==False and Effect.mutation == False:
+            if duplicate == False and Effect.mutation == False:
                 #Add the effect
                 self.effects.append(Effect)
                 #Tell the player what happened
@@ -3048,8 +3050,6 @@ def check_level_up():
                 player.fighter.will +=1
                 message('You sit, contemplating nothing, and everything. Your inner strength grows. (+1 Will)', libtcod.white)
 
-
-
         #Add a random mutation
         level_mutate = (3, 5, 7, 9, 11,)
         for i in level_mutate:
@@ -3058,8 +3058,8 @@ def check_level_up():
                 choice = None
 
                 #Prepare the current effects data, for presentation
-                a_roar = 'Ares Roar (+1 Power side for 10 turns), 250 TURNS/COOLDOWN'
-                h_timeslip = 'Hermes Timeslip (Doubles speed for 10 turns), 300T/CD'
+                a_roar = 'Ares Roar (+1 Power side for 10 turns), 200 TURNS/COOLDOWN'
+                h_timeslip = 'Hermes Timeslip (Doubles speed for 25 turns), 300T/CD'
                 e_power = 'Electric Power (Deal 150 damage to a random enemy in range) 300T/CD'
                 roar_done = False
                 timeslip_done = False
@@ -3069,18 +3069,18 @@ def check_level_up():
 
                         if e.m_a_roar == True:
                             if e.applied_times == 1:
-                                a_roar = 'Ares Roar (+1 Power side for 20 turns), 200 TURNS/COOLDOWN'
+                                a_roar = 'Ares Roar (+1 Power side for 10 turns), 100 TURNS/COOLDOWN'
                             elif e.applied_times == 2:
-                                a_roar = 'Ares Roar (+1 Power side for 30 turns), 125 TURNS/COOLDOWN'
+                                a_roar = 'Ares Roar (+1 Power side for 10 turns), 66 TURNS/COOLDOWN'
                             else:
                                 a_roar = 'Ares Roar cannot be enhanced further.'
                                 roar_done = True
 
                         elif e.m_h_timeslip == True:
                             if e.applied_times == 1:
-                                h_timeslip = 'Hermes Timeslip (Doubles speed for 15 turns), 200T/CD'
+                                h_timeslip = 'Hermes Timeslip (Doubles speed for 25 turns), 150T/CD'
                             elif e.applied_times == 2:
-                                h_timeslip == 'Hermes Timeslip (Doubles speed for 20 turns), 100T/CD'
+                                h_timeslip == 'Hermes Timeslip (Doubles speed for 25 turns), 100T/CD'
                             else:
                                 h_timeslip = 'Hermes Timeslip cannot be enhanced further.'
                                 timeslip_done = True
@@ -3100,12 +3100,27 @@ def check_level_up():
                     choice = menu('Your bravery has earned the gods favour, they offer you a power, which do you choose?\n', [a_roar, h_timeslip, e_power], MUTATION_SCREEN_WIDTH, 1)
 
                     # May be better to leave evasion and accuracy out of the players hands, to keep it simple
-                    if choice == 0 and not roar_done:
-                        player.fighter.add_effect(Effect('Ares Roar', mutation=True, m_a_roar=True, m_loop=10, m_trigger=200), 'The gods convene and offer you ')
+                    if choice == 0:
+                        #If already max, keep askin'
+                        if roar_done != True:
+                            choice = None
+                        #Else, it's not maxed, so add it
+                        else:
+                            player.fighter.add_effect(Effect('Ares Roar', mutation=True, m_a_roar=True, m_loop=10, m_trigger=200), 'The gods convene and offer you ')
                     elif choice == 1:
-                        player.fighter.add_effect(Effect('Hermes Timeslip', mutation=True, m_h_timeslip=True, m_loop=25, m_trigger=200), 'The gods convene and offer you ')
-                    elif choice == 2 and not elec_done:
-                        player.fighter.add_effect(Effect('Electric Power', mutation=True, m_elec=True, m_trigger=150, m_damage=150), 'The gods convene and offer you ')
+                        #If already max, keep askin'
+                        if timeslip_done != True:
+                            choice = None
+                        #Else, it's not maxed, so add it
+                        else:
+                            player.fighter.add_effect(Effect('Hermes Timeslip', mutation=True, m_h_timeslip=True, m_loop=25, m_trigger=300), 'The gods convene and offer you ')
+                    elif choice == 2:
+                        #If already max, keep askin'
+                        if elec_done == True:
+                            choice = None
+                        #Else, it's not maxed, so add it
+                        else:
+                            player.fighter.add_effect(Effect('Electric Power', mutation=True, m_elec=True, m_trigger=150, m_damage=150), 'The gods convene and offer you ')
 
                 render_all()
 
