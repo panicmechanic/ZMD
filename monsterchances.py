@@ -127,4 +127,6 @@ def create_monster(x, y):
                          ai=ai_component,
                          description='A mythical creature; half human, half horse. He is incredibly accurate and quite fast.')
 
+    #elif choice == 'war elephant'
+
     objects.append(monster)

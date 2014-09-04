@@ -176,8 +176,6 @@ For alpha release:
 
 - Make ability to switch between hands for attack
 - Make game save frequently.
-- Fix diff_color to change tile color after tthe maps color_set has been set. Somehow.
-    Need a lerp_color_and_set function to lerp and replace color_set on creation.
 - A couple monsters should have a torch
 - Zeus needs different AI
 - Electric power doesn't show up anymore under the hp and hunger bars, need to find a way to show that info easily.
@@ -357,6 +355,10 @@ Make monster drops a chance of a next level item, build an anticipation. http://
         Gymnastics (dexterity)   - Increase acc/ev, small boost to speed
         Shadow training (stealth)- Improve stealth, defense improve speed
         Meditation (will)        - Improve accuracy, perception checks, skill helps mutations
+
+- Use greek military weaponry (spear, sword, shield) as the players main choices. Spear+shield = defensive long range, 
+
+    sword+shield=defensive close range, spear+sword = melee/ranged mix, spear only = fast agressive (need to be benefits to keeping a free hand for spear) 
 
 
 #Done:

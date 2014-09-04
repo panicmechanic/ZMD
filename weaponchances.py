@@ -112,7 +112,7 @@ def random_item():  #all item chance totals for a subtype will be self contained
     item_chances = {}
     if rand_type == 0:  # Spawn a weapon
         #WEAPON CHANCES - Will have to be called each time for i in range
-        rand_weapon_type = libtcod.random_get_int(0, 0, 2)  # Weapon types, starts at 0, Swords,
+        rand_weapon_type = libtcod.random_get_int(0, 0, 1)  # Weapon types, starts at 0, Swords,
 
 
         if rand_weapon_type == 0:  # Swords
@@ -120,36 +120,21 @@ def random_item():  #all item chance totals for a subtype will be self contained
             item_chances['wooden sword'] = from_dungeon_level([[50, 1], [10, 2]])
             item_chances['bronze sword'] = from_dungeon_level([[5, 3], [10, 4]])
             item_chances['steel sword'] = from_dungeon_level([[1, 3], [15, 5]])
-            item_chances['bronze kopis sword'] = from_dungeon_level([[5, 5], [12, 8]])
-            item_chances['steel kopis sword'] = from_dungeon_level([[1, 8], [4, 10]])
+            item_chances['bronze xiphos sword'] = from_dungeon_level([[5, 5], [12, 8]])
+            item_chances['steel xiphos sword'] = from_dungeon_level([[1, 8], [4, 10]])
             item_chances['steel makhaira sword'] = from_dungeon_level([[1, 10], [4, 12]])
             item_chances['great makhaira sword'] = from_dungeon_level([[1, 10], [2, 14]])
 
-        if rand_weapon_type == 1:  # Axes
+        if rand_weapon_type == 1:  # Spears
 
             item_chances['nothing'] = 10
-            item_chances['bronze axe'] = from_dungeon_level([[1, 1], [10, 4]])
+            item_chances['wooden spear'] = from_dungeon_level([[1, 1], [10, 4]])
             item_chances['rusty steel axe'] = from_dungeon_level([[1, 3], [3, 5], [30, 6]])
             item_chances['steel axe'] = from_dungeon_level([[1, 3], [20, 5]])
             item_chances['diamond axe'] = from_dungeon_level([[5, 5], [10, 8]])
             item_chances['ares axe'] = from_dungeon_level([[1, 10], [4, 12]])
             item_chances['godsbane axe'] = from_dungeon_level([[1, 10], [2, 14]])
 
-        if rand_weapon_type == 2:  # War Hammers
-
-            item_chances['nothing'] = 10
-            item_chances['stone war hammer'] = from_dungeon_level([[5, 1], [60, 2]])
-            item_chances['bronze war hammer'] = from_dungeon_level([[5, 3], [10, 4]])
-            item_chances['pig iron war hammer'] = from_dungeon_level([[1, 3], [3, 5]])
-            item_chances['steel war hammer'] = from_dungeon_level([[1, 3], [10, 5]])
-            item_chances['obsidian war hammer'] = from_dungeon_level([[5, 5], [10, 8]])
-            item_chances['unobtanium war hammer'] = from_dungeon_level([[1, 10], [4, 12]])
-            item_chances['godsbane war hammer'] = from_dungeon_level([[1, 10], [2, 14]])
-
-        #if rand_weapon_type == 3: #Maces
-
-            #item_chances['nothing'] = 10
-            #item_chances['wooden mace'] = from_dungeon_level([[5, 1], [50, 2]])
 
     if rand_type == 1:  # Spawn a piece of armor
         #ARMOR CHANCES - Will have to be called each time for i in range
@@ -210,127 +195,94 @@ def random_item():  #all item chance totals for a subtype will be self contained
 
 
 
-def create_item(x
-                , y):
+def create_item(x, y):
     item_chances = random_item()
     choice = random_choice(item_chances)
 
-    ##SWORDS## Need strength to be accurate.
+    ##SWORDS## Need strength to be accurate, very strong = very accurate. Decreases evasion.
 
     if choice == 'wooden sword':
         #create a wooden sword
         req=3
         equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=2, req_strength=req, accuracy_bonus_sides=(player.fighter.strength - req))
-        item = Object(x, y, '/', 'Wooden Xiphos sword ' + name_stat_gen(equipment_component), libtcod.light_flame, equipment=equipment_component, item=None,
+        item = Object(x, y, '/', name_stat_gen(equipment_component) + ' Wooden Kopis sword', libtcod.light_flame, equipment=equipment_component, item=None,
                       always_visible=True)
 
     elif choice == 'bronze sword':
         req=5
         equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=6, accuracy_bonus_sides=(player.fighter.strength - req))
-        item = Object(x, y, '/', 'Bronze Xiphos sword', libtcod.brass, equipment=equipment_component, item=None,
+        item = Object(x, y, '/', name_stat_gen(equipment_component) + ' Bronze Kopis sword', libtcod.brass, equipment=equipment_component, item=None,
                       always_visible=True)
 
     elif choice == 'steel sword':
         req=7
         equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=10, accuracy_bonus_sides=(player.fighter.strength - req))
-        item = Object(x, y, '/', 'Steel Xiphos sword', libtcod.silver, equipment=equipment_component, item=None,
+        item = Object(x, y, '/', name_stat_gen(equipment_component) + ' Steel Kopis sword', libtcod.silver, equipment=equipment_component, item=None,
                       always_visible=True)
 
-    elif choice == 'bronze kopis sword':
+    elif choice == 'bronze xiphos sword':
         req=9
         equipment_component = Equipment(slot='left hand', power_bonus_dice=2, power_bonus_sides=7, accuracy_bonus_sides=(player.fighter.strength - req))
-        item = Object(x, y, ')', 'Bronze Kopis sword', libtcod.brass, equipment=equipment_component, item=None,
+        item = Object(x, y, ')', name_stat_gen(equipment_component) + 'Bronze Xiphos sword', libtcod.brass, equipment=equipment_component, item=None,
                       always_visible=True)
 
-    elif choice == 'steel kopis sword':
+    elif choice == 'steel xiphos sword':
         req=11
         equipment_component = Equipment(slot='left hand', power_bonus_dice=3, power_bonus_sides=6, accuracy_bonus_sides=(player.fighter.strength - req))
-        item = Object(x, y, ')', 'Steel Kopis sword', libtcod.yellow, equipment=equipment_component, item=None,
+        item = Object(x, y, ')', name_stat_gen(equipment_component) + ' Steel Xiphos sword', libtcod.yellow, equipment=equipment_component, item=None,
                       always_visible=True)
 
+    #TODO: Replace makhaira with falchion.
     elif choice == 'steel makhaira sword':
         req=13
         equipment_component = Equipment(slot='left hand', power_bonus_dice=5, power_bonus_sides=5, accuracy_bonus_sides=(player.fighter.strength - req))
-        item = Object(x, y, '/', 'Steel Makhaira sword', libtcod.silver, equipment=equipment_component, item=None,
+        item = Object(x, y, '/', name_stat_gen(equipment_component) + ' Steel Makhaira sword', libtcod.silver, equipment=equipment_component, item=None,
                       always_visible=True)
 
     elif choice == 'great makhaira sword':
         req=16
         equipment_component = Equipment(slot='left hand', power_bonus_dice=6, power_bonus_sides=7, accuracy_bonus_sides=(player.fighter.strength - req))
-        item = Object(x, y, '/', 'Great Makhaira sword', libtcod.silver, equipment=equipment_component, item=None,
+        item = Object(x, y, '/', name_stat_gen(equipment_component) + ' Great Makhaira sword', libtcod.silver, equipment=equipment_component, item=None,
                       always_visible=True)
 
-    ##AXES##
+    ##SPEARS## No requirements, can attack up to 2 tiles away. Increases evasion.
 
-    elif choice == 'wooden axe':
+    elif choice == 'wooden spear':
         equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=2)
-        item = Object(x, y, chr(244), 'Wooden axe', libtcod.darker_orange, equipment=equipment_component, item=None,
+        item = Object(x, y, chr(244), 'Wooden spear', libtcod.darker_orange, equipment=equipment_component, item=None,
                       always_visible=True)
 
-    elif choice == 'bronze axe':
+    elif choice == 'bronze spear':
         equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=3)
-        item = Object(x, y, chr(244), 'Bronze axe', libtcod.orange, equipment=equipment_component, item=None,
+        item = Object(x, y, chr(244), 'Bronze spear', libtcod.orange, equipment=equipment_component, item=None,
                       always_visible=True)
 
-    elif choice == 'rusty steel axe':
+    elif choice == 'rusty steel spear':
         equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=4)
-        item = Object(x, y, chr(244), 'Rusty steel axe', libtcod.darkest_orange, equipment=equipment_component,
+        item = Object(x, y, chr(244), 'Rusty steel spear', libtcod.darkest_orange, equipment=equipment_component,
                       item=None, always_visible=True)
 
-    elif choice == 'steel axe':
+    elif choice == 'steel spear':
         equipment_component = Equipment(slot='left hand', power_bonus_dice=2, power_bonus_sides=3)
-        item = Object(x, y, chr(244), 'Steel axe', libtcod.silver, equipment=equipment_component, item=None,
+        item = Object(x, y, chr(244), 'Steel spear', libtcod.silver, equipment=equipment_component, item=None,
                       always_visible=True)
 
-    elif choice == 'diamond axe':
+    elif choice == 'diamond spear':
         equipment_component = Equipment(slot='left hand', power_bonus_dice=3, power_bonus_sides=3)
-        item = Object(x, y, chr(244), 'Diamond axe', libtcod.light_blue, equipment=equipment_component, item=None,
+        item = Object(x, y, chr(244), 'Diamond spear', libtcod.light_blue, equipment=equipment_component, item=None,
                       always_visible=True)
 
-    elif choice == 'ares axe':
+    elif choice == 'ares spear':
         equipment_component = Equipment(slot='left hand', power_bonus_dice=4, power_bonus_sides=5)
-        item = Object(x, y, chr(244), 'Ares axe', libtcod.gold, equipment=equipment_component, item=None,
+        item = Object(x, y, chr(244), 'Ares spear', libtcod.gold, equipment=equipment_component, item=None,
                       always_visible=True)
 
-    elif choice == 'godsbane axe':
+    elif choice == 'godsbane spear':
         equipment_component = Equipment(slot='left hand', power_bonus_dice=5, power_bonus_sides=5)
-        item = Object(x, y, chr(244), 'Godsbaneaxe', libtcod.light_blue, equipment=equipment_component, item=None,
+        item = Object(x, y, chr(244), 'Godsbane spear', libtcod.light_blue, equipment=equipment_component, item=None,
                       always_visible=True)
 
-    ##WAR HAMMERS##
 
-    elif choice == 'stone war hammer':
-        equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=2, defense_bonus_dice=-1)
-        item = Object(x, y, chr(24), 'Stone war hammer ' + name_stat_gen(equipment_component), libtcod.darkest_grey, equipment=equipment_component, item=None,
-                      always_visible=True)
-
-    elif choice == 'bronze war hammer':
-        equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=4, defense_bonus_dice=-2)
-        item = Object(x, y, chr(24), 'Bronze war hammer', libtcod.orange, equipment=equipment_component, item=None,
-                      always_visible=True)
-
-    elif choice == 'pig iron war hammer':
-        equipment_component = Equipment(slot='left hand', power_bonus_dice=2, power_bonus_sides=3)
-        item = Object(x, y, chr(24), 'Pig iron war hammer', libtcod.light_grey, equipment=equipment_component, item=None, always_visible=True)
-
-    elif choice == 'steel war hammer':
-        equipment_component = Equipment(slot='left hand', power_bonus_dice=2, power_bonus_sides=6)
-        item = Object(x, y, chr(24), 'Steel war hammer', libtcod.silver, equipment=equipment_component, item=None,
-                      always_visible=True)
-
-    elif choice == 'obsidian war hammer':
-        equipment_component = Equipment(slot='left hand', power_bonus_dice=3, power_bonus_sides=4)
-        item = Object(x, y, chr(24), 'Obsidian war hammer', libtcod.darkest_grey, equipment=equipment_component,
-                      item=None, always_visible=True)
-
-    elif choice == 'unobtanium war hammer':
-        equipment_component = Equipment(slot='left hand', power_bonus_dice=5, power_bonus_sides=5)
-        item = Object(x, y, chr(24), 'Unobtanium war hammer', libtcod.desaturated_green, equipment=equipment_component,
-                      item=None, always_visible=True)
-
-    elif choice == 'godsbane war hammer':
-        equipment_component = Equipment(slot='left hand', power_bonus_dice=8, power_bonus_sides=5)
-        item = Object(x, y, chr(24), 'godsbane war hammer', libtcod.light_grey, equipment=equipment_component, item=None, always_visible=True)
 
     #######
     #ARMOR#
