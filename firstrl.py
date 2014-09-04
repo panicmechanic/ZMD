@@ -372,7 +372,6 @@ class Fighter:
         self.cast_roll = cast_roll
         self.paralysis = paralysis
 
-    #Will need @properties for strength, dex, stealth and will. Will be integers not dice rolls but need to add them to effects and equipment
     @property
     def strength(self):
         bonus = sum(equipment.strength_bonus for equipment in get_all_equipped(self.owner))
@@ -484,8 +483,8 @@ class Fighter:
     @property
     def accuracy(self): #return actual accuracy
         #Equipment bonus, plus one die for every five points of strength
-        bonus_dice = (sum(equipment.accuracy_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_accuracy_dice)+(self.strength/5))
-        #Adds all equipped, all effects, plus one for every point of dexterity
+        bonus_dice = (sum(equipment.accuracy_bonus_dice for equipment in get_all_equipped(self.owner))+(self.base_accuracy_dice)+(self.strength/7))
+        #Adds all equipped, all effects, plus one for every 2 points of dexterity
         bonus_sides = (sum(equipment.accuracy_bonus_sides for equipment in get_all_equipped(self.owner))+(self.base_accuracy_sides)+(self.dexterity/2))
 
         #Need to integrate effects below
@@ -1418,6 +1417,7 @@ def mutation_menu(header):
     elif len(charged_list) >= 1:
         options = []
         for e in charged_list:
+            #Halve for each application to tier cooldowns.
             options.append(str(e.effect_name) + ' ' + str(e.m_count) + '/' + str(e.m_trigger/e.applied_times))
 
     index = menu(header, options, INVENTORY_WIDTH, 1)
@@ -1427,7 +1427,13 @@ def mutation_menu(header):
         return None
 
     effect = charged_list[index]
-    return effect
+
+    if effect is not None and effect.m_count >= effect.m_trigger/effect.applied_times:
+            effect.is_active = True
+            check_run_effects(player)
+            render_all()
+    else:
+        message('This power is not charged or works passively.')
 
 
 def description_menu(header):
@@ -2342,12 +2348,7 @@ def handle_keys():
                 effect = mutation_menu('Choose a charged power to apply')
 
 
-                if effect is not None and effect.m_count >= effect.m_trigger/effect.applied_times:
-                    effect.is_active = True
-                    check_run_effects(player)
-                    render_all()
-                else:
-                    message('This power is not charged or works passively.')
+
 
             #debug
             if key_char == '[':
@@ -3087,9 +3088,9 @@ def check_level_up():
 
                         elif e.m_elec == True:
                             if e.applied_times == 1:
-                                e_power = 'Electric Power (Deal 250 damage to a random enemy in range) 150T/CD'
+                                e_power = 'Electric Power (Deal 150 damage to a random enemy in range) 150T/CD'
                             elif e.applied_times == 2:
-                                e_power = 'Electric Power (Deal 350 damage to a random enemy in range) 80T/CD'
+                                e_power = 'Electric Power (Deal 150 damage to a random enemy in range) 100T/CD'
                             else:
                                 e_power = 'Electric Power cannot be enhanced further.'
                                 elec_done = True
@@ -3102,14 +3103,14 @@ def check_level_up():
                     # May be better to leave evasion and accuracy out of the players hands, to keep it simple
                     if choice == 0:
                         #If already max, keep askin'
-                        if roar_done != True:
+                        if roar_done == True:
                             choice = None
                         #Else, it's not maxed, so add it
                         else:
                             player.fighter.add_effect(Effect('Ares Roar', mutation=True, m_a_roar=True, m_loop=10, m_trigger=200), 'The gods convene and offer you ')
                     elif choice == 1:
                         #If already max, keep askin'
-                        if timeslip_done != True:
+                        if timeslip_done == True:
                             choice = None
                         #Else, it's not maxed, so add it
                         else:

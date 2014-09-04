@@ -203,8 +203,12 @@ def create_item(x, y):
 
     if choice == 'wooden sword':
         #create a wooden sword
+
+        #Accuracy penalty
         req=3
-        equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=2, req_strength=req, accuracy_bonus_sides=(player.fighter.strength - req))
+        #Equipment component
+        equipment_component = Equipment(slot='left hand', power_bonus_dice=1, power_bonus_sides=2, req_strength=req, accuracy_bonus_sides=-req)
+        #Item
         item = Object(x, y, '/', name_stat_gen(equipment_component) + ' Wooden Kopis sword', libtcod.light_flame, equipment=equipment_component, item=None,
                       always_visible=True)
 
