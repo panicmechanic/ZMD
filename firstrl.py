@@ -2348,8 +2348,6 @@ def handle_keys():
                 effect = mutation_menu('Choose a charged power to apply')
 
 
-
-
             #debug
             if key_char == '[':
                 player.fighter.hp = player.fighter.max_hp
