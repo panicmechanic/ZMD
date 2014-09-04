@@ -7,14 +7,17 @@ properly and get it on GitHub. Any help/advice is greatly appreciated.
 
 ###About:
 
-An ancient Greece themed roguelike based on the weak premise that Zeus has gone mad and done something so
- terrible it hath wrought the player out of his mastubatory mansion to claim his revenge.
+An ancient Greece themed roguelike based on the weak premise that Zeus has gone mad and 
+ done something so terrible it hath wrought the player out of his mastubatory mansion to claim his revenge.
 
 The game itself will be familiar to roguelike-fans, hopefully not too much will need explaining, kill Zeus 
- and don't die. The games mission statement is available [here][]
+ and don't die. The games mission statement is available [here][].
+ 
+Pictures and gifs [here.][]
  
 Updates several times a week, new .exe builds will be uploaded if and when I want to.
 
+![screen][]
 ###To play:
 
 ####If you want the .exe (most people):
@@ -74,9 +77,10 @@ Use godly powers - 'a'
 - Godly mutations
 - Speed system
 - Alt-run
-- A pretty torch
+- [A pretty torch][here.]
 
-![prettytorch][] ![aresroar][]
+
+- Fast progress!
 
 ![Progress][beforeafter]
 
@@ -356,8 +360,6 @@ Make monster drops a chance of a next level item, build an anticipation. http://
 
 ###Mission statement:
 
-
-
 ZMD is a roguelike in which you play an ancient Greek gladiator, hunting a beserk Zeus.
 You seek retribution and will have to journey to the top of Mount Olympus to claim your
 prize. On the way you will encounter many different randomised level types; forests,
@@ -381,6 +383,12 @@ The game takes inspiration from Brogue, Sil, Angband and DCSS, and aims to be si
 intuitive, while providing deep and rewarding functionality through the complex systems
 synonymous with roguelikes(such as combat, effects, speed and random generation). It currently uses 
 an experience point system, although this may change in the future.
+
+##Media:
+
+![prettytorch][] 
+
+![aresroar][]
 
 ##Beyond here lies nothing useful.
 
@@ -489,12 +497,16 @@ For alpha release:
     03/09/14 Fixed most bugs. Just some playtesting now
         TOTAL DAYS LEFT = 1 (1)
         ALPHA RELEASE DATE = 4th September
+        
+     
     
  
 
 [splash]: http://i.imgur.com/XvWxZTB.png
 [Click here to download]: https://www.dropbox.com/s/jvdlk87q8xjelvl/ZMD.rar?dl=1
-[here]: https://github.com/panicmechanic/ZMd#mission-statement
+[here]: https://github.com/panicmechanic/ZMD#mission-statement
 [beforeafter]: http://i.imgur.com/NoJgaX5.png
 [prettytorch]: http://i.imgur.com/OXcnCeo.png
 [aresroar]: http://imgur.com/VBmyMqy.png
+[here.]: https://github.com/panicmechanic/ZMD#Media
+[screen]: http://i.imgur.com/RhKwEIl.png

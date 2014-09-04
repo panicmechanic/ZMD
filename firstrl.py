@@ -2344,8 +2344,7 @@ def handle_keys():
 
             #Cast/apply mutations
             if key_char == 'a':
-                save_game()
-                effect = mutation_menu('Choose a charged power to apply')
+                mutation_menu('Choose a charged power to apply')
 
 
             #debug
