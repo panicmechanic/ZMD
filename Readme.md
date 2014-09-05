@@ -506,4 +506,4 @@ For alpha release:
 [prettytorch]: http://i.imgur.com/OXcnCeo.png
 [aresroar]: http://imgur.com/VBmyMqy.png
 [here.]: https://github.com/panicmechanic/ZMD#media
-[screen]: http://i.imgur.com/RhKwEIl.png
+[screen]: http://i.imgur.com/iIGp6ol.png
