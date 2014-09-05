@@ -246,8 +246,7 @@ class Object:
 
             for obj in objects:
                 #If next step is blocked
-                if obj.x == path_x and obj.y == path_y:
-
+                if obj.x == path_x and obj.y == path_y and obj != player and obj != self:
 
                     #Iterate through objects
                     for obj in objects:
@@ -274,10 +273,11 @@ class Object:
                             #Walk the path
                             path_x, path_y = libtcod.path_get(self.path, 0)
 
-                        #Path is still emptry
+                        #Path is still empty
                         else:
                             #do nothing
                             pass
+                    break
 
 
             #normalise it to 1 length (preserving direction), then round it and
@@ -929,7 +929,7 @@ def monster_move_or_attack(monster):
                 print 'no nextx or nexty line 770'
 
         #stop boar and baby boars and pygmys from wandering
-        #elif monster.char != 'p' or dungeon_level != 1:
+        #elif monster.char != 'p' or dungeon_level != 10:
             #path is empty, wander randomly
             #rand_direction = libtcod.random_get_int(0, 1, 12)
             #if rand_direction == 1:
@@ -1247,6 +1247,7 @@ def place_objects(room):
     monsterchances.BasicMonsterAI = BasicMonsterAI
     monsterchances.monster_death = monster_death
     monsterchances.Effect = Effect
+    monsterchances.is_blocked = is_blocked
 
     #TODO: Min_monsters to create minimum danger level.
 
@@ -1299,12 +1300,6 @@ def place_objects(room):
 
             if not is_blocked(x, y):
                 weaponchances.add_food_and_scrolls(x, y)
-
-            if not is_blocked(x, y):
-                add_bones(x, y)
-
-
-
 
 def place_special_rooms():  #TODO: Redo the dungeon generation to allow for special rooms, or ensure v_tun and h_tun will not intersect special room
     global map, objects, stairs, dungeon_level, rooms
@@ -1655,9 +1650,15 @@ def make_map():
 
                 num_rooms += 1
 
+                x = libtcod.random_get_int(0, new_x + 1, new_x - 1)
+                y = libtcod.random_get_int(0, new_y + 1, new_y - 1)
+                if not is_blocked(x, y):
+                    add_bones(x, y)
+
         #create stairs at the center of the last room
         stairs = Object(new_x, new_y, '>', 'stairs', libtcod.white, always_visible=True)
         objects.append(stairs)
+        map[new_x][new_y].diff_color = libtcod.yellow
         stairs.send_to_back()  # so it's drawn below the monsters
 
 def menu(header, options, width, type):
@@ -2399,6 +2400,9 @@ def handle_keys():
                     for x in range(MAP_WIDTH):
                         if map[x][y].debug_path == True:
                             map[x][y].debug_path = False
+
+            if key_char == 'P':
+                next_level()
 
 
             if key_char == 'r':
@@ -3169,7 +3173,7 @@ def check_by_turn(speed):
         #Add one to the count
         hunger_fire += 1
         #If count is 2, decrease hunger by HUNGER_RATE
-        if hunger_fire == 2:
+        if hunger_fire >= 2:
             hunger_level -= HUNGER_RATE
             #Reset hunger_fire
             hunger_fire = 0
@@ -3216,7 +3220,7 @@ def check_by_turn(speed):
     if hunger_level <= 0:
         message('You are starving!', libtcod.light_red)
         player.fighter.take_damage(2)
-        warning_count = 0
+
 
 
 def total_turns():

@@ -78,8 +78,6 @@ Use godly powers - 'a'
 - Speed system
 - Alt-run
 - [A pretty torch][here.]
-
-
 - Fast progress!
 
 ![Progress][beforeafter]
@@ -125,7 +123,16 @@ an experience point system, although this may change in the future.
         
 ###Remaining major TODO (in rough order):
 
+- Fix gambreaking bug:
+
+        File "C:/Users/SABER/PycharmProjects/ZMD/firstrl.py", line 1750, in render_all
+            libtcod.map_compute_fov(fov_map, player.x, player.y, TORCH_RADIUS, FOV_LIGHT_WALLS, FOV_ALGO)
+          File "C:\Users\SABER\PycharmProjects\ZMD\libtcodpy.py", line 1539, in map_compute_fov
+            _lib.TCOD_map_compute_fov(m, x, y, c_int(radius), c_bool(light_walls), c_int(algo))
+        WindowsError: exception: access violation writing 0x0000F420
+        
 - Add a version number on title screen
+- Do performance analysis, pathing is slow when many monsters in fov.
 - Find a way to make weapons less accurate the weaker the player is, and more accurate the stronger the player is. 
 
     Probably a new @property calculated by equipment class.

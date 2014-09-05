@@ -58,7 +58,7 @@ def create_monster(x, y):
         #create an eagle
         fighter_component = Fighter(hp=40, defense_dice=2, defense_sides=8, power_dice=3, power_sides=6, evasion_dice=1, evasion_sides=7, accuracy_dice=3, accuracy_sides=8, xp=120, speed=10, death_function=monster_death)
         ai_component = BasicMonsterAI()
-        monster = Object(x, y, 'e', 'Eagle', libtcod.darker_sepia, blocks=True, fighter=fighter_component,
+        monster = Object(x, y, 'e', 'Eagle', libtcod.light_sepia, blocks=True, fighter=fighter_component,
                          ai=ai_component,
                          description='A huge brown eagle, his muscular wings and razor sharp beak look threatening.')
 
