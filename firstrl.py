@@ -2946,7 +2946,7 @@ def main_menu():
             'Version 0.1')
 
         #show options and wait for the player's choice
-        choice = menu('', ['Play a new game', 'Continue last game', 'Quit'], 24, 0)
+        choice = menu('', ['New game', 'Load game', 'Quit'], 24, 0)
 
         if choice == 0:  #new game
             new_game()

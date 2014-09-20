@@ -139,7 +139,6 @@ an experience point system, although this may change in the future.
 - Make ability to switch between hands for attack
 - Make game save frequently.
 - A couple monsters should have a torch
-- Zeus needs different AI
 - Electric power doesn't show up anymore under the hp and hunger bars, need to find a way to show that info easily.
 - Add description to box with auto wrap
 - Seems I can't apply an effect to monsters? (When attempting to apply burning effect to monsters with cast_fireball())
@@ -507,7 +506,7 @@ For alpha release:
  
 
 [splash]: http://i.imgur.com/XvWxZTB.png
-[Click here to download]: https://www.dropbox.com/s/jvdlk87q8xjelvl/ZMD.rar?dl=1
+[Click here to download]: https://github.com/panicmechanic/ZMD/releases
 [here]: https://github.com/panicmechanic/ZMD#mission-statement
 [beforeafter]: http://i.imgur.com/NoJgaX5.png
 [prettytorch]: http://i.imgur.com/OXcnCeo.png
