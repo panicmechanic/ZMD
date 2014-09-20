@@ -131,7 +131,7 @@ an experience point system, although this may change in the future.
             _lib.TCOD_map_compute_fov(m, x, y, c_int(radius), c_bool(light_walls), c_int(algo))
         WindowsError: exception: access violation writing 0x0000F420
         
-- Add a version number on title screen
+
 - Do performance analysis, pathing is slow when many monsters in fov.
 - Find a way to make weapons less accurate the weaker the player is, and more accurate the stronger the player is. 
 

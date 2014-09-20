@@ -2936,8 +2936,14 @@ def main_menu():
         #show the background image, at twice the regular console resolution
         libtcod.image_blit_2x(img, 0, 0, 0)
 
+
+
         #show the game's title, and some credits
-        libtcod.console_set_default_foreground(0, libtcod.black)
+        libtcod.console_set_default_foreground(0, libtcod.yellow)
+
+        #Show the games version number
+        libtcod.console_print_ex(0, SCREEN_WIDTH-6, SCREEN_HEIGHT-1, libtcod.BKGND_NONE, libtcod.CENTER,
+            'Version 0.1')
 
         #show options and wait for the player's choice
         choice = menu('', ['Play a new game', 'Continue last game', 'Quit'], 24, 0)
