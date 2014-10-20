@@ -2423,6 +2423,11 @@ def handle_keys():
                     msgbox(str(chosen_object.name.capitalize()) + ':' + '\n\n' + str(chosen_object.description) + '\n',
                            CHARACTER_SCREEN_WIDTH)
 
+            if key_char == '?':
+                msgbox('Move with the numpad or arrow keys\n'+ 'Rest a turn - Numpad 5\n' + 'Sprint - Alt + any directional key\n' + "AutoRest - Alt + '5' or 'r'\n"
+                       + "Inventory - 'i'\n" + "Describe object - Right mouse click over tile\n" + "Pick up - 'g'\n" + "Drop item - 'd'\n" + "Down stairs - '>'\n"
+                       + "Character stats - 'c'\n" + "Use godly powers - 'a'", 40)
+
             if key_char == '>':
                 #go down stairs, if the player is on them
                 if stairs.x == player.x and stairs.y == player.y and dungeon_level != 10:
@@ -2440,7 +2445,6 @@ def handle_keys():
                         player.fighter.stealth) + '\nWill: ' + str(player.fighter.will) + '\nSpeed: ' + str(player.fighter.speed), CHARACTER_SCREEN_WIDTH)
 
             return 'didnt-take-turn'
-
 
 def player_rest():
     global fov_recompute

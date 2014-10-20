@@ -319,8 +319,10 @@ Make monster drops a chance of a next level item, build an anticipation. http://
 
 - Use greek military weaponry (spear, sword, shield) as the players main choices. Spear+shield = defensive long range, 
 
-    sword+shield=defensive close range, spear+sword = melee/ranged mix, spear only = fast agressive (need to be benefits to keeping a free hand for spear) 
-
+    sword+shield=defensive close range, spear+sword = melee/ranged mix, spear only = fast agressive (need to be benefits to keeping a free hand for spear)
+    
+- Interesting article on piece armor - http://paizo.com/pathfinderRPG/prd/ultimateCombat/variants/piecemealArmor.html (Zireal07 mentioned checknig out P&P RPG's)
+- Would be nice to add in some monsters from here: http://en.wikipedia.org/wiki/Ugly_Americans_(TV_series)#Critical_reception
 
 ###Done:
 
