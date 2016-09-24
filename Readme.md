@@ -11,7 +11,7 @@ An ancient Greece themed roguelike based on the weak premise that Zeus has gone 
  done something so terrible it hath wrought the player out of his mastubatory mansion to claim his revenge.
 
 The game itself will be familiar to roguelike-fans, hopefully not too much will need explaining, kill Zeus 
- and don't die. The games mission statement is available [here][].
+ and don't die. The game's mission statement is available [here][].
  
 Pictures and gifs [here.][]
  
